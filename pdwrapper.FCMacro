@@ -1,17 +1,15 @@
 # -*- coding: utf-8 -*-
-__version__ = "0.2021.10.01.rev2"
-#__version__ = "0.2021.10.01.rev2"
+__version__ = "0.2021.10.03.rev2"
+#__version__ = "0.2021.10.03.rev2"
 ## PDWrapper a class to encapsulate non-Part Design objects into a PartDesign::FeaturePython object
 ## 2021, by <TheMarkster>
 
 #import FreeCAD, FreeCADGui
 #import Part
 
-
-
 #class PDWrapper:
 #    def __init__(self,obj):
-#        #obj.addExtension("Part::AttachExtensionPython")#not really working right at the moment
+#        #obj.addExtension("Part::AttachExtensionPython")#not really working right, so clear some space in property view
 #        obj.addProperty("Part::PropertyPartShape","AddSubShape","Base")
 #        obj.addProperty("App::PropertyLink","PatternBase","Pattern Shape","Base shape presented for patterning")
 #        obj.addProperty("App::PropertyLink","PatternTool","Pattern Shape","Tool used with Pattern Base for creating patten shape to use with patterning")
@@ -27,6 +25,9 @@ __version__ = "0.2021.10.01.rev2"
 #        obj.addProperty("App::PropertyString","Type","Pattern Shape","This object type, can be Additive, Subtractive, Common, XOR, None")
 #        obj.addProperty("App::PropertyFloatConstraint","MeshTolerance","Mesh","Tolerance when wrapping mesh objects").MeshTolerance = (0.1,0.001,10000,.1)
 #        obj.addProperty("App::PropertyBool","RefineMesh","Mesh","Whether to refine Mesh shape after conversion").RefineMesh = True
+#        obj.addProperty("App::PropertyEnumeration","TipManagement","TipShape","If Automatic, wrapper resets TipBase automatically, if Manual, user must manage tip base").TipManagement = ["Automatic","Manual"]
+#        obj.addProperty("App::PropertyBool","EnableWarnings","PDWrapper","Enable/disable warning messages").EnableWarnings = True
+#        obj.TipManagement = "Automatic"
 #        obj.setEditorMode("Type",1) #readonly
 #        obj.setEditorMode("Body",1) #readonly
 #        obj.setEditorMode("Version",1)
@@ -36,6 +37,11 @@ __version__ = "0.2021.10.01.rev2"
 #    def onChanged(self,fp,prop):
 #        if prop == "MeshTolerance" or prop == "RefineMesh":
 #            self.resetMeshCache(fp)
+#
+#    def warn(self,fp,msg):
+#        if fp.EnableWarnings:
+#            FreeCAD.Console.PrintWarning(msg)
+#            FreeCAD.Console.PrintMessage("PDWrapper warnings may be suppressed with the Enable Warnings property\n")
 
 #    def resetMeshCache(self,fp):
 #        meshProps = [prop for prop in fp.PropertiesList if "_from_mesh" in prop]
@@ -76,7 +82,7 @@ __version__ = "0.2021.10.01.rev2"
 #        def checkSolids(link):
 #            if hasattr(link,"Shape"):
 #                if len(link.Shape.Solids)>1:
-#                    FreeCAD.Console.PrintWarning(link.Name+" ("+link.Label+") has multiple solids.  Subsequent Part Design operations might fail.\n")
+#                    self.warn(fp,link.Name+" ("+link.Label+") has multiple solids.  Subsequent Part Design operations might fail.\n")
 
 #        body = FreeCADGui.ActiveDocument.ActiveView.getActiveObject("pdbody")
 #        if body and not link in body.Group:
@@ -124,7 +130,24 @@ __version__ = "0.2021.10.01.rev2"
 #        else:
 #            return self.getShape(fp,fp.LinkedObject)
 
+#    def getPreviousFeature(self,fp):
+#        doc = FreeCAD.ActiveDocument
+#        if fp.Body:
+#            body = doc.getObject(fp.Body)
+#        else:
+#            raise Exception("Runtime error: can't find Body.  PDWrapper objects should not be moved to another Body.  Delete the wrapper and create a new one instead.\n")
+#        solids = [sol for sol in body.Group if sol.isDerivedFrom("PartDesign::Feature")]
+#        if not fp in solids:
+#            raise Exception("PDWrapper object not in body.  PDWrapper objects should not be moved to another Body.  Delete the wrapper and create a new one instead.\n")
+#        idx = solids.index(fp)
+#        if idx == 0:
+#            return None #fp is first solid feature
+#        else:
+#            return solids[idx-1]
+#
 #    def execute(self,fp):
+#        if fp.TipManagement == "Automatic":
+#            fp.TipBase = self.getPreviousFeature(fp)
 #        if hasattr(fp,"Refine1"):
 #            fp.removeProperty("Refine1") #PD features might already have a Refine feature
 #        if fp.LinkedObject:
@@ -147,13 +170,13 @@ __version__ = "0.2021.10.01.rev2"
 #                fp.Shape = fusion.cut(common)
 #        elif fp.TipBase:
 #            fp.Shape = self.getShape(fp,fp.TipBase)
-
-
 #        if not fp.Shape.isNull() and fp.Refine:
 #            fp.Shape = fp.Shape.removeSplitter()
 #        if fp.Type != "None":
 #            addsubshape = self.makeAddSubShape(fp)
 #            fp.AddSubShape = addsubshape if not fp.Refine else addsubshape.removeSplitter()
+#        if len(fp.Shape.Solids)>1:
+#            self.warn(fp,"PDWrapper shape has multiple solids.  Future operations might fail or produce unexpected results.\n") 
 
 
 
@@ -494,40 +517,52 @@ __version__ = "0.2021.10.01.rev2"
 #if __name__ == "__main__":
 #    FreeCAD.Console.PrintMessage("This file is for import only.  Please run pdwrapper.FCMacro to create object.\n")
 
-##CODE_ENDS_HERE
 
-
-
-
+########################################
+#CODE_ENDS_HERE
 
 
 BASENAME = "pdwrapper"
 
-def getTipBase(fromBody,wrapper):
-    if fromBody.Tip and fromBody.Tip != wrapper:
-        return fromBody.Tip
-    solids = [ii for ii in fromBody.Group if hasattr(ii,"Shape") and len(ii.Shape.Solids) >= 1 and ii != wrapper and ii.isDerivedFrom("PartDesign::Feature")]
+def getTipBase(fromBody,wrapper): #empower the user by letting him select where to put this new wrapper
+    '''return (before feature, new tip)'''
+    from PySide import QtGui,QtCore
+    def parens(name,label):
+        return name + " ("+label+")" if label != name else name
+    solids = [ii for ii in fromBody.Group if hasattr(ii,"Shape") and len(ii.Shape.Solids) >= 1 and ii.isDerivedFrom("PartDesign::Feature")]
     if len(solids) == 0:
-        return None
-    elif len(solids) == 1:
-        return solids[0] #no need for dialog
-    items = [ss.Name + " ("+ss.Label+")" for ss in solids]
-    default = len(items)-1
-    window = FreeCADGui.getMainWindow()
-    item,ok = QtGui.QInputDialog.getItem(window,"Choose previous solid feature","Select previous solid, typically the.\n\
-tip object\n", items, default, False)
-    if ok:
-        return solids[items.index(item)]
+        return (None,wrapper) #empty body, so wrapper is new tip
+    else:
+        #BaseFeature, if any, should be first, but if the user wants to try to put this ahead of it let him try it
+        items2 = ["Beginning of Body"]+[parens(ss.Name,ss.Label) for ss in solids]
+        default = len(items2)-1
+        window = FreeCADGui.getMainWindow()
+        QtGui.QInputDialog.InputDialogOption = QtGui.QInputDialog.NoButtons
+        item2,ok = QtGui.QInputDialog.getItem(window,"Set previous feature",
+"Select what should come *before* this object in the tree.\n\
+Cancel will put the new wrapper object last in the tree.\n\
+Note: the last item in the tree will be set as the new tip\n\
+and made the visible feature in the tree.  You may, of course, \n\
+change this after the wrapper and the wrapped object are placed.\n", items2, default, False)
+        if not ok or item2 == items2[-1]:
+            return (solids[-1],wrapper) #put at end of list and make wrapper new tip
+        elif item2 == items2[0]:
+            return (None,solids[-1]) #put at front of body, last solid is new tip
+        else: #user selected neither the first nor the last feature
+              #first -1 because of string as first item
+              #second -1 because we want the last solid to be the new tip
+            return (solids[items2.index(item2)-1],solids[-1])
+
 
 def makeObject(PDW):
-
+    from PySide import QtGui,QtCore
     doc = FreeCAD.ActiveDocument
     body=FreeCADGui.ActiveDocument.ActiveView.getActiveObject("pdbody")
     if not body:
         body = getBody(doc)
 
     if not body:
-        FreeCAD.Console.PrintError("No body in active document.  Create a body and try again.\n")
+        FreeCAD.Console.PrintError("No body in active document or user canceled.\n")
     else:
         if body and doc:
             doc.openTransaction("Create PDWrapper")
@@ -537,38 +572,51 @@ def makeObject(PDW):
                     if body:
                         window = FreeCADGui.getMainWindow()
                         items=["Additive","Subtractive","Common (Additive)","Common (Subtractive)","XOR (Additive)","XOR (Subtractive)","None"]
-                        item,ok = QtGui.QInputDialog.getItem(window,"Choose wrapper type","Select wrapper type for this object.\n\
-    You can change the operation type later, but choose Additive or Subtractive if\n\
-    you want to be able to do use in a Part Design pattern (array) later.\n ", items, 0, False)
+                        item,ok = QtGui.QInputDialog.getItem(window,"Wrapper type",
+"Select wrapper type for this object. You can change the operations later, but Additive or \n\
+Subtractive can only be chosen now, at the time of object creation, and can't be changed later. \n\
+Additive or Subtractive is required if you want to be able to use the wrapped object in a \n\
+Part Design pattern (array) later.\n ", items, 0, False)
                         if ok:
-
                             if item == items[0]:#Additive
-                                wrapper = body.newObject("PartDesign::FeatureAdditivePython","PDWrapper")
-                                PDW.PDWrapper(wrapper)
-                                PDW.PDWrapperVP(wrapper.ViewObject)
-                                wrapper.TipBase = getTipBase(body,wrapper)
-                                wrapper.TipTool = selobj.Object
-                                wrapper.TipOperation = "Fuse"
-                                wrapper.Type = "Additive"
-                                wrapper.PatternBase = selobj.Object #fp.LinkedObject
-                                wrapper.PatternOperation = "None"
-                                wrapper.PatternTool = None
+                                wrapper = doc.addObject("PartDesign::FeatureAdditivePython","PDWrapper")
+                                PDW.PDWrapper(wrapper) #body.newObject would add this to the end each time and make it the new tip
+                                PDW.PDWrapperVP(wrapper.ViewObject) #we'll empower the user to make this decision each time
+                                tipBase,newTip = getTipBase(body,wrapper) #tipBase is previous solid feature or None
+                                body.insertObject(wrapper, tipBase, True) #insert into the body before adding links to avoid scope warnings
+                                body.Tip = newTip #newTip is the last solid in the body, which might be the wrapper, user can always set a new tip
+                                newTip.ViewObject.Visibility = True #make the new tip visible so it is obvious to the user what the body shape looks like
+                                wrapper.TipBase = tipBase #base for the tip shape
+                                wrapper.TipTool = selobj.Object #tool for the tip shape
+                                wrapper.TipOperation = "Fuse" #op to perform on base and tool to create tip shape
+                                wrapper.Type = "Additive" #for our reference only and to remind user of type selected
+                                wrapper.PatternBase = selobj.Object #base used to create AddSubShape for use in patterns
+                                wrapper.PatternOperation = "None" #operation to perform on base and tool to create pattern shape
+                                wrapper.PatternTool = None #tool for pattern shape boolean, if any
                             elif item == items[1]:#Subtractive
-                                wrapper = body.newObject("PartDesign::FeatureSubtractivePython","PDWrapper")
+                                wrapper = doc.addObject("PartDesign::FeatureSubtractivePython","PDWrapper")
                                 PDW.PDWrapper(wrapper)
                                 PDW.PDWrapperVP(wrapper.ViewObject)
-                                wrapper.TipBase = getTipBase(body,wrapper)
+                                tipBase,newTip = getTipBase(body,wrapper)
+                                body.insertObject(wrapper, tipBase, True)
+                                body.Tip = newTip
+                                newTip.ViewObject.Visibility = True
+                                wrapper.TipBase = tipBase
                                 wrapper.TipOperation = "Cut"
                                 wrapper.Type = "Subtractive"
-                                wrapper.PatternBase = selobj.Object #fp.LinkedObject
+                                wrapper.PatternBase = selobj.Object #also fp.LinkedObject
                                 wrapper.TipTool = selobj.Object
                                 wrapper.PatternOperation = "None"
                                 wrapper.PatternTool = None
                             elif item == items[2]:#Common additive
-                                wrapper = body.newObject("PartDesign::FeatureAdditivePython","PDWrapper")
+                                wrapper = doc.addObject("PartDesign::FeatureAdditivePython","PDWrapper")
                                 PDW.PDWrapper(wrapper)
                                 PDW.PDWrapperVP(wrapper.ViewObject)
-                                wrapper.TipBase = getTipBase(body,wrapper)
+                                tipBase,newTip = getTipBase(body,wrapper)
+                                body.insertObject(wrapper, tipBase, True)
+                                body.Tip = newTip
+                                newTip.ViewObject.Visibility = True
+                                wrapper.TipBase = tipBase
                                 wrapper.TipOperation = "Common"
                                 wrapper.Type = "Additive"
                                 wrapper.TipTool = selobj.Object
@@ -576,10 +624,14 @@ def makeObject(PDW):
                                 wrapper.PatternOperation = "Common"
                                 wrapper.PatternTool = selobj.Object
                             elif item == items[3]:#Common subtractive
-                                wrapper = body.newObject("PartDesign::FeatureSubtractivePython","PDWrapper")
+                                wrapper = doc.addObject("PartDesign::FeatureSubtractivePython","PDWrapper")
                                 PDW.PDWrapper(wrapper)
                                 PDW.PDWrapperVP(wrapper.ViewObject)
-                                wrapper.TipBase = getTipBase(body,wrapper)
+                                tipBase,newTip = getTipBase(body,wrapper)
+                                body.insertObject(wrapper, tipBase, True)
+                                body.Tip = newTip
+                                newTip.ViewObject.Visibility = True
+                                wrapper.TipBase = tipBase
                                 wrapper.TipOperation = "Common"
                                 wrapper.Type = "Subtractive"
                                 wrapper.TipTool = selobj.Object
@@ -587,10 +639,14 @@ def makeObject(PDW):
                                 wrapper.PatternOperation = "Common"
                                 wrapper.PatternTool = selobj.Object
                             elif item == items[4]: #XOR additive
-                                wrapper = body.newObject("PartDesign::FeatureAdditivePython","PDWrapper")
+                                wrapper = doc.addObject("PartDesign::FeatureAdditivePython","PDWrapper")
                                 PDW.PDWrapper(wrapper)
                                 PDW.PDWrapperVP(wrapper.ViewObject)
-                                wrapper.TipBase = getTipBase(body,wrapper)
+                                tipBase,newTip = getTipBase(body,wrapper)
+                                body.insertObject(wrapper, tipBase, True)
+                                body.Tip = newTip
+                                newTip.ViewObject.Visibility = True
+                                wrapper.TipBase = tipBase
                                 wrapper.TipOperation = "XOR"
                                 wrapper.Type = "Additive"
                                 wrapper.TipTool = selobj.Object
@@ -598,10 +654,14 @@ def makeObject(PDW):
                                 wrapper.PatternOperation = "XOR"
                                 wrapper.PatternTool = selobj.Object
                             elif item == items[5]: #XOR subtractive
-                                wrapper = body.newObject("PartDesign::FeatureSubtractivePython","PDWrapper")
+                                wrapper = doc.addObject("PartDesign::FeatureSubtractivePython","PDWrapper")
                                 PDW.PDWrapper(wrapper)
                                 PDW.PDWrapperVP(wrapper.ViewObject)
-                                wrapper.TipBase = getTipBase(body,wrapper)
+                                tipBase,newTip = getTipBase(body,wrapper)
+                                body.insertObject(wrapper, tipBase, True)
+                                body.Tip = newTip
+                                newTip.ViewObject.Visibility = True
+                                wrapper.TipBase = tipBase
                                 wrapper.TipOperation = "XOR"
                                 wrapper.Type = "Subtractive"
                                 wrapper.TipTool = selobj.Object
@@ -610,13 +670,17 @@ def makeObject(PDW):
                                 wrapper.PatternTool = selobj.Object
 
                             else: # item == items[6]:
-                                wrapper = body.newObject("PartDesign::FeaturePython","PDWrapper")
+                                wrapper = doc.addObject("PartDesign::FeaturePython","PDWrapper")
                                 PDW.PDWrapper(wrapper)
                                 PDW.PDWrapperVP(wrapper.ViewObject)
-                                wrapper.TipBase = getTipBase(body,wrapper)
+                                tipBase,newTip = getTipBase(body,wrapper)
+                                body.insertObject(wrapper, tipBase, True)
+                                body.Tip = newTip
+                                newTip.ViewObject.Visibility = True
+                                wrapper.TipBase = tipBase
                                 wrapper.TipTool = selobj.Object
                                 wrapper.TipOperation = "Fuse"
-                                wrapper.Type = "None"
+                                wrapper.Type = "None" #neither additive nor subtractive, so hide these properties
                                 wrapper.setEditorMode("PatternBase",2)
                                 wrapper.setEditorMode("PatternTool",2)
                                 wrapper.setEditorMode("PatternOperation",2)
@@ -634,20 +698,25 @@ def makeObject(PDW):
                 FreeCAD.Console.PrintError("No active body.  Toggle a body active and try again.\n")
 
 def getBody(doc):
+    from PySide import QtGui,QtCore
+    def parens(name,label):
+        return name + " ("+label+")" if name != label else name
     bodies = [obj for obj in doc.Objects if obj.TypeId == "PartDesign::Body"]
     if len(bodies) == 1:
         return bodies[0]
     if len(bodies) == 0:
         return None
-    items = [ii.Name + " ("+ii.Label+")" for ii in bodies]
+    items = [parens(ii.Name,ii.Label) for ii in bodies]
     window = FreeCADGui.getMainWindow()
-    item,ok = QtGui.QInputDialog.getItem(window,"Choose body","No active body, so please select the body to which \n\
+    item,ok = QtGui.QInputDialog.getItem(window,"Choose body",
+"Multiple bodies, but none are active, so please select the body to which \n\
 this feature should be added\n", items, 0, False)
     if ok:
         return bodies[items.index(item)]
     else:
         return None
 
+#################
 def writeFile():
     with open(py_file,"w") as outfile:
         for line in code.splitlines():
@@ -681,15 +750,15 @@ if __name__ == "__main__":
     if not bHasFile:
         from PySide import QtCore,QtGui
         window = QtGui.QApplication.activeWindow()
-        items = ["Yes, go ahead and create the file.", "No, do not create the file.","Cancel"]
+        items = ["Create the file.", "Do not create the file.","Cancel"]
         caption = "In order for "+BASENAME+" objects to be parametric after saving and reloading file\n\
 we need to create another file on this computer.  File to be created will be: \n\n"+py_file+"\n\n\
 This makes it available to the system upon restarting FreeCAD and loading documents containing the \n\
-"+BASENAME+" feature python objects.  May we proceed?\n\n"
+"+BASENAME+" feature python objects.  Create file now?\n\n"
         item,ok = QtGui.QInputDialog.getItem(window,"One time installation",caption,items)
         if ok and item == items[0]:
             writeFile()
-            QtGui.QMessageBox.information(window,"Success","File successfully created.  Please note: if you uninstall "+BASENAME+" macro you need to manually remove this file, too.\n")
+            QtGui.QMessageBox.information(window,"Success","File successfully created.  Please note: if you uninstall "+BASENAME+" macro you need to manually remove "+py_file+", too.\n")
         else:
             new_lines = []
             for line in code.splitlines():
@@ -728,10 +797,3 @@ This makes it available to the system upon restarting FreeCAD and loading docume
             QtGui.QMessageBox.information(window,"Version upated",BASENAME+".py has been updated.  You must restart FreeCAD for the new changes to take effect.")
         else:
             makeObject(PDW)
-
-#from pdwrapper import PDWrapper, PDWrapperVP
-#from PySide import QtGui,QtCore
-
-
-
-
