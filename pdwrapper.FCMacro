@@ -1,0 +1,737 @@
+# -*- coding: utf-8 -*-
+__version__ = "0.2021.10.01.rev2"
+#__version__ = "0.2021.10.01.rev2"
+## PDWrapper a class to encapsulate non-Part Design objects into a PartDesign::FeaturePython object
+## 2021, by <TheMarkster>
+
+#import FreeCAD, FreeCADGui
+#import Part
+
+
+
+#class PDWrapper:
+#    def __init__(self,obj):
+#        #obj.addExtension("Part::AttachExtensionPython")#not really working right at the moment
+#        obj.addProperty("Part::PropertyPartShape","AddSubShape","Base")
+#        obj.addProperty("App::PropertyLink","PatternBase","Pattern Shape","Base shape presented for patterning")
+#        obj.addProperty("App::PropertyLink","PatternTool","Pattern Shape","Tool used with Pattern Base for creating patten shape to use with patterning")
+#        obj.addProperty("App::PropertyEnumeration","PatternOperation","Pattern Shape","Operation to make pattern shape from the base and tool -- not used if no tool").PatternOperation =["None","Cut","Fuse","Common","XOR"]
+#        obj.addProperty("App::PropertyLink","LinkedObject","PDWrapper","Object this wrapper is based on -- should normally be a solid based itself on the last item in the body (the tip).")
+#        obj.addProperty("App::PropertyString","Version","PDWrapper", "Version used to create this PDWrapper object").Version = __version__
+#        obj.addProperty("App::PropertyString","Body","PDWrapper","Name of body containing this wrapper object")
+#        obj.addProperty("App::PropertyBool","ClaimChildren","PDWrapper","Whether to claim children in tree").ClaimChildren = True
+#        obj.addProperty("App::PropertyLink","TipBase","TipShape","Base shape for making the tip shape for this feature")
+#        obj.addProperty("App::PropertyLink","TipTool","TipShape","Tool shape for making the tip shape for this feature")
+#        obj.addProperty("App::PropertyEnumeration","TipOperation","TipShape","Operation to perform with Tip Base and Tip Tool to create feature shape").TipOperation=["Fuse","Cut","Common","XOR"]
+#        obj.addProperty("App::PropertyBool","Refine","PDWrapper","Whether to refine shape (removes extra edges")
+#        obj.addProperty("App::PropertyString","Type","Pattern Shape","This object type, can be Additive, Subtractive, Common, XOR, None")
+#        obj.addProperty("App::PropertyFloatConstraint","MeshTolerance","Mesh","Tolerance when wrapping mesh objects").MeshTolerance = (0.1,0.001,10000,.1)
+#        obj.addProperty("App::PropertyBool","RefineMesh","Mesh","Whether to refine Mesh shape after conversion").RefineMesh = True
+#        obj.setEditorMode("Type",1) #readonly
+#        obj.setEditorMode("Body",1) #readonly
+#        obj.setEditorMode("Version",1)
+#        obj.setEditorMode("AddSubShape",2) #hidden
+#        obj.Proxy = self
+
+#    def onChanged(self,fp,prop):
+#        if prop == "MeshTolerance" or prop == "RefineMesh":
+#            self.resetMeshCache(fp)
+
+#    def resetMeshCache(self,fp):
+#        meshProps = [prop for prop in fp.PropertiesList if "_from_mesh" in prop]
+#        for meshProp in meshProps:
+#            setattr(fp,meshProp,Part.Shape()) #null shape
+
+#    def getShape(self,fp,link):
+#        '''get the shape of link and return it, if mesh, build shape,cache it, and return it'''
+#        if hasattr(link,"Shape"):
+#            return link.Shape
+#        elif hasattr(link,"Mesh"):
+#            propName = link.Name+"_from_mesh"
+#            if hasattr(fp,propName) and not getattr(fp,propName).isNull():
+#                return getattr(fp,propName)
+#            else: #cache the shape so we do not have to rebuild on each access
+#                if not hasattr(fp,propName):
+#                    fp.addProperty("Part::PropertyPartShape",propName)
+#                    fp.setEditorMode(propName,2) #hidden
+#                mesh_shape = Part.Shape()
+#                mesh_shape.makeShapeFromMesh(link.Mesh.Topology,fp.MeshTolerance)
+#                shells = mesh_shape.Shells
+#                if fp.RefineMesh:
+#                    solids = [Part.makeSolid(shell).removeSplitter() for shell in shells]
+#                else:
+#                    solids = [Part.makeSolid(shell) for shell in shells]
+#                if len(solids) == 1:
+#                    setattr(fp,propName,solids[0])
+#                elif len(solids) == 0:
+#                    setattr(fp,propName,Part.Shape()) #likely to throw exception
+#                else:
+#                    sh = solids[0]
+#                    sh = sh.multiFuse(solids[1:])
+#                    sh = sh.removeSplitter() if fp.RefineMesh else sh
+#                    setattr(fp,propName,sh)
+#                return getattr(fp,propName)
+
+#    def placeInBody(self,fp,link):
+#        def checkSolids(link):
+#            if hasattr(link,"Shape"):
+#                if len(link.Shape.Solids)>1:
+#                    FreeCAD.Console.PrintWarning(link.Name+" ("+link.Label+") has multiple solids.  Subsequent Part Design operations might fail.\n")
+
+#        body = FreeCADGui.ActiveDocument.ActiveView.getActiveObject("pdbody")
+#        if body and not link in body.Group:
+#            body.Group += [link]
+#            checkSolids(link)
+#        else: #body not active
+#            parents = fp.Parents
+#            if parents:
+#                body = parents[0][0]
+#                if body.TypeId == "PartDesign::Body":
+#                    if not link in body.Group:
+#                        body.Group += [link]
+#                        checkSolids(link)
+#        if body:
+#            fp.Body = body.Name
+#        else:
+#            fp.Body = ""
+
+#    def makeAddSubShape(self,fp):
+#        ''' create addsubshape and return as shape
+#            this is shape used in patterning, for example
+#            when creating a polar pattern this is the shape to copy'''
+#        base = fp.PatternBase if fp.PatternBase else None #null shape
+#        base_shape = self.getShape(fp,base)
+#        tool = fp.PatternTool if fp.PatternTool else None
+#        tool_shape = self.getShape(fp,tool)
+#        op = fp.PatternOperation
+#        if not tool:
+#            return base_shape if base else Part.Shape()
+#        if base and tool:
+#            if op == "None":
+#                return base_shape
+#            elif op == "Cut": #cut tool from base
+#                return base_shape.cut(tool_shape)
+#            elif op == "Fuse": #all bits
+#                return base_shape.fuse(tool_shape)
+#            elif op == "Common": #only bits intersecting
+#                return base_shape.common(tool_shape)
+#            elif op == "XOR": #only bits not intersecting
+#                fusion = base_shape.fuse(tool_shape)
+#                common = base_shape.common(tool_shape)
+#                return fusion.cut(common)
+#        if base:
+#            return base_shape
+#        else:
+#            return self.getShape(fp,fp.LinkedObject)
+
+#    def execute(self,fp):
+#        if hasattr(fp,"Refine1"):
+#            fp.removeProperty("Refine1") #PD features might already have a Refine feature
+#        if fp.LinkedObject:
+#            self.placeInBody(fp,fp.LinkedObject)
+#            fp.LinkedObject.ViewObject.Visibility = False
+#            fp.Shape = self.getShape(fp,fp.LinkedObject)
+#        else:
+#            fp.Shape = Part.Shape()
+#        if fp.TipTool and fp.TipBase:
+#            op = fp.TipOperation
+#            if op == "Cut":
+#                fp.Shape = self.getShape(fp,fp.TipBase).cut(self.getShape(fp,fp.TipTool))
+#            elif op == "Fuse":
+#                fp.Shape = self.getShape(fp,fp.TipBase).fuse(self.getShape(fp,fp.TipTool))
+#            elif op == "Common":
+#                fp.Shape = self.getShape(fp,fp.TipBase).common(self.getShape(fp,fp.TipTool))
+#            elif op == "XOR":
+#                fusion = self.getShape(fp,fp.TipBase).fuse(self.getShape(fp,fp.TipTool))
+#                common = self.getShape(fp,fp.TipBase).common(self.getShape(fp,fp.TipTool))
+#                fp.Shape = fusion.cut(common)
+#        elif fp.TipBase:
+#            fp.Shape = self.getShape(fp,fp.TipBase)
+
+
+#        if not fp.Shape.isNull() and fp.Refine:
+#            fp.Shape = fp.Shape.removeSplitter()
+#        if fp.Type != "None":
+#            addsubshape = self.makeAddSubShape(fp)
+#            fp.AddSubShape = addsubshape if not fp.Refine else addsubshape.removeSplitter()
+
+
+
+#class PDWrapperVP:
+
+#    def __init__(self, obj):
+#        '''Set this object to the proxy object of the actual view provider'''
+#        obj.Proxy = self
+ 
+#    def attach(self, obj):
+#        '''Setup the scene sub-graph of the view provider, this method is mandatory'''
+#        self.Object = obj.Object
+ 
+#    def updateData(self, fp, prop):
+#        '''If a property of the handled feature has changed we have the chance to handle this here'''
+#        # fp is the handled feature, prop is the name of the property that has changed
+#        pass
+ 
+#    def getDisplayModes(self,obj):
+#        '''Return a list of display modes.'''
+#        modes=[]
+#        modes.append("Flat Lines")
+#        return modes
+ 
+#    def getDefaultDisplayMode(self):
+#        '''Return the name of the default display mode. It must be defined in getDisplayModes.'''
+#        return "Flat Lines"
+ 
+#    def setDisplayMode(self,mode):
+#        '''Map the display mode defined in attach with those defined in getDisplayModes.\
+#                Since they have the same names nothing needs to be done. This method is optional'''
+#        return mode
+ 
+#    def onChanged(self, vp, prop):
+#        '''Here we can do something when a single property got changed'''
+#        #FreeCAD.Console.PrintMessage("Change property: " + str(prop) + ""+chr(10))
+
+#    def claimChildren(self):
+#        if hasattr(self.Object,"LinkedObject") and hasattr(self.Object,"ClaimChildren") and self.Object.LinkedObject and self.Object.ClaimChildren:
+#            return [self.Object.LinkedObject]
+#        else:
+#            return []
+
+#    def onDelete(self, vobj, subelements):
+#        #only remove children from the body if they are claimed and not native PD objects
+#        if vobj.Object.LinkedObject and vobj.Object.ClaimChildren:
+#            doc = FreeCAD.ActiveDocument
+#            body = doc.getObject(vobj.Object.Body)
+#            if vobj.Object.LinkedObject in body.Group:
+#                grp = body.Group
+#                if not vobj.Object.LinkedObject.isDerivedFrom("PartDesign::Feature") and not vobj.Object.LinkedObject.isDerivedFrom("Part::Part2DObject"):
+#                    grp.remove(vobj.Object.LinkedObject)
+#                    body.Group = grp
+#                    vobj.Object.LinkedObject.ViewObject.Visibility = True
+
+#        return True
+
+#    def getIcon(self):
+#        '''Return the icon in XPM format which will appear in the tree view. This method is\
+#                optional and if not defined a default icon is shown.'''
+
+#        XPM = '''
+#/* XPM */
+#static char *_632945370954[] = {
+#/* columns rows colors chars-per-pixel */
+#"64 64 188 2 ",
+#"   c #0EB917171E1E",
+#".  c #1B1B1F1F1212",
+#"X  c #13131A1A1B1B",
+#"o  c #299026C00639",
+#"O  c #2BAC29290505",
+#"+  c #292929290C0C",
+#"@  c none",
+#"#  c #32322F2F0889",
+#"$  c #360330750146",
+#"%  c #3D3D36E10303",
+#"&  c #347431310A0A",
+#"*  c #39A735350B9E",
+#"=  c #2F2F33331C1C",
+#"-  c #34013400137A",
+#";  c #3C9138381212",
+#":  c #0B2915482158",
+#">  c #0E78191524B4",
+#",  c #0E8F199A28A9",
+#"<  c #11111A3E2492",
+#"1  c #14541D5D28E8",
+#"2  c #0E8F1C9D3131",
+#"3  c #131320202F2F",
+#"4  c #146A22A33207",
+#"5  c #1ADA26663474",
+#"6  c #191927273838",
+#"7  c #19C427FD38E3",
+#"8  c #36E13BE62379",
+#"9  c #3A803D9A2274",
+#"0  c #23232BEB3676",
+#"q  c #2E2E39393131",
+#"w  c #2C5734093DBD",
+#"e  c #31313B3B3939",
+#"r  c #47473D3D0000",
+#"t  c #393943433636",
+#"y  c #4B6B42420000",
+#"u  c #4F4F47470808",
+#"i  c #53994BE30DD4",
+#"p  c #64E559DA0000",
+#"a  c #68685F5F1313",
+#"s  c #6C6C62E31798",
+#"d  c #51514D4D2929",
+#"f  c #547E50502BEC",
+#"g  c #595855543288",
+#"h  c #5D5D5A5A3838",
+#"j  c #19592DEE4787",
+#"k  c #18582E6E4ACB",
+#"l  c #196F30DB4DA3",
+#"z  c #1B1B38385D5D",
+#"x  c #212131B24545",
+#"c  c #2F2F38384242",
+#"v  c #31B13A3A43C3",
+#"b  c #26663BBC5393",
+#"n  c #1E1E3F3F6868",
+#"m  c #393946C7499F",
+#"M  c #2D2D44045D5D",
+#"N  c #277D43EE65BB",
+#"B  c #33334F4F6464",
+#"V  c #32DD4DF86CC2",
+#"C  c #3B3B54D56A6A",
+#"Z  c #232348487878",
+#"A  c #3B7B55D672F3",
+#"S  c #3D3D58587575",
+#"D  c #368C58587D27",
+#"F  c #403F46C64E4E",
+#"G  c #44C44C0B5454",
+#"H  c #49494ECE5656",
+#"J  c #4BA052515AAF",
+#"K  c #51D257575D5D",
+#"L  c #696965654646",
+#"P  c #6F6F6B6B4D4D",
+#"I  c #7B7B78785C5C",
+#"U  c #54FF5B046262",
+#"Y  c #58575C5B6161",
+#"T  c #41415B5B7373",
+#"R  c #59D964246A2A",
+#"E  c #434361617979",
+#"W  c #63E468E86EEE",
+#"Q  c #64646A697272",
+#"!  c #6DC371717620",
+#"~  c #6D6D73737A7A",
+#"^  c #70F074747939",
+#"/  c #B69994BF0000",
+#"(  c #B8B897970000",
+#")  c #C5C5A1A10000",
+#"_  c #CC5CB6250000",
+#"`  c #CDE4B8CF0000",
+#"'  c #D3D3BDBD0101",
+#"]  c #DD5DC6460101",
+#"[  c #E0EFC3D20000",
+#"{  c #EDEDD54C0101",
+#"}  c #DB80CA7E3E2F",
+#"|  c #F7F7E3E33645",
+#" . c #92128F8F7878",
+#".. c #D6D6C5C54040",
+#"X. c #D92EC91E416C",
+#"o. c #E0E0CFCF4444",
+#"O. c #E9E9D7D74848",
+#"+. c #EBC0DAAF4848",
+#"@. c #FCFCE9E94F4F",
+#"#. c #20FF4AC286A8",
+#"$. c #22724D668AE9",
+#"%. c #2A4F522D8517",
+#"&. c #251651208EC4",
+#"*. c #292953538B35",
+#"=. c #3E3E5E5E8585",
+#"-. c #26B853659157",
+#";. c #28F4561A9445",
+#":. c #2ACB58DF96F6",
+#">. c #2D8E5C7C9B06",
+#",. c #30305F5F9E9E",
+#"<. c #2F2F60609E9E",
+#"1. c #3083609A9F44",
+#"2. c #33BA649DA3C4",
+#"3. c #37376868A6A6",
+#"4. c #38786969A787",
+#"5. c #3C966D43AA77",
+#"6. c #3F3F7070ACAC",
+#"7. c #469C650F85DB",
+#"8. c #4AA06BC18DE3",
+#"9. c #4BCC6E6E9515",
+#"0. c #4B4B71719C9C",
+#"q. c #76F77B7B8101",
+#"w. c #425872A4AE6A",
+#"e. c #4A4A7777AA2A",
+#"r. c #535379CFA54F",
+#"t. c #58587C7CA3A3",
+#"y. c #52FD7D27AB55",
+#"u. c #464B766BB13B",
+#"i. c #48487777B2B2",
+#"p. c #4BAF7B6FB4EC",
+#"a. c #50507F62B7B7",
+#"s. c #50507F7FB8B8",
+#"d. c #5B5B8303ACEC",
+#"f. c #5ADB8505B2B2",
+#"g. c #5DDE8888B636",
+#"h. c #5437834EBACA",
+#"j. c #58AE875CBDE8",
+#"k. c #5AAB8960BF45",
+#"l. c #622F8B24B582",
+#"z. c #63638DC0BAED",
+#"x. c #68689090B7B7",
+#"c. c #6C579454BC91",
+#"v. c #5DD88C6AC194",
+#"b. c #60BD8F03C366",
+#"n. c #64B392BAC628",
+#"m. c #6ADC9708C5C5",
+#"M. c #6A6A9717C7C7",
+#"N. c #68E996C1C949",
+#"B. c #6CF59A78CBDC",
+#"V. c #72699F83CFC7",
+#"C. c #840487078A8A",
+#"Z. c #8A8A8BE18C8C",
+#"A. c #949496168E0E",
+#"S. c #87078C0C9212",
+#"D. c #93E9953F95EB",
+#"F. c #94EA97419A44",
+#"G. c #959599999E9E",
+#"H. c #9B709BF19C46",
+#"J. c #A7A7A5259313",
+#"K. c #9E9EA3A3A6A6",
+#"L. c #A37EA3A3A3A3",
+#"P. c #A5E5A9E9ADED",
+#"I. c #AC7CAC7CAC8C",
+#"U. c #BC3CBA3AACAC",
+#"Y. c #ADADB0B0B4B4",
+#"T. c gray70",
+#"R. c #B5B5B8B8BCBC",
+#"E. c #BBEBBBEBBBFB",
+#"W. c #C8C8C6C6BBBB",
+#"Q. c #BCBCBFBFC2C2",
+#"!. c gray77",
+#"~. c #C670C872CB20",
+#"^. c #CC16CC16CC16",
+#"/. c #D1D1D0D0C6C6",
+#"(. c #CF79D126D27C",
+#"). c #D437D437D437",
+#"_. c #DB92DA91D2F7",
+#"`. c #D6D6D8D8DADA",
+#"'. c #DC08DC08DC08",
+#"]. c #E4E4E4E4DEDE",
+#"[. c #DFDFE1E1E2E2",
+#"{. c #E42CE423E3F5",
+#"}. c #EBEBEAEAE6E6",
+#"|. c #E6E6E7E7E8E8",
+#" X c #ECE0ECE0EB5E",
+#".X c #F1F1F1F1EEEE",
+#"XX c #F466F46FF416",
+#"oX c none",
+#/* pixels */
+#"oXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoX",
+#"oXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoX",
+#"oXoXoXoXoXoXoXoXoXoXoXoXoX Xg g  XoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoX",
+#"oXoXoXoXoXoXoXoXoXoXoXoX Xd @ @ d  XoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoX",
+#"oXoXoXoXoXoXoXoXoXoXoX Xf O i i @ d .XoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoX",
+#"oXoXoXoXoXoXoXoXoXoX Xf @ i O.+.i @ d }.oXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoX",
+#"oXoXoXoXoXoXoXoXoX X* @ i O.@.@.+.i @ d  XoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoX",
+#"oXoXoXoXoXoXoXoX}.f O @ $ } @.@.@.+.i @ d  XoXoXoXoXoXoXoX[.Y.P.~.|.oXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoX",
+#"oXoXoXoXoXoXoX Xf @ i $ O $ X.@.@.@.O.i @ d }.oX.XQ.S.U 0 : : : : : 1 v Y q.G.R.`.XXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoX",
+#"oXoXoXoXoXoX Xf @ u +.} $ @ @ } @.@.@.O.i @ ; e : : :     4 b M x 4 : : : : : : : : 0 G Q S.P.~.|.oXoXoXoXoXoXoXoXoXoXoXoXoXoXoX",
+#"oXoXoXoXoX X* @ y ] | @.} $ O $ X.@.@.@.+.i @ o < x V 8.l.V.V.V.V.V.B.z.t.7.A M x , : : : : : : : > c J ~ D.Y.(.XXoXoXoXoXoXoXoX",
+#"oXoXoXoX}.f @ @ $ ' { | @.} $ @ $ X.@.@.@.+.i @ = c.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.z.t.8.S M x 3 : : : : : : : : 0 G W R K.oXoX",
+#"oXoXoX Xf @ y @ O $ _ { | @.} $ @ $ ..@.@.@.+.i @ 9 c.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.m.f.9.=.B b 6 : : : : : : oXoX",
+#"oXoXD.- @ y ] ` @ @ $ _ { | @.} $ @ @ ..@.@.@.+.i @ r c.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.m.A 5 : : :   : < oXoX",
+#"oXoXo @ y ( [ { ` $ O $ ` { | @.} $ @ # ..@.@.@.+.i + 9 c.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.m.T 6 : : : : k %.2.: < oXoX",
+#"oXoXo O r ( ) [ { ` $ @ $ ` { | @.} $ @ $ ..@.@.@.+.i # 9 c.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.m.A 6 : : : : k %.2.2.2.2.: > oXoX",
+#"oXXX  o O r ( ) [ { _ @ @ @ _ { | @.X.$ @ $ ..@.@.@.+.i @ 9 c.V.V.V.V.V.V.V.V.V.V.V.V.V.m.S 7 : : : : l %.2.2.2.2.2.2.2.: > oXoX",
+#"oXoX: > 9 @ r / ) [ { _ @ @ $ _ { | @.} $ @ $ ..@.@.@.+.i @ 9 c.V.V.V.V.V.V.V.V.V.N.S 6 : : : : k %.2.2.2.2.2.2.2.2.4.2.: > oXoX",
+#"oXoX  : c.9 @ r / ) [ { ' $ @ @ _ { | @.} $ @ @ X.@.@.@.+.i @ # T l.V.V.V.V.N.S 7 : : : : k %.1.2.2.2.2.2.2.2.2.2.2.2.2.: < oXoX",
+#"oXoX  : V.m.9 @ r / ) [ { _ $ @ @ _ { | @.} $ @ @ ..@.@.@.+.i @ o   < 4 7 4 : : : : k %.2.3.2.2.2.2.2.2.2.2.2.2.2.2.2.2.: > oXoX",
+#"oXoX: < V.V.c.d @ r ( ) [ { ` @ @ @ _ { | @.} $ @ $ X.@.@.@.+.i @ O   : : : : l %.2.2.2.2.2.2.2.2.2.2.2.2.1.2.1.1.2.2.2.: > oXoX",
+#"oXoX: > V.V.B.z.9 @ r / ) [ { _ $ @ $ _ { | @.} $ @ @ X.@.@.@.+.i @ ; d.: : 2.2.2.2.2.2.2.2.2.2.2.2.1.2.1.2.2.1.1.2.2.2.: > oXoX",
+#"oXXX: > V.V.B.B.c.9 @ r ( ) [ { _ $ @ @ _ { | @.} $ @ $ X.@.@.o.s O @ # : : 2.2.2.2.2.2.2.2.1.2.2.2.1.2.1.2.>.2.1.2.2.2.: < oXoX",
+#"oXoX: , V.V.B.B.B.z.9 @ r ( ) ] { _ $ @ @ _ { | @.X.@ @ @ X.o.% @ @ @ @   : 2.2.2.1.2.2.1.2.1.1.1.1.2.>.,.1.2.>.,.,.2.2.: > oXoX",
+#"oXXX: , V.V.B.B.N.N.z.t @ r / ) [ { _ $ @ $ _ { | @.} $ @ $ s @ P _.I O . : 2.2.2.1.1.1.2.1.1.1.1.1.2.,.1.1.1.>.>.>.2.2.: > oXoX",
+#"oXoX: < V.V.B.N.N.N.m.l.9 O r / ) [ { _ @ @ @ _ { | @.} @ @ @ @ _.oXU.@ o : 2.2.1.1.1.1.1.1.1.1.1.,.>.,.1.>.1.>.2.>.2.2.: < oXoX",
+#"oXoX: > V.V.n.n.m.n.n.n.l.9 @ r / ) [ { _ $ @ $ _ { | o.a @ @ @ XXoX.X@ O > 2.2.1.1.1.1.1.,.,.1.>.1.,.>.>.,.>.>.>.>.2.2.: < oXoX",
+#"oXoX: > V.V.n.n.n.n.n.n.n.l.9 O r / ) [ { _ $ @ & _ _ r O @ @ * oXoXoXh @ X 2.3.1.1.1.>.,.,.>.>.>.>.,.>.>.>.>.>.>.>.3.2.: > oXoX",
+#"oXXX: : V.V.n.n.n.n.n.v.n.n.f.9 @ r / ) [ { _ @ @ @ p @ P _.XXoXoXoXoX .@ + 2.2.,.>.1.,.>.>.>.>.>.>.>.,.>.>.>.>.>.>.2.2.: > oXoX",
+#"oXoX: , V.V.n.b.v.n.n.n.v.v.n.g.9 @ r / ) [ { _ $ @ @ @ _.oXoXoXoXoXoX/.@ O 2.2.>.>.>.>.>.>.>.>.>.>.>.>.>.>.:.>.>.>.2.2.: > oXoX",
+#"oXoX  : V.V.v.n.v.n.v.v.v.v.v.v.f.9 @ r ( ) [ _ p @ @ @ XXoXoXoXoXoXoXoX; @ >.2.>.>.>.>.>.>.>.>.>.>.>.>.>.:.>.:.:.:.2.2.: < oXoX",
+#"oXoX: : V.V.v.v.v.v.v.v.v.v.j.v.k.y.9 @ r ( / r @ @ @ * oXoXoXoXoXoXoXoXL O B 2.>.>.>.>.>.>.>.:.:.:.>.:.:.:.:.:.>.:.2.2.: > oXoX",
+#"oXXX: > V.V.k.k.k.k.k.k.k.k.k.k.j.v.d.8 @ r p O P _..XoXoXoXoXoXoXoX{.L $ @ e 2.:.>.:.:.>.:.>.:.:.:.:.>.>.;.:.:.:.:.2.2.: > oXoX",
+#"oXoX: > V.V.k.k.k.k.k.k.k.j.j.h.j.j.j.y.9 @ O @ _.oXoXoXoXoXoXoXoXU.* # @ @ @ 2.>.>.>.:.:.:.:.>.;.:.:.;.:.;.;.:.;.:.2.2.: > oXoX",
+#"oXoX  > V.V.k.j.k.j.k.k.j.j.h.h.h.h.j.h.y.- O @  ./.oXoXoXoXoXoXW.* @ @ O @ @ D >.;.:.>.:.:.:.:.:.:.;.:.;.;.;.;.;.:.2.2.: < oXoX",
+#"oXXX> > V.V.j.h.j.j.h.j.h.h.h.h.j.h.h.h.h.r.$ O @ @ f A.].oXoXXXr + O @ @ O O m :.:.;.:.;.:.;.;.;.;.;.;.;.;.;.;.-.:.2.2.: > oXoX",
+#"oXXX: , V.V.h.h.h.h.h.h.h.h.h.h.h.h.h.h.h.h.p.8.m & O @ @ g J.J.* @ @ O @ O @ - ;.;.:.;.:.-.;.:.;.;.;.;.;.;.;.;.-.;.2.2.: > oXoX",
+#"oXoX: : V.V.h.h.h.h.h.h.h.h.h.h.h.s.h.p.p.h.h.p.h.h.7.m & @ @ @ & $ @ @ @ @ @ O *.;.;.;.:.:.-.;.;.;.&.;.;.&.-.;.-.-.2.2.: > oXoX",
+#"oXoX: , V.V.h.h.h.h.h.h.i.h.h.p.p.h.p.s.h.p.h.p.h.p.h.p.e.E e @ @ @ @ # @ O @ @ N ;.-.:.-.-.-.-.&.;.-.;.&.-.;.&.-.-.2.2.  < oXoX",
+#"oXoX: , V.V.i.h.u.h.i.h.h.h.i.h.p.s.p.p.p.p.p.p.e.p.p.p.p.p.p.e.C 8 @ @ @ @ @ @ q :.-.-.-.-.-.-.;.&.&.-.-.-.&.&.-.-.2.2.: > oXoX",
+#"oXXX: , V.V.h.p.h.p.p.p.h.i.h.i.p.p.p.p.p.p.p.i.i.i.i.p.i.i.i.i.p.i.x.R o O O O # -.-.-.-.-.-.-.-.-.&.-.-.-.-.&.&.&.2.2.: > oXoX",
+#"oXoX: , V.V.h.i.p.p.p.p.p.p.p.p.p.p.p.i.i.p.i.i.i.i.i.i.i.i.u.u.i.i.V.V.:   m # = -.-.-.-.&.&.&.$.&.&.&.-.$.$.-.&.&.2.2.: > oXoX",
+#"oXXX: : V.V.i.i.p.p.p.p.i.p.i.i.i.i.i.i.u.u.i.u.i.u.i.w.i.u.u.u.w.u.V.B.: , 3.2.&.-.&.&.&.&.&.&.-.$.-.&.$.&.-.$.$.&.2.2.: < oXoX",
+#"oXoX: , V.V.i.i.i.i.u.i.u.u.u.i.i.u.u.u.u.u.u.u.u.w.w.w.u.u.w.w.w.u.V.V.: : 2.2.&.&.&.&.&.&.$.&.$.-.$.&.$.$.$.$.$.&.2.2.: > oXoX",
+#"oXXX  > V.V.i.i.i.i.i.u.i.i.w.i.i.i.w.w.w.w.u.6.w.w.w.w.w.w.w.w.6.6.V.V.: : 2.2.&.&.$.&.&.$.&.&.$.$.$.-.$.$.$.$.$.$.2.2.: > oXoX",
+#"oXoX: , V.V.i.w.w.i.w.u.w.w.w.w.w.w.w.w.6.u.w.6.w.w.w.5.w.5.w.5.6.6.V.V.: : 3.2.&.&.&.&.$.$.$.$.$.&.$.$.$.$.$.$.$.$.2.2.: > oXoX",
+#"oXoX: , V.V.w.w.w.w.w.w.w.w.w.w.w.6.6.w.6.6.6.w.5.w.w.w.5.5.5.w.6.6.B.V.: : 3.2.&.$.$.$.&.$.&.$.$.$.$.$.$.$.$.$.$.&.2.2.: < oXoX",
+#"oXXX: > V.V.w.w.w.6.w.w.w.w.6.w.6.6.6.6.6.6.6.6.w.5.4.5.5.5.5.w.5.6.V.V.: : 2.2.$.&.$.$.#.$.$.#.$.#.$.#.#.#.#.;.<.2.2.2.: > oXoX",
+#"oXoX  : V.V.w.w.w.5.w.6.5.w.5.w.w.4.w.w.4.w.4.4.w.w.4.4.5.5.4.4.4.4.V.V.: : 2.2.$.$.$.$.$.$.$.#.$.#.$.#.&.:.2.2.2.2.#.6 : 1 oXoX",
+#"oXoX: : V.V.5.5.w.5.5.5.5.5.5.5.4.w.4.4.4.4.w.4.4.4.4.4.4.4.4.4.4.3.V.V.: , 2.2.$.#.$.#.#.#.#.#.$.#.$.>.2.2.2.,.n , : : c P.oXoX",
+#"oXXX: , V.V.N.v.j.p.w.5.5.4.4.5.3.4.4.3.4.4.4.4.4.4.4.4.3.3.3.3.4.3.V.V.: : 2.2.#.$.#.#.#.#.#.$.;.1.2.3.1.*.k : : : J R.oXoXoXoX",
+#"oXoX: : m.V.V.B.V.V.V.B.n.j.h.i.w.4.4.w.4.3.4.4.3.3.4.2.3.2.3.3.3.2.V.B.: , 2.2.#.#.#.#.#.&.:.2.3.2.,.Z 2 : : 0 ^ (.XXoXoXoXoXoX",
+#"oXoX: : : > b D 0.g.N.V.V.V.V.V.V.B.n.s.s.u.3.3.2.2.4.3.2.3.2.2.2.2.V.V.: : 2.2.#.$.$.-.2.2.2.2.;.z : : : c C.^.[.|.XXXXoXoXoXoX",
+#"oXoXP.R c : : : : : : 4 N 7.e.z.B.V.V.V.V.V.V.m.b.s.p.w.2.2.2.2.2.3.V.V.: : 2.2.$.;.1.2.2.2.#.6 : : < H H.!.^.`.[.|.XXoXoXoXoXoX",
+#"oXoXoXoXoX.X~.G.! G 0 : : : : : : x V 9.y.n.V.V.V.V.V.V.V.n.z.p.u.4.V.V.: , 2.2.2.2.2.>.n < : : 5 R L.R.E.~.(._.{. XXXoXoXoXoXoX",
+#"oXoXoXoXoXXXXX|.[.`.^.E.F.^ K w , : : : : : < b =.0.p.M.V.V.V.V.V.V.V.V.: , 2.2.2.&.k : : : w ! L.I.T.E.~.(._.[.}..XoXoXoXoXoXoX",
+#"oXoXoXoXoXoXoXXX}.[.`.(.~.!.T.T.I.D.! K v 0 : : : : : : 6 b =.r.v.B.V.V.: : ,.Z , : : 1 H Z.H.I.I.R.W.~.(.`.{.|..XoXoXoXoXoXoXoX",
+#"oXoXoXoXoXoXoXoXXX X|.'.`.^.~.E.E.T.I.L.H.D.A.^ K F w 1 : : : : : : j V : : : : : w W H.L.I.T.E.W.~.^.`.'.|. XXXoXoXoXoXoXoXoXoX",
+#"oXoXoXoXoXoXoXoXoXoX.X X{.'._.).^.!.E.R.T.I.I.L.L.H.H.D.Z.! Y F 0 1 : : : : < G Z.I.I.T.E.E.!.^.(.`.'.|. XXXoXoXoXoXoXoXoXoXoXoX",
+#"oXoXoXoXoXoXoXoXoXoXoXoXoXXX X{.'._.`.(.^.!.!.E.E.T.T.T.T.I.I.I.I.I.F.q.F H I.E.E.!.!.~.(.).'.[.{. X XoXoXoXoXoXoXoXoXoXoXoXoXoX",
+#"oXoXoXoXoXoXoXoXoXoXoXoXoXoXoXXXXX X X{.{.'.`.`.).(.^.^.~.~.~.!.~.~.~.^.^.^.).).`.`.'.[.|.}..XXXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoX",
+#"oXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXXXXX X X X}.}.].[.].{.].{.{.{.|.}. X X.X.XXXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoX",
+#"oXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoX",
+#"oXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoX"
+#};
+#'''
+#        if self.Object.Type == "Subtractive":
+#            return XPM.replace("none","red")
+#        else:
+#            return XPM
+ 
+#    def __getstate__(self):
+#        '''When saving the document this object gets stored using Python's json module.\
+#                Since we have some un-serializable parts here -- the Coin stuff -- we must define this method\
+#                to return a tuple of all serializable objects or None.'''
+#        return None
+ 
+#    def __setstate__(self,state):
+#        '''When restoring the serialized object from document we have the chance to set some internals here.\
+#                Since no data were serialized nothing needs to be done here.'''
+#        return None
+
+#if __name__ == "__main__":
+#    FreeCAD.Console.PrintMessage("This file is for import only.  Please run pdwrapper.FCMacro to create object.\n")
+
+##CODE_ENDS_HERE
+
+
+
+
+
+
+BASENAME = "pdwrapper"
+
+def getTipBase(fromBody,wrapper):
+    if fromBody.Tip and fromBody.Tip != wrapper:
+        return fromBody.Tip
+    solids = [ii for ii in fromBody.Group if hasattr(ii,"Shape") and len(ii.Shape.Solids) >= 1 and ii != wrapper and ii.isDerivedFrom("PartDesign::Feature")]
+    if len(solids) == 0:
+        return None
+    elif len(solids) == 1:
+        return solids[0] #no need for dialog
+    items = [ss.Name + " ("+ss.Label+")" for ss in solids]
+    default = len(items)-1
+    window = FreeCADGui.getMainWindow()
+    item,ok = QtGui.QInputDialog.getItem(window,"Choose previous solid feature","Select previous solid, typically the.\n\
+tip object\n", items, default, False)
+    if ok:
+        return solids[items.index(item)]
+
+def makeObject(PDW):
+
+    doc = FreeCAD.ActiveDocument
+    body=FreeCADGui.ActiveDocument.ActiveView.getActiveObject("pdbody")
+    if not body:
+        body = getBody(doc)
+
+    if not body:
+        FreeCAD.Console.PrintError("No body in active document.  Create a body and try again.\n")
+    else:
+        if body and doc:
+            doc.openTransaction("Create PDWrapper")
+            selobjs = FreeCADGui.Selection.getSelectionEx()
+            if selobjs:
+                for selobj in selobjs:
+                    if body:
+                        window = FreeCADGui.getMainWindow()
+                        items=["Additive","Subtractive","Common (Additive)","Common (Subtractive)","XOR (Additive)","XOR (Subtractive)","None"]
+                        item,ok = QtGui.QInputDialog.getItem(window,"Choose wrapper type","Select wrapper type for this object.\n\
+    You can change the operation type later, but choose Additive or Subtractive if\n\
+    you want to be able to do use in a Part Design pattern (array) later.\n ", items, 0, False)
+                        if ok:
+
+                            if item == items[0]:#Additive
+                                wrapper = body.newObject("PartDesign::FeatureAdditivePython","PDWrapper")
+                                PDW.PDWrapper(wrapper)
+                                PDW.PDWrapperVP(wrapper.ViewObject)
+                                wrapper.TipBase = getTipBase(body,wrapper)
+                                wrapper.TipTool = selobj.Object
+                                wrapper.TipOperation = "Fuse"
+                                wrapper.Type = "Additive"
+                                wrapper.PatternBase = selobj.Object #fp.LinkedObject
+                                wrapper.PatternOperation = "None"
+                                wrapper.PatternTool = None
+                            elif item == items[1]:#Subtractive
+                                wrapper = body.newObject("PartDesign::FeatureSubtractivePython","PDWrapper")
+                                PDW.PDWrapper(wrapper)
+                                PDW.PDWrapperVP(wrapper.ViewObject)
+                                wrapper.TipBase = getTipBase(body,wrapper)
+                                wrapper.TipOperation = "Cut"
+                                wrapper.Type = "Subtractive"
+                                wrapper.PatternBase = selobj.Object #fp.LinkedObject
+                                wrapper.TipTool = selobj.Object
+                                wrapper.PatternOperation = "None"
+                                wrapper.PatternTool = None
+                            elif item == items[2]:#Common additive
+                                wrapper = body.newObject("PartDesign::FeatureAdditivePython","PDWrapper")
+                                PDW.PDWrapper(wrapper)
+                                PDW.PDWrapperVP(wrapper.ViewObject)
+                                wrapper.TipBase = getTipBase(body,wrapper)
+                                wrapper.TipOperation = "Common"
+                                wrapper.Type = "Additive"
+                                wrapper.TipTool = selobj.Object
+                                wrapper.PatternBase = wrapper.TipBase
+                                wrapper.PatternOperation = "Common"
+                                wrapper.PatternTool = selobj.Object
+                            elif item == items[3]:#Common subtractive
+                                wrapper = body.newObject("PartDesign::FeatureSubtractivePython","PDWrapper")
+                                PDW.PDWrapper(wrapper)
+                                PDW.PDWrapperVP(wrapper.ViewObject)
+                                wrapper.TipBase = getTipBase(body,wrapper)
+                                wrapper.TipOperation = "Common"
+                                wrapper.Type = "Subtractive"
+                                wrapper.TipTool = selobj.Object
+                                wrapper.PatternBase = wrapper.TipBase
+                                wrapper.PatternOperation = "Common"
+                                wrapper.PatternTool = selobj.Object
+                            elif item == items[4]: #XOR additive
+                                wrapper = body.newObject("PartDesign::FeatureAdditivePython","PDWrapper")
+                                PDW.PDWrapper(wrapper)
+                                PDW.PDWrapperVP(wrapper.ViewObject)
+                                wrapper.TipBase = getTipBase(body,wrapper)
+                                wrapper.TipOperation = "XOR"
+                                wrapper.Type = "Additive"
+                                wrapper.TipTool = selobj.Object
+                                wrapper.PatternBase = wrapper.TipBase
+                                wrapper.PatternOperation = "XOR"
+                                wrapper.PatternTool = selobj.Object
+                            elif item == items[5]: #XOR subtractive
+                                wrapper = body.newObject("PartDesign::FeatureSubtractivePython","PDWrapper")
+                                PDW.PDWrapper(wrapper)
+                                PDW.PDWrapperVP(wrapper.ViewObject)
+                                wrapper.TipBase = getTipBase(body,wrapper)
+                                wrapper.TipOperation = "XOR"
+                                wrapper.Type = "Subtractive"
+                                wrapper.TipTool = selobj.Object
+                                wrapper.PatternBase = wrapper.TipBase
+                                wrapper.PatternOperation = "XOR"
+                                wrapper.PatternTool = selobj.Object
+
+                            else: # item == items[6]:
+                                wrapper = body.newObject("PartDesign::FeaturePython","PDWrapper")
+                                PDW.PDWrapper(wrapper)
+                                PDW.PDWrapperVP(wrapper.ViewObject)
+                                wrapper.TipBase = getTipBase(body,wrapper)
+                                wrapper.TipTool = selobj.Object
+                                wrapper.TipOperation = "Fuse"
+                                wrapper.Type = "None"
+                                wrapper.setEditorMode("PatternBase",2)
+                                wrapper.setEditorMode("PatternTool",2)
+                                wrapper.setEditorMode("PatternOperation",2)
+                        else: #cancel
+                            doc.abortTransaction()
+                            return
+
+                        PDW.PDWrapper.placeInBody(wrapper, wrapper, selobj.Object)
+                        wrapper.LinkedObject =selobj.Object
+                        doc.commitTransaction()
+            else:
+                FreeCAD.Console.PrintError("Selection error.  Select and object to add to the active body.\n")
+        else:
+            if not body:
+                FreeCAD.Console.PrintError("No active body.  Toggle a body active and try again.\n")
+
+def getBody(doc):
+    bodies = [obj for obj in doc.Objects if obj.TypeId == "PartDesign::Body"]
+    if len(bodies) == 1:
+        return bodies[0]
+    if len(bodies) == 0:
+        return None
+    items = [ii.Name + " ("+ii.Label+")" for ii in bodies]
+    window = FreeCADGui.getMainWindow()
+    item,ok = QtGui.QInputDialog.getItem(window,"Choose body","No active body, so please select the body to which \n\
+this feature should be added\n", items, 0, False)
+    if ok:
+        return bodies[items.index(item)]
+    else:
+        return None
+
+def writeFile():
+    with open(py_file,"w") as outfile:
+        for line in code.splitlines():
+            if "#CODE_ENDS_HERE" in line:
+                break
+            if line.startswith('#'):
+                if line == "# -*- coding: utf-8 -*-":
+                    line = "#" + line
+                outfile.write(line[1:]+"\n") #skip first character (#)
+
+
+
+############
+#if __name__ == "__main__":
+#    makeObject(None)
+#    raise Exception("quick exit for testing/debugging")
+############
+
+if __name__ == "__main__":
+    import os
+    fin = open(__file__, 'r')
+    code = fin.read()
+    fin.close()
+    version = code.splitlines()[1][16:]
+    real_path = os.path.realpath(__file__)
+    dir_path = os.path.dirname(real_path)
+    py_file = real_path.replace(".FCMacro",".py").replace('PDWrapper','pdwrapper')
+    bHasFile = os.path.exists(py_file)
+    noImport = False #user elects not to save import file
+
+    if not bHasFile:
+        from PySide import QtCore,QtGui
+        window = QtGui.QApplication.activeWindow()
+        items = ["Yes, go ahead and create the file.", "No, do not create the file.","Cancel"]
+        caption = "In order for "+BASENAME+" objects to be parametric after saving and reloading file\n\
+we need to create another file on this computer.  File to be created will be: \n\n"+py_file+"\n\n\
+This makes it available to the system upon restarting FreeCAD and loading documents containing the \n\
+"+BASENAME+" feature python objects.  May we proceed?\n\n"
+        item,ok = QtGui.QInputDialog.getItem(window,"One time installation",caption,items)
+        if ok and item == items[0]:
+            writeFile()
+            QtGui.QMessageBox.information(window,"Success","File successfully created.  Please note: if you uninstall "+BASENAME+" macro you need to manually remove this file, too.\n")
+        else:
+            new_lines = []
+            for line in code.splitlines():
+                if line.startswith('#'):
+                    if "CODE_ENDS_HERE" in line:
+                        break
+                    if line == "# -*- coding: utf-8 -*-":
+                        new_lines.append(line+"\n")
+                        continue
+                    new_lines.append(line[1:]+"\n")
+            code = "".join(new_lines)
+
+            #credit to Mila Nautikus for his answer to a question on stackoverflow, which I modified here
+            #in this example the filename is pdwrapper.py
+            #https://stackoverflow.com/questions/5362771/how-to-load-a-module-from-code-in-a-string
+
+            ##########
+            import sys, importlib
+            my_name = 'pdwrapper' #filename = pdwrapper.py, so this must be 'pdwrapper'
+            my_spec = importlib.util.spec_from_loader(my_name, loader=None)
+
+            pdwrapper = importlib.util.module_from_spec(my_spec)
+
+            exec(code, pdwrapper.__dict__)
+            sys.modules['pdwrapper'] = pdwrapper
+            makeObject(pdwrapper)
+            noImport = True
+
+    if not noImport: #don't never use no double negatives
+
+        import pdwrapper as PDW
+        if PDW.__version__ != __version__:
+            writeFile()
+            from PySide import QtCore,QtGui
+            window = QtGui.QApplication.activeWindow()
+            QtGui.QMessageBox.information(window,"Version upated",BASENAME+".py has been updated.  You must restart FreeCAD for the new changes to take effect.")
+        else:
+            makeObject(PDW)
+
+#from pdwrapper import PDWrapper, PDWrapperVP
+#from PySide import QtGui,QtCore
+
+
+
+
