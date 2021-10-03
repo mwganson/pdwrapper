@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-__version__ = "0.2021.10.02.rev2"
-#__version__ = "0.2021.10.02.rev2"
+__version__ = "0.2021.10.03.rev2"
+#__version__ = "0.2021.10.03.rev2"
 ## PDWrapper a class to encapsulate non-Part Design objects into a PartDesign::FeaturePython object
 ## 2021, by <TheMarkster>
 
@@ -9,18 +9,24 @@ __version__ = "0.2021.10.02.rev2"
 
 #class PDWrapper:
 #    def __init__(self,obj):
-#        obj.addProperty("App::PropertyLink","PatternBase","Pattern Shape","Base shape presented for patterning")
-#        obj.addProperty("App::PropertyLink","PatternTool","Pattern Shape","Tool used with Pattern Base for creating patten shape to use with patterning")
-#        obj.addProperty("App::PropertyEnumeration","PatternOperation","Pattern Shape","Operation to make pattern shape from the base and tool -- not used if no tool").PatternOperation =["None","Cut","Fuse","Common","XOR"]
+#        obj.addProperty("App::PropertyLink","PatternBase","PatternShape","Base shape presented for patterning")
+#        obj.addProperty("App::PropertyLink","PatternTool","PatternShape","Tool used with Pattern Base for creating patten shape to use with patterning")
+#        obj.addProperty("App::PropertyEnumeration","PatternOperation","PatternShape","Operation to make pattern shape from the base and tool -- not used if no tool").PatternOperation =["None","Cut","Fuse","Common","XOR"]
 #        obj.addProperty("App::PropertyLink","LinkedObject","PDWrapper","Object this wrapper is based on -- should normally be a solid based itself on the last item in the body (the tip).")
 #        obj.addProperty("App::PropertyString","Version","PDWrapper", "Version used to create this PDWrapper object").Version = __version__
 #        obj.addProperty("App::PropertyString","Body","PDWrapper","Name of body containing this wrapper object")
 #        obj.addProperty("App::PropertyBool","ClaimChildren","PDWrapper","Whether to claim children in tree").ClaimChildren = True
 #        obj.addProperty("App::PropertyLink","TipBase","TipShape","Base shape for making the tip shape for this feature")
 #        obj.addProperty("App::PropertyLink","TipTool","TipShape","Tool shape for making the tip shape for this feature")
+#        obj.addProperty("App::PropertyFloat","TipShapeScale","Scaling","Scale to be applied to tip shape boolean result").TipShapeScale = 1.0
+#        obj.addProperty("App::PropertyFloat","TipBaseScale","Scaling","Scale to be applied to tip base").TipBaseScale = 1.0
+#        obj.addProperty("App::PropertyFloat","TipToolScale","Scaling","Scale to be applied to tip tool").TipToolScale = 1.0
+#        obj.addProperty("App::PropertyFloat","PatternShapeScale","Scaling","Scale to be applied to pattern shape").PatternShapeScale = 1.0
+#        obj.addProperty("App::PropertyFloat","PatternBaseScale","Scaling","Scale to be applied to pattern base").PatternBaseScale = 1.0
+#        obj.addProperty("App::PropertyFloat","PatternToolScale","Scaling","Scale to be applied to pattern tool").PatternToolScale = 1.0
 #        obj.addProperty("App::PropertyEnumeration","TipOperation","TipShape","Operation to perform with Tip Base and Tip Tool to create feature shape").TipOperation=["Fuse","Cut","Common","XOR"]
-##        obj.addProperty("App::PropertyBool","Refine","PDWrapper","Whether to refine shape (removes extra edges")
-#        obj.addProperty("App::PropertyString","Type","Pattern Shape","This object type, can be Additive, Subtractive, Common, XOR, None")
+#        obj.addProperty("App::PropertyBool","Refine","PDWrapper","Whether to refine shape (removes extra edges")
+#        obj.addProperty("App::PropertyString","Type","PatternShape","This object type, can be Additive, Subtractive, Common, XOR, None")
 #        obj.addProperty("App::PropertyFloatConstraint","MeshTolerance","Mesh","Tolerance when wrapping mesh objects").MeshTolerance = (0.1,0.001,10000,.1)
 #        obj.addProperty("App::PropertyBool","RefineMesh","Mesh","Whether to refine Mesh shape after conversion").RefineMesh = True
 #        obj.addProperty("App::PropertyEnumeration","TipManagement","TipShape","If Automatic, wrapper resets TipBase automatically, if Manual, user must manage tip base").TipManagement = ["Automatic","Manual"]
@@ -91,8 +97,10 @@ __version__ = "0.2021.10.02.rev2"
 #            when creating a polar pattern this is the shape to copy'''
 #        base = fp.PatternBase if fp.PatternBase else None #null shape
 #        base_shape = self.getShape(fp,base)
+#        base_shape = self.scale(base_shape, fp.PatternBaseScale, fp.PatternBaseScale != 1.0)
 #        tool = fp.PatternTool if fp.PatternTool else None
 #        tool_shape = self.getShape(fp,tool)
+#        tool_shape = self.scale(tool_shape, fp.PatternToolScale, fp.PatternToolScale != 1.0)
 #        op = fp.PatternOperation
 #        if not tool:
 #            return base_shape if base else Part.Shape()
@@ -111,9 +119,10 @@ __version__ = "0.2021.10.02.rev2"
 #                return fusion.cut(common)
 #        if base:
 #            return base_shape
+#        elif tool:
+#            return tool_shape
 #        else:
-#            return self.getShape(fp,fp.LinkedObject)
-
+#            return fp.LinkedObject
 #    def getPreviousFeature(self,fp):
 #        doc = FreeCAD.ActiveDocument
 #        if fp.Body:
@@ -135,41 +144,64 @@ __version__ = "0.2021.10.02.rev2"
 #               fp.PatternBase = self.getPreviousFeature(fp)
 #            fp.TipBase = self.getPreviousFeature(fp)
 #        if hasattr(fp,"Refine1"):
-#            fp.removeProperty("Refine1") #PD features might already have a Refine feature
+#            fp.removeProperty("Refine1") #PD features might already have a Refine feature, but None types will not
 #        if fp.LinkedObject:
 #            self.placeInBody(fp,fp.LinkedObject)
 #            fp.LinkedObject.ViewObject.Visibility = False
 #            fp.Shape = self.getShape(fp,fp.LinkedObject)
 #        else:
 #            fp.Shape = Part.Shape()
+#        base_shape = self.getShape(fp,fp.TipBase)
+#        base_shape = self.scale(base_shape, fp.TipBaseScale, fp.TipBaseScale != 1.0)
+#        tool_shape = self.getShape(fp,fp.TipTool)
+#        tool_shape = self.scale(tool_shape, fp.TipToolScale, fp.TipToolScale != 1.0)
 #        if fp.TipTool and fp.TipBase:
 #            op = fp.TipOperation
 #            if op == "Cut":
-#                fp.Shape = self.getShape(fp,fp.TipBase).cut(self.getShape(fp,fp.TipTool))
+#                #fp.Shape = self.getShape(fp,fp.TipBase).cut(self.getShape(fp,fp.TipTool))
+#                fp.Shape = base_shape.cut(tool_shape)
 #            elif op == "Fuse":
-#                fp.Shape = self.getShape(fp,fp.TipBase).fuse(self.getShape(fp,fp.TipTool))
+#                #fp.Shape = self.getShape(fp,fp.TipBase).fuse(self.getShape(fp,fp.TipTool))
+#                fp.Shape = base_shape.fuse(tool_shape)
 #            elif op == "Common":
-#                fp.Shape = self.getShape(fp,fp.TipBase).common(self.getShape(fp,fp.TipTool))
+#                #fp.Shape = self.getShape(fp,fp.TipBase).common(self.getShape(fp,fp.TipTool))
+#                fp.Shape = base_shape.common(tool_shape)
 #            elif op == "XOR":
-#                fusion = self.getShape(fp,fp.TipBase).fuse(self.getShape(fp,fp.TipTool))
-#                common = self.getShape(fp,fp.TipBase).common(self.getShape(fp,fp.TipTool))
+#                #fusion = self.getShape(fp,fp.TipBase).fuse(self.getShape(fp,fp.TipTool))
+#                fusion = base_shape.fuse(tool_shape)
+#                #common = self.getShape(fp,fp.TipBase).common(self.getShape(fp,fp.TipTool))
+#                common = base_shape.common(tool_shape)
 #                fp.Shape = fusion.cut(common)
 #            fp.Placement = FreeCAD.Placement()
 #        elif fp.TipBase:
 #            pl = self.getShape(fp,fp.TipBase).Placement
-#            fp.Shape = self.getShape(fp,fp.TipBase)
+#            #fp.Shape = self.getShape(fp,fp.TipBase)
+#            fp.Shape = base_shape
 #            fp.Placement = pl
 #        elif fp.TipTool:
 #            pl = self.getShape(fp,fp.TipTool).Placement
-#            fp.Shape = self.getShape(fp,fp.TipTool)
+#            #fp.Shape = self.getShape(fp,fp.TipTool)
+#            fp.Shape = tool_shape
 #            fp.Placement = pl
 #        if not fp.Shape.isNull() and fp.Refine:
 #            fp.Shape = fp.Shape.removeSplitter()
+#        fp.Shape = self.scale(fp.Shape,fp.TipShapeScale,fp.TipShapeScale != 1.0)
 #        if fp.Type != "None":
 #            addsubshape = self.makeAddSubShape(fp)
 #            fp.AddSubShape = addsubshape if not fp.Refine else addsubshape.removeSplitter()
+#            fp.AddSubShape = self.scale(fp.AddSubShape,fp.PatternShapeScale,fp.PatternShapeScale != 1.0)
 #        if len(fp.Shape.Solids)>1:
 #            self.warn(fp,"PDWrapper shape has multiple solids.  This could cause subsequent operations to fail or produce unexpected results.\n")
+#
+#    def scale(self,shp,factor,bScale):
+#        '''scale and return shp scaled if bScale = true'''
+#        if not shp or shp.isNull():
+#            return shp
+#        if bScale:
+#            scaleds = [sol.scale(factor,sol.CenterOfMass) for sol in shp.Solids]
+#            return Part.makeCompound(scaleds)
+#        else:
+#            return shp
 #
 #    def warn(self,fp,msg):
 #        if fp.ShowWarnings:
@@ -681,6 +713,9 @@ Part Design pattern (array) later.\n ", items, 0, False)
                                 wrapper.setEditorMode("PatternBase",2)
                                 wrapper.setEditorMode("PatternTool",2)
                                 wrapper.setEditorMode("PatternOperation",2)
+                                wrapper.setEditorMode("PatternBaseScale",2)
+                                wrapper.setEditorMode("PatternShapeScale",2)
+                                wrapper.setEditorMode("PatternToolScale",2)
                         else: #cancel
                             doc.abortTransaction()
                             return
