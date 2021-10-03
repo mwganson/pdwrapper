@@ -114,6 +114,17 @@ Tool shape used in the boolean operation to create the Pattern Shape.<br/>
 ### Type (string) (readonly)
 This is the feature python type used in creating the PDWrapper object.  This must be done at creation time when the base class is selected.  If this is "Additive" it means the PDWrapper object is of type PartDesign::FeatureAdditivePython.  If "Subtractive", PartDesign::FeatureSubtractivePython.  If "None", PartDesign::FeaturePython.  If this is "None" then the PDWrapper object cannot be used as the base for a pattern tool, such as linear patterns.  If "Additive" the pattern feature will fuse the copies with existing material.  If "Subtractive" the pattern tool will cut the copies from existing material.<br/>
 <br/>
+## Scaling
+PDWrapper objects support scaling of shapes used in the 2 recipes for creating the Tip Shape and the Pattern Shape as well as scaling of Tip Shape and Pattern Shape.  Note: scales are independent of one another and can be applied multiple times.  For example, if TipTool is scaled to 2.0 and TipShape is also scaled to 2.0, then the TipTool final scale is 4.0.  Negative values may be used, which produce sometimes a mirror effect.  For better mirroring / scaling control consider encapsulating a Draft Clone of the Linked Object.  To do this, first wrap the linked object in a None type and clear the Tip Tool property so that it no longer points to the linked object.  At this point the PDWrapper of the linked object merely propagates the previous solid feature's shape as its own.  The effect of this is the linked object is now in the body, but currently having no impact on the tip shape.  Then wrap with another PDWrapper the Draft Clone as an additive/subtractive/whatever type.  Alternatively, edit the Body's Group property to include the Linked Object.  This has the same effect, but does not need the first PDWrapper.  Then you can wrap the Draft Clone.<br/>
+<br/>
+### Pattern Base Scale (float)
+### Pattern Shape Scale (float)
+### Pattern Tool Scale (float)
+### Tip Base Scale (float)
+### Tip Shape Scale (float)
+### Tip Tool Scale (float)
+These are fairly self-explanatory.  Use them to scale the shape of that linked object before using it in the recipe to create the shape.  For example, if you want to scale the Tip Tool object (which is usually the linked object) then you would set the Tip Tool Scale property to the desired scale factor.  Tip Shape Scale and Pattern Shape Scale scale the results of the boolean operations and are applied in addition to the base and tool scales.  Experiment with these to see the effects.  When scaling patterns you must scale the Tip Tool separately if you want to also scale the original element of the pattern.<br/>
+<br/>
 ## Tip Shape
 Here is where the recipe for building the Tip Shape is.  The Tip Shape is the shape you see in the 3D view when the PDWrapper object is the visible feature.  I call it Tip Shape because it's the shape the Body presents when this feature is the Tip for the Body.  It is created using the Tip Shape recipe, which includes Tip Base, Tip Tool, and Tip Operation (the boolean to use)<br/>
 <br/>
@@ -127,10 +138,13 @@ There are 2 modes available: Automatic and Manual.  In Automatic mode (the defau
 The boolean operation used in creating the Tip Shape.  Options are Fuse, Cut, Common, and XOR.  Unlike in the case with Pattern Operation, there is no None option for creating the Tip Shape.  A NULL shape for the Tip Shape would only result in an error, anyway.<br/>
 <br/>
 ### Tip Tool (link)
-The tool shape used in creating the Tip Shape.  This is ordinarily the encapsulated object.  Note: for Fuse, Common, and XOR operation types it doesn't matter which shape is base and which is tool.  Only for Cut does it matter, where the tool is the cutting tool used to remove material from the base.
+The tool shape used in creating the Tip Shape.  This is ordinarily the encapsulated object.  Note: for Fuse, Common, and XOR operation types it doesn't matter which shape is base and which is tool.  Only for Cut does it matter, where the tool is the cutting tool used to remove material from the base.<br/>
+<br/>
 
 
 ## Changelog
+* 0.2021.10.03.rev2
+* Add scaling support
 * 0.2021.10.02.rev2
 * fix placement issue where PDWrapper was first object in Body
 * If TipManagement is Automatic, also manage PatternBase if PatternBase = TipBase
