@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-__version__ = "0.2021.10.03"
-#__version__ = "0.2021.10.03"
+__version__ = "0.2021.10.02.rev2"
+#__version__ = "0.2021.10.02.rev2"
 ## PDWrapper a class to encapsulate non-Part Design objects into a PartDesign::FeaturePython object
 ## 2021, by <TheMarkster>
 
@@ -9,8 +9,6 @@ __version__ = "0.2021.10.03"
 
 #class PDWrapper:
 #    def __init__(self,obj):
-#        #obj.addExtension("Part::AttachExtensionPython")#not really working right, so clear some space in property view
-#        obj.addProperty("Part::PropertyPartShape","AddSubShape","Base")
 #        obj.addProperty("App::PropertyLink","PatternBase","Pattern Shape","Base shape presented for patterning")
 #        obj.addProperty("App::PropertyLink","PatternTool","Pattern Shape","Tool used with Pattern Base for creating patten shape to use with patterning")
 #        obj.addProperty("App::PropertyEnumeration","PatternOperation","Pattern Shape","Operation to make pattern shape from the base and tool -- not used if no tool").PatternOperation =["None","Cut","Fuse","Common","XOR"]
@@ -21,7 +19,7 @@ __version__ = "0.2021.10.03"
 #        obj.addProperty("App::PropertyLink","TipBase","TipShape","Base shape for making the tip shape for this feature")
 #        obj.addProperty("App::PropertyLink","TipTool","TipShape","Tool shape for making the tip shape for this feature")
 #        obj.addProperty("App::PropertyEnumeration","TipOperation","TipShape","Operation to perform with Tip Base and Tip Tool to create feature shape").TipOperation=["Fuse","Cut","Common","XOR"]
-#        obj.addProperty("App::PropertyBool","Refine","PDWrapper","Whether to refine shape (removes extra edges")
+##        obj.addProperty("App::PropertyBool","Refine","PDWrapper","Whether to refine shape (removes extra edges")
 #        obj.addProperty("App::PropertyString","Type","Pattern Shape","This object type, can be Additive, Subtractive, Common, XOR, None")
 #        obj.addProperty("App::PropertyFloatConstraint","MeshTolerance","Mesh","Tolerance when wrapping mesh objects").MeshTolerance = (0.1,0.001,10000,.1)
 #        obj.addProperty("App::PropertyBool","RefineMesh","Mesh","Whether to refine Mesh shape after conversion").RefineMesh = True
@@ -31,7 +29,6 @@ __version__ = "0.2021.10.03"
 #        obj.setEditorMode("Type",1) #readonly
 #        obj.setEditorMode("Body",1) #readonly
 #        obj.setEditorMode("Version",1)
-#        obj.setEditorMode("AddSubShape",2) #hidden
 #        obj.Proxy = self
 
 #    def onChanged(self,fp,prop):
@@ -45,6 +42,9 @@ __version__ = "0.2021.10.03"
 
 #    def getShape(self,fp,link):
 #        '''get the shape of link and return it, if mesh, build shape,cache it, and return it'''
+#        body = FreeCAD.ActiveDocument.getObject(fp.Body) #in case user has selected an object outside the body
+#        if link and not link in body.Group:
+#            body.Group += [link]
 #        if hasattr(link,"Shape"):
 #            return link.Shape
 #        elif hasattr(link,"Mesh"):
@@ -79,22 +79,11 @@ __version__ = "0.2021.10.03"
 #                if len(link.Shape.Solids)>1:
 #                    self.warn(fp,link.Name+" ("+link.Label+") has multiple solids.  Subsequent Part Design operations might fail.\n")
 
-#        body = FreeCADGui.ActiveDocument.ActiveView.getActiveObject("pdbody")
+#        body = FreeCAD.ActiveDocument.getObject(fp.Body)
 #        if body and not link in body.Group:
 #            body.Group += [link]
 #            checkSolids(link)
-#        else: #body not active
-#            parents = fp.Parents
-#            if parents:
-#                body = parents[0][0]
-#                if body.TypeId == "PartDesign::Body":
-#                    if not link in body.Group:
-#                        body.Group += [link]
-#                        checkSolids(link)
-#        if body:
-#            fp.Body = body.Name
-#        else:
-#            fp.Body = ""
+
 
 #    def makeAddSubShape(self,fp):
 #        ''' create addsubshape and return as shape
@@ -142,6 +131,8 @@ __version__ = "0.2021.10.03"
 
 #    def execute(self,fp):
 #        if fp.TipManagement == "Automatic":
+#            if fp.PatternBase == fp.TipBase:
+#               fp.PatternBase = self.getPreviousFeature(fp)
 #            fp.TipBase = self.getPreviousFeature(fp)
 #        if hasattr(fp,"Refine1"):
 #            fp.removeProperty("Refine1") #PD features might already have a Refine feature
@@ -163,8 +154,15 @@ __version__ = "0.2021.10.03"
 #                fusion = self.getShape(fp,fp.TipBase).fuse(self.getShape(fp,fp.TipTool))
 #                common = self.getShape(fp,fp.TipBase).common(self.getShape(fp,fp.TipTool))
 #                fp.Shape = fusion.cut(common)
+#            fp.Placement = FreeCAD.Placement()
 #        elif fp.TipBase:
+#            pl = self.getShape(fp,fp.TipBase).Placement
 #            fp.Shape = self.getShape(fp,fp.TipBase)
+#            fp.Placement = pl
+#        elif fp.TipTool:
+#            pl = self.getShape(fp,fp.TipTool).Placement
+#            fp.Shape = self.getShape(fp,fp.TipTool)
+#            fp.Placement = pl
 #        if not fp.Shape.isNull() and fp.Refine:
 #            fp.Shape = fp.Shape.removeSplitter()
 #        if fp.Type != "None":
@@ -176,7 +174,7 @@ __version__ = "0.2021.10.03"
 #    def warn(self,fp,msg):
 #        if fp.ShowWarnings:
 #            FreeCAD.Console.PrintWarning(msg)
-#            FreeCAD.Console.PrintWarning("PDWrapper warnings may be suppressed with the ShowWarnings property set to false\n")
+#            FreeCAD.Console.PrintMessage("PDWrapper warnings may be suppressed with the ShowWarnings property set to false\n")
 
 
 #class PDWrapperVP:
@@ -686,8 +684,9 @@ Part Design pattern (array) later.\n ", items, 0, False)
                         else: #cancel
                             doc.abortTransaction()
                             return
-
-                        PDW.PDWrapper.placeInBody(wrapper, wrapper, selobj.Object)
+                        if not selobj.Object in body.Group:
+                            body.Group += [selobj.Object]
+                        wrapper.Body = body.Name
                         wrapper.LinkedObject =selobj.Object
                         doc.commitTransaction()
             else:
