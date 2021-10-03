@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-__version__ = "0.2021.10.03.rev2"
-#__version__ = "0.2021.10.03.rev2"
+__version__ = "0.2021.10.03"
+#__version__ = "0.2021.10.03"
 ## PDWrapper a class to encapsulate non-Part Design objects into a PartDesign::FeaturePython object
 ## 2021, by <TheMarkster>
 
@@ -26,7 +26,7 @@ __version__ = "0.2021.10.03.rev2"
 #        obj.addProperty("App::PropertyFloatConstraint","MeshTolerance","Mesh","Tolerance when wrapping mesh objects").MeshTolerance = (0.1,0.001,10000,.1)
 #        obj.addProperty("App::PropertyBool","RefineMesh","Mesh","Whether to refine Mesh shape after conversion").RefineMesh = True
 #        obj.addProperty("App::PropertyEnumeration","TipManagement","TipShape","If Automatic, wrapper resets TipBase automatically, if Manual, user must manage tip base").TipManagement = ["Automatic","Manual"]
-#        obj.addProperty("App::PropertyBool","EnableWarnings","PDWrapper","Enable/disable warning messages").EnableWarnings = True
+#        obj.addProperty("App::PropertyBool","ShowWarnings","PDWrapper","Set to false to disable annoying warning messages\n").ShowWarnings=True
 #        obj.TipManagement = "Automatic"
 #        obj.setEditorMode("Type",1) #readonly
 #        obj.setEditorMode("Body",1) #readonly
@@ -37,11 +37,6 @@ __version__ = "0.2021.10.03.rev2"
 #    def onChanged(self,fp,prop):
 #        if prop == "MeshTolerance" or prop == "RefineMesh":
 #            self.resetMeshCache(fp)
-#
-#    def warn(self,fp,msg):
-#        if fp.EnableWarnings:
-#            FreeCAD.Console.PrintWarning(msg)
-#            FreeCAD.Console.PrintMessage("PDWrapper warnings may be suppressed with the Enable Warnings property\n")
 
 #    def resetMeshCache(self,fp):
 #        meshProps = [prop for prop in fp.PropertiesList if "_from_mesh" in prop]
@@ -135,16 +130,16 @@ __version__ = "0.2021.10.03.rev2"
 #        if fp.Body:
 #            body = doc.getObject(fp.Body)
 #        else:
-#            raise Exception("Runtime error: can't find Body.  PDWrapper objects should not be moved to another Body.  Delete the wrapper and create a new one instead.\n")
+#            raise Exception("Runtime error: can't find Body")
 #        solids = [sol for sol in body.Group if sol.isDerivedFrom("PartDesign::Feature")]
 #        if not fp in solids:
-#            raise Exception("PDWrapper object not in body.  PDWrapper objects should not be moved to another Body.  Delete the wrapper and create a new one instead.\n")
+#            raise Exception("PDWrapper object not in body")
 #        idx = solids.index(fp)
 #        if idx == 0:
 #            return None #fp is first solid feature
 #        else:
 #            return solids[idx-1]
-#
+
 #    def execute(self,fp):
 #        if fp.TipManagement == "Automatic":
 #            fp.TipBase = self.getPreviousFeature(fp)
@@ -176,8 +171,12 @@ __version__ = "0.2021.10.03.rev2"
 #            addsubshape = self.makeAddSubShape(fp)
 #            fp.AddSubShape = addsubshape if not fp.Refine else addsubshape.removeSplitter()
 #        if len(fp.Shape.Solids)>1:
-#            self.warn(fp,"PDWrapper shape has multiple solids.  Future operations might fail or produce unexpected results.\n") 
-
+#            self.warn(fp,"PDWrapper shape has multiple solids.  This could cause subsequent operations to fail or produce unexpected results.\n")
+#
+#    def warn(self,fp,msg):
+#        if fp.ShowWarnings:
+#            FreeCAD.Console.PrintWarning(msg)
+#            FreeCAD.Console.PrintWarning("PDWrapper warnings may be suppressed with the ShowWarnings property set to false\n")
 
 
 #class PDWrapperVP:
