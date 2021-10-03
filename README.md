@@ -1,4 +1,4 @@
-# This document (and this macro) is still under construction
+### This document (and this macro) is still under construction
 
 # PDWrapper
 Part Design Wrapper object.  Encapsulates objects created outside Part Design for use inside Part Design bodies in FreeCAD.  For example, if you wish to use a Part workbench primitive, such as a Tube object in a Part Design model you can add it to the active body by selecting it and running the macro.  The macro creates a PDWrapper feature python object to encapsulate the Tube and allow it to work in the Part Design body.  In a new body the tree would look like this:
@@ -99,15 +99,35 @@ The version of PDWrapper macro used to create this PDWrapper object.  It need no
 ### Refine (boolean)
 This is a property you will most likely already be familiar with.  All additive/subtractive Part Design features have this property.  The None type does not, but we add it to them in the PDWrapper group.<br/>
 <br/>
+## Pattern Shape (link)
+Pattern Shape is the shape used by pattern tools, example: polar pattern, in making copies.  This shape is the result of a boolean operation (Pattern Operation) using Pattern Base and Pattern Tool.<br/>
+<br/>
+### Pattern Base (link)
+Base shape used in the boolean operation to create the Pattern Shape.<br/>
+<br/>
+### Pattern Operation (enumeration)
+Boolean operation used to create Pattern Shape.  Options are None, Cut, Fuse, Common, XOR.<br/>
+<br/>
+### Pattern Tool (link)
+Tool shape used in the boolean operation to create the Pattern Shape.<br/>
+<br/>
+### Type (string) (readonly)
+This is the feature python type used in creating the PDWrapper object.  This must be done at creation time when the base class is selected.  If this is "Additive" it means the PDWrapper object is of type PartDesign::FeatureAdditivePython.  If "Subtractive", PartDesign::FeatureSubtractivePython.  If "None", PartDesign::FeaturePython.  If this is "None" then the PDWrapper object cannot be used as the base for a pattern tool, such as linear patterns.  If "Additive" the pattern feature will fuse the copies with existing material.  If "Subtractive" the pattern tool will cut the copies from existing material.<br/>
+<br/>
 ## Tip Shape
-Here is where the recipe for building the Tip Shape is.<br/>
+Here is where the recipe for building the Tip Shape is.  The Tip Shape is the shape you see in the 3D view when the PDWrapper object is the visible feature.  I call it Tip Shape because it's the shape the Body presents when this feature is the Tip for the Body.  It is created using the Tip Shape recipe, which includes Tip Base, Tip Tool, and Tip Operation (the boolean to use)<br/>
 <br/>
 ### Tip Base (link)
 The object used as the base for the Tip Operation (along with the Tip Tool) in generating the PDWrapper object's Tip Shape.  I call it Tip Shape because it is the shape the Body inherits when an object is the Tip feature.  It's also the shape any features that follow in the tree will combine with to create their Tip Shape.  Tip Base is always going to be the previous solid feature by default, but you can change it if you want a different Tip Shape.  Remember, the Base has the material that the Tool will cut away.  For example, to make a round hole in a cube you would use the cube as the base and a cylinder as the tool.<br/>
 <br/>
 ### Tip Management (enumeration)
-There are 2 modes available: Automatic and Manual.  (more to come)
-
+There are 2 modes available: Automatic and Manual.  In Automatic mode (the default) Tip Base and Pattern Base are automatically set to the current previous solid.  This way if the user moves the PDWrapper object or deletes the feature in front of it in the tree these 2 properties are automatically updated.  In Manual mode the user must manage these properties to ensure they are pointing the correct objects.<br/>
+<br/>
+### Tip Operation (enumeration)
+The boolean operation used in creating the Tip Shape.  Options are Fuse, Cut, Common, and XOR.  Unlike in the case with Pattern Operation, there is no None option for creating the Tip Shape.  A NULL shape for the Tip Shape would only result in an error, anyway.<br/>
+<br/>
+### Tip Tool (link)
+The tool shape used in creating the Tip Shape.  This is ordinarily the encapsulated object.  Note: for Fuse, Common, and XOR operation types it doesn't matter which shape is base and which is tool.  Only for Cut does it matter, where the tool is the cutting tool used to remove material from the base.
 
 
 ## Changelog
