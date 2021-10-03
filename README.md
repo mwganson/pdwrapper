@@ -41,3 +41,10 @@ There are several options for the type of PDWrapper object.  The object type mus
 ### Additive
 This PDWrapper type adds to (fuses with) the previous solid feature in the Body.  If it is used in a Part Design pattern feature, such as in a polar pattern feature, the copies produced will add to the existing geometry.
 
+## Changelog
+* 0.2021.10.02.rev2
+* fix placement issue where PDWrapper was first object in Body
+* If TipManagement is Automatic, also manage PatternBase if PatternBase = TipBase
+* remove some commented lines
+* use fp.Body (name of body) rather than active body
+* 
