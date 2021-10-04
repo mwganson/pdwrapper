@@ -80,12 +80,23 @@ The NNN is 1 for Wire1, 2 for Wire2, etc.  If true (default) the wire is rendere
 #### WireNNN Is Closed (boolean) (readonly)
 This is for information only.  If it's true it means the wire is closed.  If false it means it is an open wire.  Open wires are unsuitable for many Part Design operations, such as Pad, Pocket, but can be used as paths for Additive and Subtractive Pipes (sweeps).  Sometimes a user might accidentally fail to properly close a wire in a sketch.  This can serve as a troubleshooting tool for when a feature tool fails.<br/>
 <br/>
-#### WireNNN Scale
+#### WireNNN Scale (float)
 The scale factor to apply to this wire.  Default is 1.0.  In case of the default, no scaling is done.  Note: -1 will mirror the wire, but it might not be the mirror you were hoping for.  Caveat: when scaling it might sometimes happen that wires will overlap causing a feature tool to fail to produce a valid solid.  This is usually easily evident when viewing the PDWrapper object and hiding the solid feature.<br/>
 <br/>
-#### WireNNN Scale Copy
+#### WireNNN Scale Copy (boolean)
 If true a copy of the wire is scaled rather than the wire itself.  In other words, if this is True, the original wire is retained.  If it is false the original wire is discarded and replaced by the scaled wire.  Default is True.<br/>
 <br/>
+### FaceMaker (enumeration)
+WireWrapper types can also make faces out of wires, or at least attempt to.  Default is None (no face).  Here are all the options and a brief explanation of the advantages and disadvantags of each option, or at least as I understand them.<br/>
+<br/>
+#### None (no face)
+Default option.  Does not attempt to make a face.  This is fine because Part Design feature tools (such as Pad, Pocket) can make use of wires to create their solid features.  But there are times when a face is needed, such as when there are wires within wires within wires...<br/>
+<br/>
+#### FaceMakerBullseye
+This is the facemaker used by Part::Extrusion.  It can create faces within faces within faces, etc.  Hence the name, "bullseye".  Think of the bullseye pattern on a dart board where your goal is to hit the bullseye in the middle.  Bear in mind the limitation of the single solid result in Part Design.  This can make the face, but the result of the Pad needs to be a single contiguous solid.  Note: using a bullseye sketch with Pad is not going to work.  It must be encapsulated in a PDWrapper (Wires) object and made into a face using the FaceMakerBullseye option.  Then you can pad the PDWrapper object as if it were the sketch.  You need a support pad first so that a contiguous single solid results from the Pad operation.  Here is a screenshot example:<br/>
+<br/>
+<img src="pdwrapper_scr.png" alt="screenshot"><br/>
+
 ### Boolean Operations
 The Common boolean operation is sometimes called intersection.  In boolean logic terms it is a boolean AND operation.  For there to be material returned from the operation at a given coordinate there must be material at that coordinate in both the Base shape AND the Tool shape.  Contrast this with a fusion operation, which is logical OR.  If Base shape has material OR Tool shape has material at a given coordinate then material will be at that coordinate in the result.  And with the Cut operation you have (I think) logical NOT AND or NAND.  Base shape at a given coordinate AND NOT Tool shape material at that same given location in order for there to be material in the result.  XOR is eXclusive OR meaning matieral is returned in the result where either the Base Shape has material OR the Tool Shape has material but not BOTH.  It might help to think of this as the OPPOSITE of Common.  Where the Common removes all material except intersecting material, XOR removes only intersecting material.  It differs from a Cut because material from the Tool Shape is retained with XOR whereas with a Cut it is not. <br/>
 <br/>
@@ -161,6 +172,8 @@ The tool shape used in creating the Tip Shape.  This is ordinarily the encapsula
 
 
 ## Changelog
+* 0.2021.10.04
+* add facemaker capabilites to WireWrapper types
 * 0.2021.10.03.rev5
 * add WireWrapper type and scaling of individual wires
 * 0.2021.10.03.rev4
