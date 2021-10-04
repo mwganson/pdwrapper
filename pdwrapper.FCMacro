@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-__version__ = "0.2021.10.03.rev3"
-#__version__ = "0.2021.10.03.rev3"
+__version__ = "0.2021.10.03.rev4"
+#__version__ = "0.2021.10.03.rev4"
 ## PDWrapper a class to encapsulate non-Part Design objects into a PartDesign::FeaturePython object
 ## 2021, by <TheMarkster>
 
@@ -148,7 +148,8 @@ __version__ = "0.2021.10.03.rev3"
 #        if fp.LinkedObject:
 #            self.placeInBody(fp,fp.LinkedObject)
 #            fp.LinkedObject.ViewObject.Visibility = False
-#            fp.Shape = self.getShape(fp,fp.LinkedObject)
+#            if not fp.Type == "None (Passthrough)":
+#               fp.Shape = self.getShape(fp,fp.LinkedObject)
 #        else:
 #            fp.Shape = Part.Shape()
 #        base_shape = self.getShape(fp,fp.TipBase)
@@ -186,7 +187,7 @@ __version__ = "0.2021.10.03.rev3"
 #        if not fp.Shape.isNull() and fp.Refine:
 #            fp.Shape = fp.Shape.removeSplitter()
 #        fp.Shape = self.scale(fp.Shape,fp.TipShapeScale,fp.TipShapeScale != 1.0)
-#        if fp.Type != "None":
+#        if not "None" in fp.Type:
 #            addsubshape = self.makeAddSubShape(fp)
 #            fp.AddSubShape = addsubshape if not fp.Refine else addsubshape.removeSplitter()
 #            fp.AddSubShape = self.scale(fp.AddSubShape,fp.PatternShapeScale,fp.PatternShapeScale != 1.0)
@@ -726,7 +727,7 @@ Part Design pattern (array) later.\n ", items, 0, False)
                                 wrapper.TipBase = tipBase
                                 wrapper.TipTool = None
                                 wrapper.TipOperation = "Fuse"
-                                wrapper.Type = "None" #neither additive nor subtractive, so hide these properties
+                                wrapper.Type = "None (Passthrough)" #neither additive nor subtractive, so hide these properties
                                 wrapper.setEditorMode("PatternBase",2)
                                 wrapper.setEditorMode("PatternTool",2)
                                 wrapper.setEditorMode("PatternOperation",2)
