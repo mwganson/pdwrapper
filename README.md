@@ -142,6 +142,7 @@ This is an integer list that can be used to reorder the wires that are imported 
 <br/>
 <img src="pdwrapper_scr3.png" alt= "screenshot 3"><br/>
 <br/>
+As you can see this works quite well for the simple case shown here, but with a more complicated scenario it can be a challenge to work out what the wire order should be.  Still, this is better than nothing, which is what we have now where the only alternative is to go back an re-work the sketch.  Notes: The WireOrder property gets reset back to default anytime the number of wires in the Linked Object changes, for example when converting one wire to construction mode inside a sketch.
 ### Version (string)
 The version of PDWrapper macro used to create this PDWrapper object.  It need not necessarily be the same version as currently installed (unless some change I made breaks existing models, which happens from time to time early in development).<br/>
 <br/>
