@@ -93,9 +93,20 @@ WireWrapper types can also make faces out of wires, or at least attempt to.  Def
 Default option.  Does not attempt to make a face.  This is fine because Part Design feature tools (such as Pad, Pocket) can make use of wires to create their solid features.  But there are times when a face is needed, such as when there are wires within wires within wires...<br/>
 <br/>
 #### FaceMakerBullseye
-This is the facemaker used by Part::Extrusion.  It can create faces within faces within faces, etc.  Hence the name, "bullseye".  Think of the bullseye pattern on a dart board where your goal is to hit the bullseye in the middle.  Bear in mind the limitation of the single solid result in Part Design.  This can make the face, but the result of the Pad needs to be a single contiguous solid.  Note: using a bullseye sketch with Pad is not going to work.  It must be encapsulated in a PDWrapper (Wires) object and made into a face using the FaceMakerBullseye option.  Then you can pad the PDWrapper object as if it were the sketch.  You need a support pad first so that a contiguous single solid results from the Pad operation.  Here is a screenshot example:<br/>
+Used in Part workbench.  This can create faces within faces within faces, etc.  Hence the name, "bullseye".  Think of the bullseye pattern on a dart board where your goal is to hit the bullseye in the middle.  This is why these types of sketches work with Part::Extrude, but not with PartDesign::Pad (at least not unless we make the face ourselves).  Bear in mind the limitation of the single solid result in Part Design.  This can make the face, which Pad can work with, but the result of the Pad needs to be a single contiguous solid.  Note: using a bullseye sketch with Pad is not going to work.  It must be encapsulated in a PDWrapper (Wires) object and made into a face using the FaceMakerBullseye option.  Then you can pad the PDWrapper object as if it were the sketch.  You need a support pad first so that a contiguous single solid results from the Pad operation.  Here is a screenshot example:<br/>
 <br/>
 <img src="pdwrapper_scr.png" alt="screenshot"><br/>
+<br/>
+Be sure to use 0.20 or later if you intend to use this feature.  There are bugs in 0.19 related to this unorthodox usage.<br/>
+<br/>
+#### FaceMakerCheese
+This is the facemaker used in Part Design.  Why the name cheese?  Think of Swiss cheese with all the holes in it.  This facemaker can make faces with multiple holes inside a face.  (So can Bullseye.)  Seems to be more reliable in terms of the feature tool being able to find the normal direction for extrusion.<br/>
+<br/>
+#### FaceMakerSimple
+This facemaker cannot handle wires within wires.  For some reason nested wires gives it trouble and it only uses the outer wire.  It's saving grace is it can make nonplanar wires into faces whereas Bullseye and Cheese will fail.  Consider this wire and the face made from it with this facemaker:<br/>
+<br/>
+<img src="pdwrapper_scr2.png" alt="screenshot 2"><br/>
+<br/>
 
 ### Boolean Operations
 The Common boolean operation is sometimes called intersection.  In boolean logic terms it is a boolean AND operation.  For there to be material returned from the operation at a given coordinate there must be material at that coordinate in both the Base shape AND the Tool shape.  Contrast this with a fusion operation, which is logical OR.  If Base shape has material OR Tool shape has material at a given coordinate then material will be at that coordinate in the result.  And with the Cut operation you have (I think) logical NOT AND or NAND.  Base shape at a given coordinate AND NOT Tool shape material at that same given location in order for there to be material in the result.  XOR is eXclusive OR meaning matieral is returned in the result where either the Base Shape has material OR the Tool Shape has material but not BOTH.  It might help to think of this as the OPPOSITE of Common.  Where the Common removes all material except intersecting material, XOR removes only intersecting material.  It differs from a Cut because material from the Tool Shape is retained with XOR whereas with a Cut it is not. <br/>
