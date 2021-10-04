@@ -69,7 +69,8 @@ Subtractive version of XOR (Additive).  Only difference is tool patterns will re
 The None type is here, but to be honest, I can't really think of situations where it would preferable to use rather than one of the additive or subtractive types.  None types cannot be used for patterns because they lack the Pattern Shape.  I mentioned above how we do not want to unintentionally break the chain, but intentionally is another matter.  It might be useful in some situations to break the chain (perhaps temporarily) so that later features are no longer dependent upon earlier features.  To do this encapsulate something inside a None type PDWrapper object and modify the recipes so that there is no Tip Shape produced, and hence nothing for the following solid feture to build upon.  This would be a way of adding a NULL feature in the middle of the feature tree.  By default the Tip Shape recipe for None types is to fuse the encapsulated object with the previous solid feature.  No Pattern Shape recipe exists.  Note: you must toggle Tip Management from Automatic to Manual to modify the recipes, more on this property below.<br/>
 <br/>
 ### None (Passthrough)
-This is the same as the None type with the only difference being the encapsulated object isn't included in the Tip Shape recipe.  It's called a Passthrough because it simply passes through the shape of the previous solid feature.
+This is the same as the None type with the only difference being the encapsulated object isn't included in the Tip Shape recipe.  It's called a Passthrough because it simply passes through the shape of the previous solid feature.  Use this where you wish to add an object to the Body but not use it in the Tip Shape recipe and will not be using it in a pattern feature.  This can be useful if you wish to encapsulate an object that has other links to objects outside the Body.  With this type you can encapsulate those links and prevent out of scope warnings.  You can also set Claim Children false, and then delete this wrapper and the wrapped object will remain in the Body.<br/>
+<br>
 ### Boolean Operations
 The Common boolean operation is sometimes called intersection.  In boolean logic terms it is a boolean AND operation.  For there to be material returned from the operation at a given coordinate there must be material at that coordinate in both the Base shape AND the Tool shape.  Contrast this with a fusion operation, which is logical OR.  If Base shape has material OR Tool shape has material at a given coordinate then material will be at that coordinate in the result.  And with the Cut operation you have (I think) logical NOT AND or NAND.  Base shape at a given coordinate AND NOT Tool shape material at that same given location in order for there to be material in the result.  XOR is eXclusive OR meaning matieral is returned in the result where either the Base Shape has material OR the Tool Shape has material but not BOTH.  It might help to think of this as the OPPOSITE of Common.  Where the Common removes all material except intersecting material, XOR removes only intersecting material.  It differs from a Cut because material from the Tool Shape is retained with XOR whereas with a Cut it is not. <br/>
 <br/>
@@ -145,6 +146,10 @@ The tool shape used in creating the Tip Shape.  This is ordinarily the encapsula
 
 
 ## Changelog
+* 0.2021.10.03.rev4
+* fix bug in None (Passthrough) type
+* 0.2021.10.03.rev3
+* add None (Passthrough) type
 * 0.2021.10.03.rev2
 * Add scaling support
 * 0.2021.10.02.rev2
