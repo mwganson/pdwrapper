@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-__version__ = "0.2021.10.03.rev4"
-#__version__ = "0.2021.10.03.rev4"
+__version__ = "0.2021.10.03.rev5"
+#__version__ = "0.2021.10.03.rev5"
 ## PDWrapper a class to encapsulate non-Part Design objects into a PartDesign::FeaturePython object
 ## 2021, by <TheMarkster>
 
@@ -124,6 +124,8 @@ __version__ = "0.2021.10.03.rev4"
 #        else:
 #            return fp.LinkedObject
 #    def getPreviousFeature(self,fp):
+#        if fp.Type == "WireWrapper":
+#           return None
 #        doc = FreeCAD.ActiveDocument
 #        if fp.Body:
 #            body = doc.getObject(fp.Body)
@@ -139,6 +141,9 @@ __version__ = "0.2021.10.03.rev4"
 #            return solids[idx-1]
 
 #    def execute(self,fp):
+#        if fp.Type == "WireWrapper":
+#            self.executeSketchWiresType(fp)
+#            return
 #        if fp.TipManagement == "Automatic":
 #            if fp.PatternBase == fp.TipBase:
 #               fp.PatternBase = self.getPreviousFeature(fp)
@@ -159,29 +164,22 @@ __version__ = "0.2021.10.03.rev4"
 #        if fp.TipTool and fp.TipBase:
 #            op = fp.TipOperation
 #            if op == "Cut":
-#                #fp.Shape = self.getShape(fp,fp.TipBase).cut(self.getShape(fp,fp.TipTool))
 #                fp.Shape = base_shape.cut(tool_shape)
 #            elif op == "Fuse":
-#                #fp.Shape = self.getShape(fp,fp.TipBase).fuse(self.getShape(fp,fp.TipTool))
 #                fp.Shape = base_shape.fuse(tool_shape)
 #            elif op == "Common":
-#                #fp.Shape = self.getShape(fp,fp.TipBase).common(self.getShape(fp,fp.TipTool))
 #                fp.Shape = base_shape.common(tool_shape)
 #            elif op == "XOR":
-#                #fusion = self.getShape(fp,fp.TipBase).fuse(self.getShape(fp,fp.TipTool))
 #                fusion = base_shape.fuse(tool_shape)
-#                #common = self.getShape(fp,fp.TipBase).common(self.getShape(fp,fp.TipTool))
 #                common = base_shape.common(tool_shape)
 #                fp.Shape = fusion.cut(common)
 #            fp.Placement = FreeCAD.Placement()
 #        elif fp.TipBase:
 #            pl = self.getShape(fp,fp.TipBase).Placement
-#            #fp.Shape = self.getShape(fp,fp.TipBase)
 #            fp.Shape = base_shape
 #            fp.Placement = pl
 #        elif fp.TipTool:
 #            pl = self.getShape(fp,fp.TipTool).Placement
-#            #fp.Shape = self.getShape(fp,fp.TipTool)
 #            fp.Shape = tool_shape
 #            fp.Placement = pl
 #        if not fp.Shape.isNull() and fp.Refine:
@@ -208,6 +206,63 @@ __version__ = "0.2021.10.03.rev4"
 #        if fp.ShowWarnings:
 #            FreeCAD.Console.PrintWarning(msg)
 #            FreeCAD.Console.PrintMessage("PDWrapper warnings may be suppressed with the ShowWarnings property set to false\n")
+#
+#    def executeSketchWiresType(self,fp):
+#        '''add some dynamic properties specific to this type and to this linked object'''
+#        if fp.LinkedObject:
+#            self.placeInBody(fp,fp.LinkedObject)
+#            fp.LinkedObject.ViewObject.Visibility = False
+#        wires = fp.LinkedObject.Shape.Wires
+#        if not wires:
+#            fp.Shape = Part.Shape()
+#            return
+#        self.setupWireProps(fp,wires) #adds missing WireNNN properties, removes unnecessary ones
+#        showWires = []
+#        for ii in range(0,len(wires)):
+#            if getattr(fp,"Wire"+str(ii+1)) == True: #whether to show the wire, if false we don't show copy either
+#                factor = getattr(fp,"Wire"+str(ii+1)+"Scale")
+#                if factor == 1.0: #don't show copy if unscaled, either
+#                    showWires.append(wires[ii])
+#                else: #scale the wire
+#                    scaleCopy = getattr(fp,"Wire"+str(ii+1)+"ScaleCopy")
+#                    if scaleCopy: #we already know scale != 1.0
+#                        showWires.append(wires[ii].copy())
+#                    wire = wires[ii]
+#                    wire = wire.scale(factor,wire.CenterOfMass)
+#                    showWires.append(wire)
+#        if fp.TipShapeScale != 1.0:
+#            scaledWires = []
+#            for sw in showWires:
+#                scaledWires.append(sw.scale(fp.TipShapeScale,sw.CenterOfMass))
+#            showWires = scaledWires
+#        if len(showWires)>0:
+#            fp.Shape = Part.makeCompound(showWires)
+#        else:
+#            fp.Shape = Part.Shape()
+
+#
+#
+#    def setupWireProps(self,fp,wires):
+#        ii = len(wires)
+#        while hasattr(fp,"Wire"+str(ii+1)): #remove any excess WireNNN properties
+#            fp.removeProperty("Wire"+str(ii+1))
+#            fp.removeProperty("Wire"+str(ii+1)+"Scale")
+#            fp.removeProperty("Wire"+str(ii+1)+"ScaleCopy")
+#            fp.removeProperty("Wire"+str(ii+1)+"IsClosed")
+#            ii += 1
+#        for ii in range(0,len(wires)):
+#            if not hasattr(fp,"Wire"+str(ii+1)):
+#                fp.addProperty("App::PropertyBool","Wire"+str(ii+1),"Wire"+str(ii+1),"true = show wire and any scaled copies, false = discard wire and any scaled copies")
+#                setattr(fp,"Wire"+str(ii+1),True)
+#                fp.addProperty("App::PropertyFloat","Wire"+str(ii+1)+"Scale","Wire"+str(ii+1),"Scale factor for this wire, if scale = 1.0 no scaling is done")
+#                setattr(fp,"Wire"+str(ii+1)+"Scale",1.0)
+#                fp.addProperty("App::PropertyBool","Wire"+str(ii+1)+"ScaleCopy","Wire"+str(ii+1),"true = keep original, false = discard original")
+#                setattr(fp,"Wire"+str(ii+1)+"ScaleCopy",True)
+#                fp.addProperty("App::PropertyBool","Wire"+str(ii+1)+"IsClosed","Wire"+str(ii+1),"whether wire is closed (readonly)")
+#                fp.setEditorMode("Wire"+str(ii+1)+"IsClosed",1)#readonly
+#            setattr(fp,"Wire"+str(ii+1)+"IsClosed",wires[ii].isClosed())
+
+
 
 
 #class PDWrapperVP:
@@ -601,7 +656,7 @@ def makeObject(PDW):
                 for selobj in selobjs:
                     if body:
                         window = FreeCADGui.getMainWindow()
-                        items=["Additive","Subtractive","Common (Additive)","Common (Subtractive)","XOR (Additive)","XOR (Subtractive)","None", "None (Passthrough)"]
+                        items=["Additive","Subtractive","Common (Additive)","Common (Subtractive)","XOR (Additive)","XOR (Subtractive)","None", "None (Passthrough)", "WireWrapper"]
                         item,ok = QtGui.QInputDialog.getItem(window,"Wrapper type",
 "Select wrapper type for this object. You can change the operations later, but Additive or \n\
 Subtractive can only be chosen now, at the time of object creation, and can't be changed later. \n\
@@ -716,7 +771,7 @@ Part Design pattern (array) later.\n ", items, 0, False)
                                 wrapper.setEditorMode("PatternBaseScale",2)
                                 wrapper.setEditorMode("PatternShapeScale",2)
                                 wrapper.setEditorMode("PatternToolScale",2)
-                            else: # item == items[7]: #None (Passthrough)
+                            elif item == items[7]: #None (Passthrough)
                                 wrapper = doc.addObject("PartDesign::FeaturePython","PDWrapper")
                                 PDW.PDWrapper(wrapper)
                                 PDW.PDWrapperVP(wrapper.ViewObject)
@@ -734,6 +789,35 @@ Part Design pattern (array) later.\n ", items, 0, False)
                                 wrapper.setEditorMode("PatternBaseScale",2)
                                 wrapper.setEditorMode("PatternShapeScale",2)
                                 wrapper.setEditorMode("PatternToolScale",2)
+                            elif item == items[8]: #WireWrapper
+                                wrapper = doc.addObject("Part::FeaturePython","PDWrapper")
+                                PDW.PDWrapper(wrapper)
+                                PDW.PDWrapperVP(wrapper.ViewObject)
+                                if not wrapper in body.Group:
+                                    body.Group += [wrapper]
+                                wrapper.Body = body.Name
+                                wrapper.TipBase = None
+                                wrapper.TipTool = selobj.Object
+                                wrapper.TipOperation = "Fuse"
+                                wrapper.Type = "WireWrapper" #neither additive nor subtractive, so hide these properties
+                                wrapper.Label2 = "(Wires)"
+                                wrapper.setEditorMode("PatternBase",2)
+                                wrapper.setEditorMode("PatternTool",2)
+                                wrapper.setEditorMode("PatternOperation",2)
+                                wrapper.setEditorMode("PatternBaseScale",2)
+                                wrapper.setEditorMode("PatternShapeScale",2)
+                                wrapper.setEditorMode("PatternToolScale",2)
+                                wrapper.setEditorMode("TipBase",2)
+                                wrapper.setEditorMode("TipBaseScale",2)
+                                wrapper.setEditorMode("TipManagement",2)
+                                wrapper.setEditorMode("TipOperation",2)
+                                wrapper.setEditorMode("TipTool",2)
+                                wrapper.setEditorMode("TipToolScale",2)
+                                wrapper.setEditorMode("PatternBase",2)
+                                wrapper.setEditorMode("MeshTolerance",2)
+                                wrapper.setEditorMode("RefineMesh",2)
+                                wrapper.setEditorMode("Refine",2)
+                                wrapper.setEditorMode("ShowWarnings",2)
                         else: #cancel
                             doc.abortTransaction()
                             return
