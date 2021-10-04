@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-__version__ = "0.2021.10.03.rev2"
-#__version__ = "0.2021.10.03.rev2"
+__version__ = "0.2021.10.03.rev3"
+#__version__ = "0.2021.10.03.rev3"
 ## PDWrapper a class to encapsulate non-Part Design objects into a PartDesign::FeaturePython object
 ## 2021, by <TheMarkster>
 
@@ -600,7 +600,7 @@ def makeObject(PDW):
                 for selobj in selobjs:
                     if body:
                         window = FreeCADGui.getMainWindow()
-                        items=["Additive","Subtractive","Common (Additive)","Common (Subtractive)","XOR (Additive)","XOR (Subtractive)","None"]
+                        items=["Additive","Subtractive","Common (Additive)","Common (Subtractive)","XOR (Additive)","XOR (Subtractive)","None", "None (Passthrough)"]
                         item,ok = QtGui.QInputDialog.getItem(window,"Wrapper type",
 "Select wrapper type for this object. You can change the operations later, but Additive or \n\
 Subtractive can only be chosen now, at the time of object creation, and can't be changed later. \n\
@@ -697,8 +697,7 @@ Part Design pattern (array) later.\n ", items, 0, False)
                                 wrapper.PatternBase = wrapper.TipBase
                                 wrapper.PatternOperation = "XOR"
                                 wrapper.PatternTool = selobj.Object
-
-                            else: # item == items[6]:
+                            elif item == items[6]:
                                 wrapper = doc.addObject("PartDesign::FeaturePython","PDWrapper")
                                 PDW.PDWrapper(wrapper)
                                 PDW.PDWrapperVP(wrapper.ViewObject)
@@ -708,6 +707,24 @@ Part Design pattern (array) later.\n ", items, 0, False)
                                 newTip.ViewObject.Visibility = True
                                 wrapper.TipBase = tipBase
                                 wrapper.TipTool = selobj.Object
+                                wrapper.TipOperation = "Fuse"
+                                wrapper.Type = "None" #neither additive nor subtractive, so hide these properties
+                                wrapper.setEditorMode("PatternBase",2)
+                                wrapper.setEditorMode("PatternTool",2)
+                                wrapper.setEditorMode("PatternOperation",2)
+                                wrapper.setEditorMode("PatternBaseScale",2)
+                                wrapper.setEditorMode("PatternShapeScale",2)
+                                wrapper.setEditorMode("PatternToolScale",2)
+                            else: # item == items[7]: #None (Passthrough)
+                                wrapper = doc.addObject("PartDesign::FeaturePython","PDWrapper")
+                                PDW.PDWrapper(wrapper)
+                                PDW.PDWrapperVP(wrapper.ViewObject)
+                                tipBase,newTip = getTipBase(body,wrapper)
+                                body.insertObject(wrapper, tipBase, True)
+                                body.Tip = newTip
+                                newTip.ViewObject.Visibility = True
+                                wrapper.TipBase = tipBase
+                                wrapper.TipTool = None
                                 wrapper.TipOperation = "Fuse"
                                 wrapper.Type = "None" #neither additive nor subtractive, so hide these properties
                                 wrapper.setEditorMode("PatternBase",2)
