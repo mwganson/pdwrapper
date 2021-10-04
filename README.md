@@ -107,7 +107,7 @@ This facemaker cannot handle wires within wires.  For some reason nested wires g
 <br/>
 <img src="pdwrapper_scr2.png" alt="screenshot 2"><br/>
 <br/>
-You might be thinking, okay, great, you can make the face, but now what?  None of the feature tools are going to work with nonplanar faces.  Actually, some of them can.  You can pad a nonplanar face, but be wary of self-intersections.  And don't forget the other PDWrapper capabilities.  We can make a Draft clone of this face, scale it, encapsulate in another WireWrapper, make a face of it, loft in Part, encapsulate the Loft object with an additive PDWrapper type.  Lots of steps, but I'm still working on this macro.  I have ideas for more capabilities.<br/>
+You might be thinking, okay, great, you can make the face, but now what?  None of the feature tools are going to work with nonplanar faces.  Actually, some of them can.  You can pad a nonplanar face, but be wary of self-intersections. You can also wrap this WireWrapper inside another WireWrapper, scale the face, and loft between them.  Other options re on my todo list.  This is still a work in progress.<br/>
 <br/>
 #### FaceMakerExtrusion
 This one is included because it's there.  Let me know if there are any other facemakers I have missed.  There is the plain Part::FaceMaker class, but it's an abstract class and can't be used directly.  It also can make the nonplanar faces.  If the others fail in a particular case there is no harm in trying this one, so it gets included for completeness if nothing else.<br/>
@@ -188,6 +188,9 @@ The tool shape used in creating the Tip Shape.  This is ordinarily the encapsula
 
 
 ## Changelog
+* 0.2021.10.04.rev2
+* TipShapeScale is applied to the final shape rather than to individual wires since they already have individual scaling
+* Use CenterOfMass if the TipShape has that attribute, else use BoundBox.Center when scaling tip shape
 * 0.2021.10.04
 * add facemaker capabilites to WireWrapper types
 * 0.2021.10.03.rev5
