@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-__version__ = "0.2021.10.04.rev2"
-#__version__ = "0.2021.10.04.rev2"
+__version__ = "0.2021.10.04.rev3"
+#__version__ = "0.2021.10.04.rev3"
 ## PDWrapper a class to encapsulate non-Part Design objects into a PartDesign::FeaturePython object
 ## 2021, by <TheMarkster>
 
@@ -216,6 +216,13 @@ __version__ = "0.2021.10.04.rev2"
 #        if not wires:
 #            fp.Shape = Part.Shape()
 #            return
+#        #reorder wires, if necessary
+#        defaultOrder = list(range(1,len(wires)+1))
+#        if len(fp.WireOrder) != len(defaultOrder): #needs to be initialized or re-initialized
+#            fp.WireOrder = defaultOrder
+#        else:
+#            temp = [wires[fp.WireOrder[dd]-1] for dd in range(0,len(wires))]
+#            wires = temp
 #        self.setupWireProps(fp,wires) #adds missing WireNNN properties, removes unnecessary ones
 #        showWires = []
 #        for ii in range(0,len(wires)):
@@ -816,6 +823,7 @@ Part Design pattern (array) later.\n ", items, 0, False)
                                                     "Part::FaceMakerCheese (Part Design default)",
                                                     "Part::FaceMakerSimple (cannot make holes, but nonplanar works)",
                                                     "Part::FaceMakerExtrusion (legacy face maker)"]
+                                wrapper.addProperty("App::PropertyIntegerList","WireOrder","PDWrapper","Order of the wires in the produced Tip Shape")
                                 wrapper.Type = "WireWrapper" #neither additive nor subtractive, so hide these properties
                                 wrapper.Label2 = "(Wires)"
                                 wrapper.setEditorMode("PatternBase",2)
