@@ -71,6 +71,21 @@ The None type is here, but to be honest, I can't really think of situations wher
 ### None (Passthrough)
 This is the same as the None type with the only difference being the encapsulated object isn't included in the Tip Shape recipe.  It's called a Passthrough because it simply passes through the shape of the previous solid feature.  Use this where you wish to add an object to the Body but not use it in the Tip Shape recipe and will not be using it in a pattern feature.  This can be useful if you wish to encapsulate an object that has other links to objects outside the Body.  With this type you can encapsulate those links and prevent out of scope warnings.  You can also set Claim Children false, and then delete this wrapper and the wrapped object will remain in the Body.<br/>
 <br>
+### WireWrapper
+This is designed for sketches, but can be used with any object containing wires.  With these wrappers the Tip Shape is not part of the solid feature chain the way the other PDWrappers are.  It acts more or less like a sketch, rendering geometry that may or may not be used by one or more solid features.  In FreeCAD a wire is any edge or series of edges that are connected to one another.  A single edge by itself is a wire even if its ends are not connected together.  It's an open wire, but still a wire.  The WireWrapper type allows individual wires to be discarded when rendering the PDWrapper's shape.  The original sketch is untouched.  Each wire is given its own group/section of properties, "Wire1", "Wire2", etc.  In that section are a number of dynamically created properties.<br/>
+<br/>
+#### WireNNN (boolean)
+The NNN is 1 for Wire1, 2 for Wire2, etc.  If true (default) the wire is rendered and made part of the PDWrapper's shape.  If false, the wire and any scaled copies are discarded.<br/>
+<br/>
+#### WireNNN Is Closed (boolean) (readonly)
+This is for information only.  If it's true it means the wire is closed.  If false it means it is an open wire.  Open wires are unsuitable for many Part Design operations, such as Pad, Pocket, but can be used as paths for Additive and Subtractive Pipes (sweeps).  Sometimes a user might accidentally fail to properly close a wire in a sketch.  This can serve as a troubleshooting tool for when a feature tool fails.<br/>
+<br/>
+#### WireNNN Scale
+The scale factor to apply to this wire.  Default is 1.0.  In case of the default, no scaling is done.  Note: -1 will mirror the wire, but it might not be the mirror you were hoping for.  Caveat: when scaling it might sometimes happen that wires will overlap causing a feature tool to fail to produce a valid solid.  This is usually easily evident when viewing the PDWrapper object and hiding the solid feature.<br/>
+<br/>
+#### WireNNN Scale Copy
+If true a copy of the wire is scaled rather than the wire itself.  In other words, if this is True, the original wire is retained.  If it is false the original wire is discarded and replaced by the scaled wire.  Default is True.<br/>
+<br/>
 ### Boolean Operations
 The Common boolean operation is sometimes called intersection.  In boolean logic terms it is a boolean AND operation.  For there to be material returned from the operation at a given coordinate there must be material at that coordinate in both the Base shape AND the Tool shape.  Contrast this with a fusion operation, which is logical OR.  If Base shape has material OR Tool shape has material at a given coordinate then material will be at that coordinate in the result.  And with the Cut operation you have (I think) logical NOT AND or NAND.  Base shape at a given coordinate AND NOT Tool shape material at that same given location in order for there to be material in the result.  XOR is eXclusive OR meaning matieral is returned in the result where either the Base Shape has material OR the Tool Shape has material but not BOTH.  It might help to think of this as the OPPOSITE of Common.  Where the Common removes all material except intersecting material, XOR removes only intersecting material.  It differs from a Cut because material from the Tool Shape is retained with XOR whereas with a Cut it is not. <br/>
 <br/>
@@ -146,6 +161,8 @@ The tool shape used in creating the Tip Shape.  This is ordinarily the encapsula
 
 
 ## Changelog
+* 0.2021.10.03.rev5
+* add WireWrapper type and scaling of individual wires
 * 0.2021.10.03.rev4
 * fix bug in None (Passthrough) type
 * 0.2021.10.03.rev3
