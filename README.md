@@ -194,7 +194,7 @@ The tool shape used in creating the Tip Shape.  This is ordinarily the encapsula
 
 
 ## Changelog
-* 0.2021.10.04.reve
+* 0.2021.10.04.rev3
 * add WireOrder property for WireWrapper types
 * 0.2021.10.04.rev2
 * TipShapeScale is applied to the final shape rather than to individual wires since they already have individual scaling
