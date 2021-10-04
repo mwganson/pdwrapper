@@ -93,7 +93,7 @@ WireWrapper types can also make faces out of wires, or at least attempt to.  Def
 Default option.  Does not attempt to make a face.  This is fine because Part Design feature tools (such as Pad, Pocket) can make use of wires to create their solid features.  But there are times when a face is needed, such as when there are wires within wires within wires...<br/>
 <br/>
 #### FaceMakerBullseye
-Used in Part workbench.  This can create faces within faces within faces, etc.  Hence the name, "bullseye".  Think of the bullseye pattern on a dart board where your goal is to hit the bullseye in the middle.  This is why these types of sketches work with Part::Extrude, but not with PartDesign::Pad (at least not unless we make the face ourselves).  Bear in mind the limitation of the single solid result in Part Design.  This can make the face, which Pad can work with, but the result of the Pad needs to be a single contiguous solid.  Note: using a bullseye sketch with Pad is not going to work.  It must be encapsulated in a PDWrapper (Wires) object and made into a face using the FaceMakerBullseye option.  Then you can pad the PDWrapper object as if it were the sketch.  You need a support pad first so that a contiguous single solid results from the Pad operation.  Here is a screenshot example:<br/>
+Used in Part workbench.  This can create faces within faces within faces, etc.  Hence the name, "bullseye".  Think of the bullseye pattern on a dart board where your goal is to hit the bullseye in the middle.  This is why these types of sketches work with Part::Extrude, but not with PartDesign::Pad (at least not unless we make the face ourselves).  Bear in mind the limitation of the single solid result in Part Design.  This can make the face, which Pad can work with, but the result of the Pad needs to be a single contiguous solid.  Note: using a bullseye sketch with Pad is not going to work.  It must be encapsulated in a WireWrapper type object and made into a face using the FaceMakerBullseye option.  Then you can pad the PDWrapper object as if it were the sketch.  You need a support pad first so that a contiguous single solid results from the Pad operation.  Here is a screenshot example:<br/>
 <br/>
 <img src="pdwrapper_scr.png" alt="screenshot"><br/>
 <br/>
@@ -106,6 +106,11 @@ This is the facemaker used in Part Design.  Why the name cheese?  Think of Swiss
 This facemaker cannot handle wires within wires.  For some reason nested wires gives it trouble and it only uses the outer wire.  It's saving grace is it can make nonplanar wires into faces whereas Bullseye and Cheese will fail.  Consider this wire and the face made from it with this facemaker:<br/>
 <br/>
 <img src="pdwrapper_scr2.png" alt="screenshot 2"><br/>
+<br/>
+You might be thinking, okay, great, you can make the face, but now what?  None of the feature tools are going to work with nonplanar faces.  Actually, some of them can.  You can pad a nonplanar face, but be wary of self-intersections.  And don't forget the other PDWrapper capabilities.  We can make a Draft clone of this face, scale it, encapsulate in another WireWrapper, make a face of it, loft in Part, encapsulate the Loft object with an additive PDWrapper type.  Lots of steps, but I'm still working on this macro.  I have ideas for more capabilities.<br/>
+<br/>
+#### FaceMakerExtrusion
+This one is included because it's there.  Let me know if there are any other facemakers I have missed.  There is the plain Part::FaceMaker class, but it's an abstract class and can't be used directly.  It also can make the nonplanar faces.  If the others fail in a particular case there is no harm in trying this one, so it gets included for completeness if nothing else.<br/>
 <br/>
 
 ### Boolean Operations
