@@ -137,6 +137,11 @@ This is the encapsulated object.  Other link properties will typically also poin
 ### Show Warnings (boolean)
 Default is true.  There are warnings when the PDWrapper Tip Shape contains multiple solids, a big no no in Part Design.  But such shapes are allowed by the PDWrapper object.  They are only problematic when the subsequent operation, if any, does not reconcile this by bridging all of the disconnected shapes back together.  In Part Design *every* boolean result in the chain must produce a single contiguous solid.  PDWrappers can be a way to get around this limitation if used carefully.  The Show Warnings property, if set to false, will disable output of these error messages, which can become annoying after a time.<br/>
 <br/>
+### Wire Order (integer list) (WireWrapper types only)
+This is an integer list that can be used to reorder the wires that are imported from the Linked Object.  The Linked Object itself is not changed.  For example, if the Linked Object is a sketch with 3 wires, then the default Wire Order for this PDWrapper object (WireWrapper types only) will be "[1,2,3]".  Most of the time the Wire Order is irrelevant and can be ignored, but sometimes it can be critical, particularly for Lofts and Multi-section Sweeps.  During a Loft Wire1 of Sketch1 is lofted to Wire1 of Sketch2, Wire2 to Wire2, Wire3 to Wire3, etc.  The order of the wires is based on their order of creation when making the sketch.  A very common scenario is to create the wires in the sketches out of order and to have the loft fail due to crossed wires leading to self-intersections.  In the screenshot below there is an example of such a case of crossed wires, repaired using a WireWrapper type of PDWrapper to re-order the wires of one of the sketches.</br/>
+<br/>
+<img src="pdwrapper_scr3.png" alt= "screenshot 3"><br/>
+<br/>
 ### Version (string)
 The version of PDWrapper macro used to create this PDWrapper object.  It need not necessarily be the same version as currently installed (unless some change I made breaks existing models, which happens from time to time early in development).<br/>
 <br/>
@@ -188,6 +193,8 @@ The tool shape used in creating the Tip Shape.  This is ordinarily the encapsula
 
 
 ## Changelog
+* 0.2021.10.04.reve
+* add WireOrder property for WireWrapper types
 * 0.2021.10.04.rev2
 * TipShapeScale is applied to the final shape rather than to individual wires since they already have individual scaling
 * Use CenterOfMass if the TipShape has that attribute, else use BoundBox.Center when scaling tip shape
