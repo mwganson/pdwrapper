@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
-__version__ = "0.2021.10.04.rev3"
-#__version__ = "0.2021.10.04.rev3"
+__version__ = "0.2021.10.04.rev4"
+#__version__ = "0.2021.10.04.rev4"
 ## PDWrapper a class to encapsulate non-Part Design objects into a PartDesign::FeaturePython object
 ## 2021, by <TheMarkster>
-
+#
 #import FreeCAD, FreeCADGui
 #import Part
-
+#
 #class PDWrapper:
 #    def __init__(self,obj):
 #        obj.addProperty("App::PropertyLink","PatternBase","PatternShape","Base shape presented for patterning")
@@ -36,16 +36,19 @@ __version__ = "0.2021.10.04.rev3"
 #        obj.setEditorMode("Body",1) #readonly
 #        obj.setEditorMode("Version",1)
 #        obj.Proxy = self
-
+#
 #    def onChanged(self,fp,prop):
 #        if prop == "MeshTolerance" or prop == "RefineMesh":
 #            self.resetMeshCache(fp)
-
+#        elif prop == "ResetFromHistory" and fp.ResetFromHistory:
+#            fp.ResetFromHistory = False
+#            self.resetFromHistory(fp)
+#
 #    def resetMeshCache(self,fp):
 #        meshProps = [prop for prop in fp.PropertiesList if "_from_mesh" in prop]
 #        for meshProp in meshProps:
 #            setattr(fp,meshProp,Part.Shape()) #null shape
-
+#
 #    def getShape(self,fp,link):
 #        '''get the shape of link and return it, if mesh, build shape,cache it, and return it'''
 #        body = FreeCAD.ActiveDocument.getObject(fp.Body) #in case user has selected an object outside the body
@@ -84,13 +87,11 @@ __version__ = "0.2021.10.04.rev3"
 #            if hasattr(link,"Shape"):
 #                if len(link.Shape.Solids)>1:
 #                    self.warn(fp,link.Name+" ("+link.Label+") has multiple solids.  Subsequent Part Design operations might fail.\n")
-
 #        body = FreeCAD.ActiveDocument.getObject(fp.Body)
 #        if body and not link in body.Group:
 #            body.Group += [link]
 #            checkSolids(link)
-
-
+#
 #    def makeAddSubShape(self,fp):
 #        ''' create addsubshape and return as shape
 #            this is shape used in patterning, for example
@@ -139,7 +140,7 @@ __version__ = "0.2021.10.04.rev3"
 #            return None #fp is first solid feature
 #        else:
 #            return solids[idx-1]
-
+#
 #    def execute(self,fp):
 #        if fp.Type == "WireWrapper":
 #            self.executeSketchWiresType(fp)
@@ -219,7 +220,10 @@ __version__ = "0.2021.10.04.rev3"
 #        #reorder wires, if necessary
 #        defaultOrder = list(range(1,len(wires)+1))
 #        if len(fp.WireOrder) != len(defaultOrder): #needs to be initialized or re-initialized
+#            fp.WireOrderHistory += [str(fp.WireOrder)]
+#            FreeCAD.ActiveDocument.openTransaction(fp.Name+" update wire order")
 #            fp.WireOrder = defaultOrder
+#            FreeCAD.ActiveDocument.commitTransaction()
 #        else:
 #            temp = [wires[fp.WireOrder[dd]-1] for dd in range(0,len(wires))]
 #            wires = temp
@@ -243,8 +247,6 @@ __version__ = "0.2021.10.04.rev3"
 #            fp.Shape = Part.Shape(showWires[0].fuse(showWires[1:]))
 #        else:
 #            fp.Shape = Part.Shape()
-#        pl = fp.LinkedObject.Placement
-#        fp.Placement = pl
 #        faceMaker = fp.FaceMaker.split(" ")[0]
 #        if not fp.Shape.isNull() and faceMaker != "None":
 #            fp.Shape = Part.makeFace(fp.Shape,faceMaker)
@@ -255,9 +257,24 @@ __version__ = "0.2021.10.04.rev3"
 #            else:
 #                com = copy.BoundBox.Center
 #            fp.Shape = copy.scale(fp.TipShapeScale,com)
-
-
 #
+#    def resetFromHistory(self,fp):
+#        FreeCAD.ActiveDocument.openTransaction("Reset WireOrder from History")
+#        bSuccess = False
+#        while not bSuccess and len(fp.WireOrderHistory) > 0:
+#            s = fp.WireOrderHistory[-1]
+#            if s:
+#                fp.WireOrderHistory = fp.WireOrderHistory[:-1]
+#            s = s.replace('[','').replace(']','').replace(' ','').split(',')
+#            new_order = [int(ss) for ss in s]
+#            if len(fp.WireOrder) == len(new_order):
+#                fp.WireOrder = new_order
+#                bSuccess = True
+#                FreeCAD.Console.PrintMessage("Wire Order reset to "+str(new_order)+"\n")
+#                break
+#        if not bSuccess:
+#            FreeCAD.Console.PrintError("Unable to recover WireOrder from WireOrderHistory\n")
+#        FreeCAD.ActiveDocument.commitTransaction()
 #
 #    def setupWireProps(self,fp,wires):
 #        ii = len(wires)
@@ -823,7 +840,9 @@ Part Design pattern (array) later.\n ", items, 0, False)
                                                     "Part::FaceMakerCheese (Part Design default)",
                                                     "Part::FaceMakerSimple (cannot make holes, but nonplanar works)",
                                                     "Part::FaceMakerExtrusion (legacy face maker)"]
-                                wrapper.addProperty("App::PropertyIntegerList","WireOrder","PDWrapper","Order of the wires in the produced Tip Shape")
+                                wrapper.addProperty("App::PropertyIntegerList","WireOrder","WireOrder","Order of the wires in the produced Tip Shape")
+                                wrapper.addProperty("App::PropertyStringList","WireOrderHistory","WireOrder","History of Wire Order changes")
+                                wrapper.addProperty("App::PropertyBool","ResetFromHistory","WireOrder","Triggers reset of wire order from history, clears history")
                                 wrapper.Type = "WireWrapper" #neither additive nor subtractive, so hide these properties
                                 wrapper.Label2 = "(Wires)"
                                 wrapper.setEditorMode("PatternBase",2)
