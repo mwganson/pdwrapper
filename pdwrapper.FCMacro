@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-__version__ = "0.2021.10.03.rev5"
-#__version__ = "0.2021.10.03.rev5"
+__version__ = "0.2021.10.04"
+#__version__ = "0.2021.10.04"
 ## PDWrapper a class to encapsulate non-Part Design objects into a PartDesign::FeaturePython object
 ## 2021, by <TheMarkster>
 
@@ -239,6 +239,11 @@ __version__ = "0.2021.10.03.rev5"
 #            fp.Shape = Part.makeCompound(showWires)
 #        else:
 #            fp.Shape = Part.Shape()
+#        pl = fp.LinkedObject.Placement
+#        fp.Placement = pl
+#        faceMaker = fp.FaceMaker.split(" ")[0]
+#        if not fp.Shape.isNull() and faceMaker != "None":
+#            fp.Shape = Part.makeFace(fp.Shape,faceMaker)
 
 #
 #
@@ -799,6 +804,13 @@ Part Design pattern (array) later.\n ", items, 0, False)
                                 wrapper.TipBase = None
                                 wrapper.TipTool = selobj.Object
                                 wrapper.TipOperation = "Fuse"
+                                wrapper.addExtension("Part::AttachExtensionPython")
+                                wrapper.addProperty("App::PropertyEnumeration","FaceMaker","PDWrapper","FaceMaker to use in making a face, if any.")
+                                wrapper.FaceMaker = ["None (no face)",
+                                                    "Part::FaceMakerBullseye (faces within faces within faces)",
+                                                    "Part::FaceMakerCheese (Part Design default)",
+                                                    "Part::FaceMakerSimple (cannot make holes, but nonplanar works)",
+                                                    "Part::FaceMakerExtrusion (legacy face maker)"]
                                 wrapper.Type = "WireWrapper" #neither additive nor subtractive, so hide these properties
                                 wrapper.Label2 = "(Wires)"
                                 wrapper.setEditorMode("PatternBase",2)
