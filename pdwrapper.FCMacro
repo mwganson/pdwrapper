@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-__version__ = "0.2021.10.04"
-#__version__ = "0.2021.10.04"
+__version__ = "0.2021.10.04.rev2"
+#__version__ = "0.2021.10.04.rev2"
 ## PDWrapper a class to encapsulate non-Part Design objects into a PartDesign::FeaturePython object
 ## 2021, by <TheMarkster>
 
@@ -212,7 +212,7 @@ __version__ = "0.2021.10.04"
 #        if fp.LinkedObject:
 #            self.placeInBody(fp,fp.LinkedObject)
 #            fp.LinkedObject.ViewObject.Visibility = False
-#        wires = fp.LinkedObject.Shape.Wires
+#            wires = fp.LinkedObject.Shape.Wires
 #        if not wires:
 #            fp.Shape = Part.Shape()
 #            return
@@ -230,13 +230,10 @@ __version__ = "0.2021.10.04"
 #                    wire = wires[ii]
 #                    wire = wire.scale(factor,wire.CenterOfMass)
 #                    showWires.append(wire)
-#        if fp.TipShapeScale != 1.0:
-#            scaledWires = []
-#            for sw in showWires:
-#                scaledWires.append(sw.scale(fp.TipShapeScale,sw.CenterOfMass))
-#            showWires = scaledWires
-#        if len(showWires)>0:
-#            fp.Shape = Part.makeCompound(showWires)
+#        if len(showWires)==1:
+#            fp.Shape = showWires[0]
+#        elif len(showWires) > 1:
+#            fp.Shape = Part.Shape(showWires[0].fuse(showWires[1:]))
 #        else:
 #            fp.Shape = Part.Shape()
 #        pl = fp.LinkedObject.Placement
@@ -244,6 +241,14 @@ __version__ = "0.2021.10.04"
 #        faceMaker = fp.FaceMaker.split(" ")[0]
 #        if not fp.Shape.isNull() and faceMaker != "None":
 #            fp.Shape = Part.makeFace(fp.Shape,faceMaker)
+#        if fp.TipShapeScale != 1.0 and not fp.Shape.isNull():
+#            copy = fp.Shape.copy()
+#            if hasattr(copy,"CenterOfMass"):
+#                com = copy.CenterOfMass
+#            else:
+#                com = copy.BoundBox.Center
+#            fp.Shape = copy.scale(fp.TipShapeScale,com)
+
 
 #
 #
@@ -262,7 +267,7 @@ __version__ = "0.2021.10.04"
 #                fp.addProperty("App::PropertyFloat","Wire"+str(ii+1)+"Scale","Wire"+str(ii+1),"Scale factor for this wire, if scale = 1.0 no scaling is done")
 #                setattr(fp,"Wire"+str(ii+1)+"Scale",1.0)
 #                fp.addProperty("App::PropertyBool","Wire"+str(ii+1)+"ScaleCopy","Wire"+str(ii+1),"true = keep original, false = discard original")
-#                setattr(fp,"Wire"+str(ii+1)+"ScaleCopy",True)
+#                setattr(fp,"Wire"+str(ii+1)+"ScaleCopy",False)
 #                fp.addProperty("App::PropertyBool","Wire"+str(ii+1)+"IsClosed","Wire"+str(ii+1),"whether wire is closed (readonly)")
 #                fp.setEditorMode("Wire"+str(ii+1)+"IsClosed",1)#readonly
 #            setattr(fp,"Wire"+str(ii+1)+"IsClosed",wires[ii].isClosed())
