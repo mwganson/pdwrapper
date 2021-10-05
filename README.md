@@ -202,6 +202,10 @@ The tool shape used in creating the Tip Shape.  This is ordinarily the encapsula
 
 
 ## Changelog
+* 0.2021.10.04.rev5
+* Add 2D offset to WireWrapper types
+* 0.2021.10.04.rev4
+* add reset from history option for restoring wire order
 * 0.2021.10.04.rev3
 * add WireOrder property for WireWrapper types
 * 0.2021.10.04.rev2
