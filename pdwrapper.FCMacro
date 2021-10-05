@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-__version__ = "0.2021.10.04.rev5"
-#__version__ = "0.2021.10.04.rev5"
+__version__ = "0.2021.10.05"
+#__version__ = "0.2021.10.05"
 ## PDWrapper a class to encapsulate non-Part Design objects into a PartDesign::FeaturePython object
 ## 2021, by <TheMarkster>
 #
@@ -36,6 +36,7 @@ __version__ = "0.2021.10.04.rev5"
 #        obj.setEditorMode("Body",1) #readonly
 #        obj.setEditorMode("Version",1)
 #        obj.Proxy = self
+#        self.bMakingWireExclusive = False
 #
 #    def onChanged(self,fp,prop):
 #        if prop == "MeshTolerance" or prop == "RefineMesh":
@@ -43,6 +44,28 @@ __version__ = "0.2021.10.04.rev5"
 #        elif prop == "ResetFromHistory" and fp.ResetFromHistory:
 #            fp.ResetFromHistory = False
 #            self.resetFromHistory(fp)
+#        elif "Wire" in prop and "Exclusive" in prop:
+#            if getattr(fp,prop) == True and not self.bMakingWireExclusive:
+#                self.bMakingWireExclusive = True
+#                idx = int(prop[len("Wire"):-len("Exclusive")])
+#                self.makeWireExclusive(fp,idx,True)
+#                self.bMakingWireExclusive = False
+#            elif getattr(fp,prop) == False and not self.bMakingWireExclusive:
+#                self.bMakingWireExclusive = True
+#                idx = int(prop[len("Wire"):-len("Exclusive")])
+#                self.makeWireExclusive(fp,idx,False)
+#                self.bMakingWireExclusive = False
+#
+#    def makeWireExclusive(self,fp,idx,exclusive=True):
+#        for ii in range(1,len(fp.LinkedObject.Shape.Wires)+1):
+#            if hasattr(fp,"Wire"+str(ii)):
+#                if exclusive:
+#                   setattr(fp,"Wire"+str(ii)+"Exclusive",ii==idx)
+#                   setattr(fp,"Wire"+str(ii),ii==idx)
+#                else:
+#                   setattr(fp,"Wire"+str(ii)+"Exclusive",False)
+#                   setattr(fp,"Wire"+str(ii),True)
+#
 #
 #    def resetMeshCache(self,fp):
 #        meshProps = [prop for prop in fp.PropertiesList if "_from_mesh" in prop]
@@ -240,23 +263,25 @@ __version__ = "0.2021.10.04.rev5"
 #                    wire = wire.scale(factor,wire.CenterOfMass)
 #                    showWires.append(wire)
 #                offset = getattr(fp,"Wire"+str(ii+1)+"Offset")
+
 #                if offset != 0.0: #offset the wire
 #                    offsetCopy = getattr(fp,"Wire"+str(ii+1)+"OffsetCopy")
 #                    if offsetCopy:
 #                        showWires.append(wires[ii].copy())
 #                    wire = wires[ii]
+#                    oFill = getattr(fp,"Wire"+str(ii+1)+"OffsetFill")
 #                    joinType = getattr(fp,"Wire"+str(ii+1)+"OffsetJoin")
 #                    jdict = {"Arcs":0,"Tangent":1,"Intersection":2}
 #                    openR = getattr(fp,"Wire"+str(ii+1)+"OffsetOpenResult")
 #                    intersect = getattr(fp,"Wire"+str(ii+1)+"OffsetIntersection")
-#                    wire = wire.makeOffset2D(offset,join=jdict[joinType],openResult = openR,intersection = intersect)
+#                    wire = wire.makeOffset2D(offset,join=jdict[joinType],openResult = openR,fill=oFill,intersection = intersect)
 #                    showWires.append(wire)
 #                if offset == 0.0 and factor == 1.0: #if we didn't scale or offset, show original wire
 #                    showWires.append(wires[ii])
 #        if len(showWires)==1:
 #            fp.Shape = showWires[0]
 #        elif len(showWires) > 1:
-#            fp.Shape = Part.Shape(showWires[0].fuse(showWires[1:]))
+#            fp.Shape = Part.makeCompound(showWires)
 #        else:
 #            fp.Shape = Part.Shape()
 #        faceMaker = fp.FaceMaker.split(" ")[0]
@@ -290,41 +315,51 @@ __version__ = "0.2021.10.04.rev5"
 #
 #    def setupWireProps(self,fp,wires):
 #        ii = len(wires)
+
 #        while hasattr(fp,"Wire"+str(ii+1)): #remove any excess WireNNN properties
-#            fp.removeProperty("Wire"+str(ii+1))
-#            fp.removeProperty("Wire"+str(ii+1)+"Scale")
-#            fp.removeProperty("Wire"+str(ii+1)+"ScaleCopy")
-#            fp.removeProperty("Wire"+str(ii+1)+"Offset")
-#            fp.removeProperty("Wire"+str(ii+1)+"OffsetCopy")
-#            fp.removeProperty("Wire"+str(ii+1)+"OffsetFill")
-#            fp.removeProperty("Wire"+str(ii+1)+"OffsetOpenResult")
-#            fp.removeProperty("Wire"+str(ii+1)+"OffsetIntersection")
-#            fp.removeProperty("Wire"+str(ii+1)+"OffsetJoinType")
-#            fp.removeProperty("Wire"+str(ii+1)+"IsClosed")
+#            wireName = "Wire"+str(ii+1)
+#            fp.removeProperty(wireName)
+#            fp.removeProperty(wireName+"Order")
+#            fp.removeProperty(wireName+"Exclusive")
+#            fp.removeProperty(wireName+"Scale")
+#            fp.removeProperty(wireName+"ScaleCopy")
+#            fp.removeProperty(wireName+"Offset")
+#            fp.removeProperty(wireName+"OffsetCopy")
+#            fp.removeProperty(wireName+"OffsetFill")
+#            fp.removeProperty(wireName+"OffsetOpenResult")
+#            fp.removeProperty(wireName+"OffsetIntersection")
+#            fp.removeProperty(wireName+"OffsetJoinType")
+#            fp.removeProperty(wireName+"IsClosed")
 #            ii += 1
 #        for ii in range(0,len(wires)):
-#            if not hasattr(fp,"Wire"+str(ii+1)):
-#                fp.addProperty("App::PropertyBool","Wire"+str(ii+1),"Wire"+str(ii+1),"true = show wire and any scaled copies, false = discard wire and any scaled copies")
-#                setattr(fp,"Wire"+str(ii+1),True)
-#                fp.addProperty("App::PropertyFloat","Wire"+str(ii+1)+"Scale","Wire"+str(ii+1),"Scale factor for this wire, if scale = 1.0 no scaling is done")
-#                setattr(fp,"Wire"+str(ii+1)+"Scale",1.0)
-#                fp.addProperty("App::PropertyBool","Wire"+str(ii+1)+"ScaleCopy","Wire"+str(ii+1),"true = keep original, false = discard original")
-#                setattr(fp,"Wire"+str(ii+1)+"ScaleCopy",False)
-#                fp.addProperty("App::PropertyFloat","Wire"+str(ii+1)+"Offset","Wire"+str(ii+1),"Offset factor for this wire, if offset = 0.0 no offsetting is done")
-#                setattr(fp,"Wire"+str(ii+1)+"Offset",0.0)
-#                fp.addProperty("App::PropertyBool","Wire"+str(ii+1)+"OffsetCopy","Wire"+str(ii+1),"true = keep original, false = discard original")
-#                setattr(fp,"Wire"+str(ii+1)+"OffsetCopy",False)
-#                fp.addProperty("App::PropertyBool","Wire"+str(ii+1)+"OffsetFill","Wire"+str(ii+1),"true = fill in space creating a face")
-#                setattr(fp,"Wire"+str(ii+1)+"OffsetFill",False)
-#                fp.addProperty("App::PropertyBool","Wire"+str(ii+1)+"OffsetOpenResult","Wire"+str(ii+1),"true = make closed wire with rounded ends if original is open, false = make open wire")
-#                setattr(fp,"Wire"+str(ii+1)+"OffsetOpenResult",False)
-#                fp.addProperty("App::PropertyBool","Wire"+str(ii+1)+"OffsetIntersection","Wire"+str(ii+1),"true = offset child wires as group, true = offset child wires independently")
-#                setattr(fp,"Wire"+str(ii+1)+"OffsetIntersection",False)
-#                fp.addProperty("App::PropertyEnumeration","Wire"+str(ii+1)+"OffsetJoin","Wire"+str(ii+1),"Join type (arc, tangent, intersection)")
-#                setattr(fp,"Wire"+str(ii+1)+"OffsetJoin",["Arcs","Tangent","Intersection"])
-#                fp.addProperty("App::PropertyBool","Wire"+str(ii+1)+"IsClosed","Wire"+str(ii+1),"whether wire is closed (readonly)")
-#                fp.setEditorMode("Wire"+str(ii+1)+"IsClosed",1)#readonly
-#            setattr(fp,"Wire"+str(ii+1)+"IsClosed",wires[ii].isClosed())
+#            wireName = "Wire"+str(ii+1)
+#            if not hasattr(fp,wireName):
+#                fp.addProperty("App::PropertyBool",wireName,wireName,"true = show wire and any scaled copies, false = discard wire and any scaled copies")
+#                setattr(fp,wireName,True)
+#                fp.addProperty("App::PropertyInteger",wireName+"Order",wireName,"Position of this wire in the WireOrder property")
+#                fp.setEditorMode(wireName+"Order",1) #readonly
+#                fp.addProperty("App::PropertyBool",wireName+"Exclusive",wireName,"true = show only this wire, set WireNNN false for all others")
+#                setattr(fp,wireName+"Exclusive",False)
+#                fp.addProperty("App::PropertyFloat",wireName+"Scale",wireName,"Scale factor for this wire, if scale = 1.0 no scaling is done")
+#                setattr(fp,wireName+"Scale",1.0)
+#                fp.addProperty("App::PropertyBool",wireName+"ScaleCopy",wireName,"true = keep original, false = discard original")
+#                setattr(fp,wireName+"ScaleCopy",False)
+#                fp.addProperty("App::PropertyFloat",wireName+"Offset",wireName,"Offset factor for this wire, if offset = 0.0 no offsetting is done")
+#                setattr(fp,wireName+"Offset",0.0)
+#                fp.addProperty("App::PropertyBool",wireName+"OffsetCopy",wireName,"true = keep original, false = discard original")
+#                setattr(fp,wireName+"OffsetCopy",False)
+#                fp.addProperty("App::PropertyBool",wireName+"OffsetFill",wireName,"true = fill in space creating a face")
+#                setattr(fp,wireName+"OffsetFill",False)
+#                fp.addProperty("App::PropertyBool",wireName+"OffsetOpenResult",wireName,"true = make closed wire with rounded ends if original is open, false = make open wire")
+#                setattr(fp,wireName+"OffsetOpenResult",False)
+#                fp.addProperty("App::PropertyBool",wireName+"OffsetIntersection",wireName,"true = offset child wires as group, true = offset child wires independently")
+#                setattr(fp,wireName+"OffsetIntersection",False)
+#                fp.addProperty("App::PropertyEnumeration",wireName+"OffsetJoin",wireName,"Join type (arc, tangent, intersection)")
+#                setattr(fp,wireName+"OffsetJoin",["Arcs","Tangent","Intersection"])
+#                fp.addProperty("App::PropertyBool",wireName+"IsClosed",wireName,"whether wire is closed (readonly)")
+#                fp.setEditorMode(wireName+"IsClosed",1)#readonly
+#            setattr(fp,wireName+"IsClosed",wires[ii].isClosed())
+#            setattr(fp,wireName+"Order",fp.WireOrder[ii])
 
 
 
