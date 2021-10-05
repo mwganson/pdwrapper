@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-__version__ = "0.2021.10.04.rev4"
-#__version__ = "0.2021.10.04.rev4"
+__version__ = "0.2021.10.04.rev5"
+#__version__ = "0.2021.10.04.rev5"
 ## PDWrapper a class to encapsulate non-Part Design objects into a PartDesign::FeaturePython object
 ## 2021, by <TheMarkster>
 #
@@ -232,15 +232,27 @@ __version__ = "0.2021.10.04.rev4"
 #        for ii in range(0,len(wires)):
 #            if getattr(fp,"Wire"+str(ii+1)) == True: #whether to show the wire, if false we don't show copy either
 #                factor = getattr(fp,"Wire"+str(ii+1)+"Scale")
-#                if factor == 1.0: #don't show copy if unscaled, either
-#                    showWires.append(wires[ii])
-#                else: #scale the wire
+#                if factor != 1.0: #scale the wire
 #                    scaleCopy = getattr(fp,"Wire"+str(ii+1)+"ScaleCopy")
 #                    if scaleCopy: #we already know scale != 1.0
 #                        showWires.append(wires[ii].copy())
 #                    wire = wires[ii]
 #                    wire = wire.scale(factor,wire.CenterOfMass)
 #                    showWires.append(wire)
+#                offset = getattr(fp,"Wire"+str(ii+1)+"Offset")
+#                if offset != 0.0: #offset the wire
+#                    offsetCopy = getattr(fp,"Wire"+str(ii+1)+"OffsetCopy")
+#                    if offsetCopy:
+#                        showWires.append(wires[ii].copy())
+#                    wire = wires[ii]
+#                    joinType = getattr(fp,"Wire"+str(ii+1)+"OffsetJoin")
+#                    jdict = {"Arcs":0,"Tangent":1,"Intersection":2}
+#                    openR = getattr(fp,"Wire"+str(ii+1)+"OffsetOpenResult")
+#                    intersect = getattr(fp,"Wire"+str(ii+1)+"OffsetIntersection")
+#                    wire = wire.makeOffset2D(offset,join=jdict[joinType],openResult = openR,intersection = intersect)
+#                    showWires.append(wire)
+#                if offset == 0.0 and factor == 1.0: #if we didn't scale or offset, show original wire
+#                    showWires.append(wires[ii])
 #        if len(showWires)==1:
 #            fp.Shape = showWires[0]
 #        elif len(showWires) > 1:
@@ -282,6 +294,12 @@ __version__ = "0.2021.10.04.rev4"
 #            fp.removeProperty("Wire"+str(ii+1))
 #            fp.removeProperty("Wire"+str(ii+1)+"Scale")
 #            fp.removeProperty("Wire"+str(ii+1)+"ScaleCopy")
+#            fp.removeProperty("Wire"+str(ii+1)+"Offset")
+#            fp.removeProperty("Wire"+str(ii+1)+"OffsetCopy")
+#            fp.removeProperty("Wire"+str(ii+1)+"OffsetFill")
+#            fp.removeProperty("Wire"+str(ii+1)+"OffsetOpenResult")
+#            fp.removeProperty("Wire"+str(ii+1)+"OffsetIntersection")
+#            fp.removeProperty("Wire"+str(ii+1)+"OffsetJoinType")
 #            fp.removeProperty("Wire"+str(ii+1)+"IsClosed")
 #            ii += 1
 #        for ii in range(0,len(wires)):
@@ -292,6 +310,18 @@ __version__ = "0.2021.10.04.rev4"
 #                setattr(fp,"Wire"+str(ii+1)+"Scale",1.0)
 #                fp.addProperty("App::PropertyBool","Wire"+str(ii+1)+"ScaleCopy","Wire"+str(ii+1),"true = keep original, false = discard original")
 #                setattr(fp,"Wire"+str(ii+1)+"ScaleCopy",False)
+#                fp.addProperty("App::PropertyFloat","Wire"+str(ii+1)+"Offset","Wire"+str(ii+1),"Offset factor for this wire, if offset = 0.0 no offsetting is done")
+#                setattr(fp,"Wire"+str(ii+1)+"Offset",0.0)
+#                fp.addProperty("App::PropertyBool","Wire"+str(ii+1)+"OffsetCopy","Wire"+str(ii+1),"true = keep original, false = discard original")
+#                setattr(fp,"Wire"+str(ii+1)+"OffsetCopy",False)
+#                fp.addProperty("App::PropertyBool","Wire"+str(ii+1)+"OffsetFill","Wire"+str(ii+1),"true = fill in space creating a face")
+#                setattr(fp,"Wire"+str(ii+1)+"OffsetFill",False)
+#                fp.addProperty("App::PropertyBool","Wire"+str(ii+1)+"OffsetOpenResult","Wire"+str(ii+1),"true = make closed wire with rounded ends if original is open, false = make open wire")
+#                setattr(fp,"Wire"+str(ii+1)+"OffsetOpenResult",False)
+#                fp.addProperty("App::PropertyBool","Wire"+str(ii+1)+"OffsetIntersection","Wire"+str(ii+1),"true = offset child wires as group, true = offset child wires independently")
+#                setattr(fp,"Wire"+str(ii+1)+"OffsetIntersection",False)
+#                fp.addProperty("App::PropertyEnumeration","Wire"+str(ii+1)+"OffsetJoin","Wire"+str(ii+1),"Join type (arc, tangent, intersection)")
+#                setattr(fp,"Wire"+str(ii+1)+"OffsetJoin",["Arcs","Tangent","Intersection"])
 #                fp.addProperty("App::PropertyBool","Wire"+str(ii+1)+"IsClosed","Wire"+str(ii+1),"whether wire is closed (readonly)")
 #                fp.setEditorMode("Wire"+str(ii+1)+"IsClosed",1)#readonly
 #            setattr(fp,"Wire"+str(ii+1)+"IsClosed",wires[ii].isClosed())
