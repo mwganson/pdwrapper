@@ -75,11 +75,30 @@ This is the same as the None type with the only difference being the encapsulate
 This is designed for sketches, but can be used with any object containing wires.  With these wrappers the Tip Shape is not part of the solid feature chain the way the other PDWrappers are.  It acts more or less like a sketch, rendering geometry that may or may not be used by one or more solid features.  In FreeCAD a wire is any edge or series of edges that are connected to one another.  A single edge by itself is a wire even if its ends are not connected together.  It's an open wire, but still a wire.  The WireWrapper type allows individual wires to be discarded when rendering the PDWrapper's shape.  The original sketch is untouched.  Each wire is given its own group/section of properties, "Wire1", "Wire2", etc.  In that section are a number of dynamically created properties.<br/>
 <br/>
 #### WireNNN (boolean)
-The NNN is 1 for Wire1, 2 for Wire2, etc.  If true (default) the wire is rendered and made part of the PDWrapper's shape.  If false, the wire and any scaled copies are discarded.<br/>
+The NNN is 1 for Wire1, 2 for Wire2, etc.  This enables or disables this wire.  If it's false the wire is not incorporated into the PDWrapper object's Shape property.  No scaled copies, no offset copies, no nothing.  If true the wire is made part of the shape.  If there is scaling done (scale not equals 1.0) or offsetting done (offset not equals 0.0) then the wire is replaced by the offset or the copy unless Scale Copy or Offset Copy is true, in which case the original source wire is also retained as part of the shape.<br/>
 <br/>
 #### WireNNN Is Closed (boolean) (readonly)
-This is for information only.  If it's true it means the wire is closed.  If false it means it is an open wire.  Open wires are unsuitable for many Part Design operations, such as Pad, Pocket, but can be used as paths for Additive and Subtractive Pipes (sweeps).  Sometimes a user might accidentally fail to properly close a wire in a sketch.  This can serve as a troubleshooting tool for when a feature tool fails.<br/>
+This is for information only.  If it's true it means the source wire is closed.  If false it means it is an open wire.  This is only for the source wire and does not apply to any scaled or offset wires created from this source wire.  Open wires are unsuitable for many Part Design operations, such as Pad, Pocket, but can be used as paths for Additive and Subtractive Pipes (sweeps).  Sometimes a user might accidentally fail to properly close a wire in a sketch.  This can serve as a troubleshooting tool for when a feature tool fails.  You can also offset an open wire to create a closed wire from it.<br/>
 <br/>
+#### WireNNN Offset (float)
+Default: 0.0.  If it is 0.0, then no offset is done.  Any other value results in an offset if WireNNN property is true.  Be advised, offset is highly prone to failure.  I've included every parameter option available to the python interface for users to experiment with when attempting to offset problematic wires.  Don't give up if it fails the first time.  Try different offset values, smaller is generally more likely to succeed.  Try different join modes (arcs, tangent, intersection).  If you can't get offset to work try scaling.<br/>
+<br/>
+#### WireNNN Offset Copy (boolean)
+Default: false.  If true the offset is done on a copy of the original source wire rather than on the original source wire (thus replacing it).  True means basically keep also the original wire in addition to the offset wire.  This is only applicable if an offset is done (offset != 0.0) and if WireNNN is true.<br/>
+<br/>
+#### WireNNN Offset Fill (boolean)
+Default: false.  If true this is supposed to create a filled face between the original source wire and the new offset wire, but because of the way the PDWrapper is coded we are only dealing with wires, so it has really no effect from what have seen with my limited testing.  If you want to create face use the FaceMaker property to create one.<br/>
+<br/>
+#### WireNNN Offset Intersection (boolean)
+I am including all the options described in the API even though some might not be applicable here.  This one deals with how the wires in a compound are offset.  If true all the wires are handled as a single entity, if false all are offset separately as individuals.  This is how offsetting is implemented with the PDWrapper Wire Wrapper types, all wires are individually offset and treated as if they were the only wires in the object.<br/>
+<br/>
+#### WireNN Offset Join (enumeration)
+This is an important option.  There are 3 Join modes available: "Arcs","Tangent", and "Intersection".  In Arcs mode you get rounded arcs where the offset edges are joined.  In Intersection mode you get sharp angles if the original source wire had a sharp angle.  I'm not sure what Tangent does.  The documentation is rather sparse here.  My experience has been Arcs is the mode most likely to succeed.  Offsets are difficult for OCCT and often fail.  If you get a failure try all 3 modes.  Try different offset values, smaller generally has better luck than larger.  Also try negative values, which cause the offset to go inwards.<br/>
+<br/>
+#### WireNNN Open Result (boolean)
+Default: false.  If true open wires are made closed.  For example, if you have a single line segment the offset can be a closed wire with rounded ends at the ends of the line segment.  It's a lot easier to sketch a single line segment and let the offset do the work of creating the rounded ends.<br/>
+<br/>
+
 #### WireNNN Scale (float)
 The scale factor to apply to this wire.  Default is 1.0.  In case of the default, no scaling is done.  Note: -1 will mirror the wire, but it might not be the mirror you were hoping for.  Caveat: when scaling it might sometimes happen that wires will overlap causing a feature tool to fail to produce a valid solid.  This is usually easily evident when viewing the PDWrapper object and hiding the solid feature.<br/>
 <br/>
@@ -114,7 +133,7 @@ This one is included because it's there.  Let me know if there are any other fac
 <br/>
 ### Wire Order group
 #### Wire Order (integer list) (WireWrapper types only)
-This is an integer list that can be used to reorder the wires that are imported from the Linked Object.  The Linked Object itself is not changed.  For example, if the Linked Object is a sketch with 3 wires, then the default Wire Order for this PDWrapper object (WireWrapper types only) will be "[1,2,3]".  Most of the time the Wire Order is irrelevant and can be ignored, but sometimes it can be critical, particularly for Lofts and Multi-section Sweeps.  During a Loft Wire1 of Sketch1 is lofted to Wire1 of Sketch2, Wire2 to Wire2, Wire3 to Wire3, etc.  The order of the wires is based on their order of creation when making the sketch.  A very common scenario is to create the wires in the sketches out of order and to have the loft fail due to crossed wires leading to self-intersections.  In the screenshot below there is an example of such a case of crossed wires, repaired using a WireWrapper type of PDWrapper to re-order the wires of one of the sketches.</br/>
+This is an integer list that can be used to reorder the wires that are imported from the Linked Object.  The Linked Object itself is not changed.  For example, if the Linked Object is a sketch with 3 wires, then the default Wire Order for this PDWrapper object (WireWrapper types only) will be "[1,2,3]".  Most of the time the Wire Order is irrelevant and can be ignored, but sometimes it can be critical, particularly for Lofts and Multi-section Sweeps.  During a Loft Wire1 of Sketch1 is lofted to Wire1 of Sketch2, Wire2 to Wire2, Wire3 to Wire3, etc.  The order of the wires isf based on their order of creation when making the sketch.  A very common scenario is to create the wires in the sketches out of order and to have the loft fail due to crossed wires leading to self-intersections.  In the screenshot below there is an example of such a case of crossed wires, repaired using a WireWrapper type of PDWrapper to re-order the wires of one of the sketches.</br/>
 <br/>
 <img src="pdwrapper_scr3.png" alt= "screenshot 3"><br/>
 <br/>
