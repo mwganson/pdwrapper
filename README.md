@@ -77,6 +77,9 @@ This is designed for sketches, but can be used with any object containing wires.
 #### WireNNN (boolean)
 The NNN is 1 for Wire1, 2 for Wire2, etc.  This enables or disables this wire.  If it's false the wire is not incorporated into the PDWrapper object's Shape property.  No scaled copies, no offset copies, no nothing.  If true the wire is made part of the shape.  If there is scaling done (scale not equals 1.0) or offsetting done (offset not equals 0.0) then the wire is replaced by the offset or the copy unless Scale Copy or Offset Copy is true, in which case the original source wire is also retained as part of the shape.<br/>
 <br/>
+#### WireNNN Exclusive (boolean)
+Default: false. Toggle this to True to make this wire the only wire used.  (Sets all other WireNNN and WireNNN Exclusive properties to false except this one.)  Toggling from True to False sets all WireNNN properties to True.  This makes it a convenient way to enable all wires or to disable all other wires in one go.<br/>
+<br/>
 #### WireNNN Is Closed (boolean) (readonly)
 This is for information only.  If it's true it means the source wire is closed.  If false it means it is an open wire.  This is only for the source wire and does not apply to any scaled or offset wires created from this source wire.  Open wires are unsuitable for many Part Design operations, such as Pad, Pocket, but can be used as paths for Additive and Subtractive Pipes (sweeps).  Sometimes a user might accidentally fail to properly close a wire in a sketch.  This can serve as a troubleshooting tool for when a feature tool fails.  You can also offset an open wire to create a closed wire from it.<br/>
 <br/>
@@ -87,7 +90,7 @@ Default: 0.0.  If it is 0.0, then no offset is done.  Any other value results in
 Default: false.  If true the offset is done on a copy of the original source wire rather than on the original source wire (thus replacing it).  True means basically keep also the original wire in addition to the offset wire.  This is only applicable if an offset is done (offset != 0.0) and if WireNNN is true.<br/>
 <br/>
 #### WireNNN Offset Fill (boolean)
-Default: false.  If true this is supposed to create a filled face between the original source wire and the new offset wire, but because of the way the PDWrapper is coded we are only dealing with wires, so it has really no effect from what have seen with my limited testing.  If you want to create face use the FaceMaker property to create one.<br/>
+Default: false.  If true this creates a filled face between the original source wire and the new offset wire.  In such cases, Offset Copy become superfluous and could result in an extra wire, causing subsequent operations to fail, so be wary of this possibility.  Offset Copy and Fill should not be used together.  Note: I'm not sure which facemaker the offset fill tool uses, probably FaceMakerBullseye, but all of them except FaceMakerSimple should work in this scenario.<br/>
 <br/>
 #### WireNNN Offset Intersection (boolean)
 I am including all the options described in the API even though some might not be applicable here.  This one deals with how the wires in a compound are offset.  If true all the wires are handled as a single entity, if false all are offset separately as individuals.  This is how offsetting is implemented with the PDWrapper Wire Wrapper types, all wires are individually offset and treated as if they were the only wires in the object.<br/>
@@ -102,7 +105,8 @@ Default: false.  If true open wires are allowed to remain open.  For example, if
 <br/>
 <img src="pdwrapper_scr4.png" alt="screenshot"><br/>
 <br/>
-
+#### WireNNN Order (integer) (readonly)
+For information only.  Gives the order for this wire in the Wire Order property.  Adjust Wire Order property to change this wire's Order.
 #### WireNNN Scale (float)
 The scale factor to apply to this wire.  Default is 1.0.  In case of the default, no scaling is done.  Note: -1 will mirror the wire, but it might not be the mirror you were hoping for.  Caveat: when scaling it might sometimes happen that wires will overlap causing a feature tool to fail to produce a valid solid.  This is usually easily evident when viewing the PDWrapper object and hiding the solid feature.<br/>
 <br/>
