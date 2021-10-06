@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-__version__ = "0.2021.10.06"
-#__version__ = "0.2021.10.06"
+__version__ = "0.2021.10.06.rev2"
+#__version__ = "0.2021.10.06.rev2"
 ## PDWrapper a class to encapsulate non-Part Design objects into a PartDesign::FeaturePython object
 ## 2021, by <TheMarkster>
 #
@@ -60,44 +60,62 @@ __version__ = "0.2021.10.06"
 #           fp.SelectedOnly = False
 #           self.selectedOnly(fp)
 #           self.bInhibitRecomputes = False
+#        elif "ShowAll" in prop and fp.ShowAll == True:
+#           self.bInhibitRecomputes = True
+#           fp.ShowAll = False
+#           self.showAll(fp)
+#           self.bInhibitRecomputes = False
 #
 #
 #    def makeWireExclusive(self,fp,idx,exclusive=True):
+#        FreeCAD.ActiveDocument.openTransaction("Make Wire"+str(idx)+" Exclusive")
 #        for ii in range(1,len(fp.LinkedObject.Shape.Wires)+1):
 #            if hasattr(fp,"Wire"+str(ii)):
 #                if exclusive:
 #                   setattr(fp,"Wire"+str(ii)+"Exclusive",ii==idx)
 #                   setattr(fp,"Wire"+str(ii),ii==idx)
-#                   self.showWireProps(fp,ii,ii==idx)
+#                   # don't hide props when using Exclusive #self.showWireProps(fp,ii,ii==idx)
 #                else:
 #                   setattr(fp,"Wire"+str(ii)+"Exclusive",False)
 #                   setattr(fp,"Wire"+str(ii),True)
-#                   self.showWireProps(fp,ii,True)
+#                   #self.showWireProps(fp,ii,True)
+#        FreeCAD.ActiveDocument.commitTransaction()
 #
 #    def selectedOnly(self, fp):
-#        '''should only be 1 edge selected in the 3d view and should be an edge of the linked object
-#           this will find the wires that the selected edge is part of and enable only those wires'''
+#        '''select one or more edges of the PDWireWrapper in the 3D view and run this command
+#           only wires containing all selected edges will be enabled, unless none found in which
+#           case all wires are enabled'''
 #        selx = FreeCADGui.Selection.getSelectionEx()
 #        if not selx:
 #            FreeCAD.Console.PrintError("No edge selected.  Select an edge of the PDWrapper object and try again.\n")
 #            return
 #        if selx[0].Object != fp:
-#            FreeCAD.Console.PrintError("Select an edge of the PDWrapper object and try again.\n")
+#            FreeCAD.Console.PrintError("Select some edges of the PDWrapper object and try again.\n")
 #            return
-#        if len(selx[0].SubObjects) != 1 or "Edge" not in selx[0].SubElementNames[0]:
-#            FreeCAD.Console.PrintError("Select a single edge of the PDWrapper object and try again.\n")
-#            return
-#        edge = getattr(selx[0].Object.Shape,selx[0].SubElementNames[0])
-#        for ii in range (0, len(fp.Shape.Wires)):
+#        selEdges = [getattr(fp.Shape,en) for en in selx[0].SubElementNames if "Edge" in en]
+#        wiresFound = 0
+#        currentEnabled = []
+#        for ii in range (0, len(fp.LinkedObject.Shape.Wires)):
+#            currentEnabled += [ii+1] if getattr(fp,"Wire"+str(ii+1)) else []
 #            setattr(fp,"Wire"+str(ii+1),False)
 #            setattr(fp,"Wire"+str(ii+1)+"Exclusive",False)
 #            self.showWireProps(fp,ii+1,False)
-#            for e in fp.Shape.Wires[ii].Edges:
-#                if e.isSame(edge):
+#            countFound = 0
+#            for e in fp.LinkedObject.Shape.Wires[ii].Edges:
+#                for selE in selEdges:
+#                    if e.isPartner(selE):
+#                        countFound += 1
+#                if countFound == len(selEdges):
+#                    wiresFound += 1
 #                    setattr(fp,"Wire"+str(ii+1),True)
 #                    self.showWireProps(fp,ii+1,True)
-#                    FreeCAD.Console.PrintMessage("Selected edge found in Wire"+str(ii+1)+"\n")
+#                    FreeCAD.Console.PrintMessage("Wire found containing all selected edges: Wire"+str(ii+1)+"\n")
 #                    break
+#        if wiresFound == 0: #show all wires and props if no wire is found to contain all selected edges
+#            FreeCAD.Console.PrintMessage("No wire found containing all selected edges\n")
+#            for current in currentEnabled:
+#                setattr(fp,"Wire"+str(current),True)
+#                self.showWireProps(fp,current,True)
 #
 #
 #    def resetMeshCache(self,fp):
@@ -292,16 +310,7 @@ __version__ = "0.2021.10.06"
 #        showWires = []
 #        for ii in range(0,len(wires)):
 #            if getattr(fp,"Wire"+str(ii+1)) == True: #whether to show the wire, if false we don't show copy either
-#                factor = getattr(fp,"Wire"+str(ii+1)+"Scale")
-#                if factor != 1.0: #scale the wire
-#                    scaleCopy = getattr(fp,"Wire"+str(ii+1)+"ScaleCopy")
-#                    if scaleCopy: #we already know scale != 1.0
-#                        showWires.append(wires[ii].copy())
-#                    wire = wires[ii]
-#                    wire = wire.scale(factor,wire.CenterOfMass)
-#                    showWires.append(wire)
 #                offset = getattr(fp,"Wire"+str(ii+1)+"Offset")
-
 #                if offset != 0.0: #offset the wire
 #                    offsetCopy = getattr(fp,"Wire"+str(ii+1)+"OffsetCopy")
 #                    if offsetCopy:
@@ -312,8 +321,22 @@ __version__ = "0.2021.10.06"
 #                    jdict = {"Arcs":0,"Tangent":1,"Intersection":2}
 #                    openR = getattr(fp,"Wire"+str(ii+1)+"OffsetOpenResult")
 #                    intersect = getattr(fp,"Wire"+str(ii+1)+"OffsetIntersection")
-#                    wire = wire.makeOffset2D(offset,join=jdict[joinType],openResult = openR,fill=oFill,intersection = intersect)
+#                    offsetWire = wire.makeOffset2D(offset,join=jdict[joinType],openResult = openR,fill=oFill,intersection = intersect)
+#                    scaleOffset = getattr(fp,"Wire"+str(ii+1)+"ScaleOffset") #apply scale to offset
+#                    if not scaleOffset:
+#                        showWires.append(offsetWire)
+#                factor = getattr(fp,"Wire"+str(ii+1)+"Scale")
+#                if factor != 1.0: #scale the wire
+#                    scaleCopy = getattr(fp,"Wire"+str(ii+1)+"ScaleCopy")
+#                    if scaleCopy: #we already know scale != 1.0
+#                        showWires.append(wires[ii].copy())
+#                    if not scaleOffset:
+#                        wire = wires[ii]
+#                    else:
+#                        wire = offsetWire
+#                    wire = wire.scale(factor,wire.CenterOfMass)
 #                    showWires.append(wire)
+
 #                if offset == 0.0 and factor == 1.0: #if we didn't scale or offset, show original wire
 #                    showWires.append(wires[ii])
 #        if len(showWires)==1:
@@ -351,6 +374,14 @@ __version__ = "0.2021.10.06"
 #            FreeCAD.Console.PrintError("Unable to recover WireOrder from WireOrderHistory\n")
 #        FreeCAD.ActiveDocument.commitTransaction()
 #
+#    def showAll(self,fp):
+#        '''show all the wires and properties, set all WireNNNExclusives to False'''
+#        for ii in range(0,len(fp.LinkedObject.Shape.Wires)):
+#            self.showWireProps(fp,ii+1,True)
+#            wireName = "Wire"+str(ii+1)
+#            setattr(fp,wireName,True)
+#            setattr(fp,wireName+"Exclusive",False)
+#
 #    def showWireProps(self,fp,NNN,bShow=True):
 #        '''show/hide all the wire properties associated with WireNNN'''
 #        wireName = "Wire"+str(NNN)
@@ -362,6 +393,7 @@ __version__ = "0.2021.10.06"
 #        fp.setEditorMode(wireName+"Exclusive",mode)
 #        fp.setEditorMode(wireName+"Scale",mode)
 #        fp.setEditorMode(wireName+"ScaleCopy",mode)
+#        fp.setEditorMode(wireName+"ScaleOffset",mode)
 #        fp.setEditorMode(wireName+"Offset",mode)
 #        fp.setEditorMode(wireName+"OffsetCopy",mode)
 #        fp.setEditorMode(wireName+"OffsetFill",mode)
@@ -382,6 +414,7 @@ __version__ = "0.2021.10.06"
 #            fp.removeProperty(wireName+"Exclusive")
 #            fp.removeProperty(wireName+"Scale")
 #            fp.removeProperty(wireName+"ScaleCopy")
+#            fp.removeProperty(wireName+"ScaleOffset")
 #            fp.removeProperty(wireName+"Offset")
 #            fp.removeProperty(wireName+"OffsetCopy")
 #            fp.removeProperty(wireName+"OffsetFill")
@@ -404,6 +437,8 @@ __version__ = "0.2021.10.06"
 #                setattr(fp,wireName+"Scale",1.0)
 #                fp.addProperty("App::PropertyBool",wireName+"ScaleCopy",groupName,"true = keep original, false = discard original")
 #                setattr(fp,wireName+"ScaleCopy",False)
+#                fp.addProperty("App::PropertyBool",wireName+"ScaleOffset",groupName,"true = apply scale, if any, to offset if false apply to original wire")
+#                setattr(fp,wireName+"ScaleOffset",False)
 #                fp.addProperty("App::PropertyFloat",wireName+"Offset",groupName,"Offset factor for this wire, if offset = 0.0 no offsetting is done")
 #                setattr(fp,wireName+"Offset",0.0)
 #                fp.addProperty("App::PropertyBool",wireName+"OffsetCopy",groupName,"true = keep original, false = discard original")
@@ -969,7 +1004,8 @@ Part Design pattern (array) later.\n ", items, 0, False)
                                 wrapper.addProperty("App::PropertyStringList","WireOrderHistory","WireOrder","History of Wire Order changes")
                                 wrapper.addProperty("App::PropertyBool","ResetFromHistory","WireOrder","Triggers reset of wire order from history, clears history")
                                 wrapper.addProperty("App::PropertyInteger","MaxWires","PDWrapper","Maximum number of wires to try to render").MaxWires = 100
-                                wrapper.addProperty("App::PropertyBool","SelectedOnly","PDWrapper","[Command trigger -- resets self back to False] Enable only the wires containing the edge selected in the 3D view")
+                                wrapper.addProperty("App::PropertyBool","SelectedOnly","PDWrapper","[Command trigger] Enable only the wire containing all the edges selected in the 3D view")
+                                wrapper.addProperty("App::PropertyBool","ShowAll","PDWrapper","[Command trigger] Enables all wires if any are hidden")
                                 wrapper.Type = "WireWrapper" #neither additive nor subtractive, so hide these properties
                                 wrapper.Label2 = "(Wires)"
                                 wrapper.setEditorMode("PatternBase",2)
@@ -1053,13 +1089,22 @@ if __name__ == "__main__":
     if not bHasFile:
         from PySide import QtCore,QtGui
         window = QtGui.QApplication.activeWindow()
-        items = ["Create the file.", "Do not create the file.","Cancel"]
+        mb = QtGui.QMessageBox()
+        mb.setWindowTitle(BASENAME+" setup")
+        mb.setIcon(mb.Information)
+        mb.setStandardButtons(mb.Ok | mb.Cancel)
+        mb.setDefaultButton(mb.Cancel)
+        okBtn = mb.button(QtGui.QMessageBox.StandardButton.Ok)
+        cancelBtn = mb.button(QtGui.QMessageBox.StandardButton.Cancel)
+        okBtn.setText("Create file")
+        cancelBtn.setText("Do not create file")
         caption = "In order for "+BASENAME+" objects to be parametric after saving and reloading file\n\
 we need to create another file on this computer.  File to be created will be: \n\n"+py_file+"\n\n\
-This makes it available to the system upon restarting FreeCAD and loading documents containing the \n\
+This makes it available to the system upon restarting FreeCAD and loading documents containing the \
 "+BASENAME+" feature python objects.  Create file now?\n\n"
-        item,ok = QtGui.QInputDialog.getItem(window,"One time installation",caption,items)
-        if ok and item == items[0]:
+        mb.setText(caption)
+        ret = mb.exec_()
+        if ret == mb.Ok:
             writeFile()
             QtGui.QMessageBox.information(window,"Success","File successfully created.  Please note: if you uninstall "+BASENAME+" macro you need to manually remove "+py_file+", too.\n")
         else:
