@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-__version__ = "0.2021.10.05"
-#__version__ = "0.2021.10.05"
+__version__ = "0.2021.10.06"
+#__version__ = "0.2021.10.06"
 ## PDWrapper a class to encapsulate non-Part Design objects into a PartDesign::FeaturePython object
 ## 2021, by <TheMarkster>
 #
@@ -36,7 +36,7 @@ __version__ = "0.2021.10.05"
 #        obj.setEditorMode("Body",1) #readonly
 #        obj.setEditorMode("Version",1)
 #        obj.Proxy = self
-#        self.bMakingWireExclusive = False
+#        self.bInhibitRecomputes = False
 #
 #    def onChanged(self,fp,prop):
 #        if prop == "MeshTolerance" or prop == "RefineMesh":
@@ -45,16 +45,22 @@ __version__ = "0.2021.10.05"
 #            fp.ResetFromHistory = False
 #            self.resetFromHistory(fp)
 #        elif "Wire" in prop and "Exclusive" in prop:
-#            if getattr(fp,prop) == True and not self.bMakingWireExclusive:
-#                self.bMakingWireExclusive = True
+#            if getattr(fp,prop) == True and not self.bInhibitRecomputes:
+#                self.bInhibitRecomputes = True
 #                idx = int(prop[len("Wire"):-len("Exclusive")])
 #                self.makeWireExclusive(fp,idx,True)
-#                self.bMakingWireExclusive = False
-#            elif getattr(fp,prop) == False and not self.bMakingWireExclusive:
-#                self.bMakingWireExclusive = True
+#                self.bInhibitRecomputes = False
+#            elif getattr(fp,prop) == False and not self.bInhibitRecomputes:
+#                self.bInhibitRecomputes = True
 #                idx = int(prop[len("Wire"):-len("Exclusive")])
 #                self.makeWireExclusive(fp,idx,False)
-#                self.bMakingWireExclusive = False
+#                self.bInhibitRecomputes = False
+#        elif "SelectedOnly" in prop and fp.SelectedOnly == True:
+#           self.bInhibitRecomputes = True
+#           fp.SelectedOnly = False
+#           self.selectedOnly(fp)
+#           self.bInhibitRecomputes = False
+#
 #
 #    def makeWireExclusive(self,fp,idx,exclusive=True):
 #        for ii in range(1,len(fp.LinkedObject.Shape.Wires)+1):
@@ -62,9 +68,36 @@ __version__ = "0.2021.10.05"
 #                if exclusive:
 #                   setattr(fp,"Wire"+str(ii)+"Exclusive",ii==idx)
 #                   setattr(fp,"Wire"+str(ii),ii==idx)
+#                   self.showWireProps(fp,ii,ii==idx)
 #                else:
 #                   setattr(fp,"Wire"+str(ii)+"Exclusive",False)
 #                   setattr(fp,"Wire"+str(ii),True)
+#                   self.showWireProps(fp,ii,True)
+#
+#    def selectedOnly(self, fp):
+#        '''should only be 1 edge selected in the 3d view and should be an edge of the linked object
+#           this will find the wires that the selected edge is part of and enable only those wires'''
+#        selx = FreeCADGui.Selection.getSelectionEx()
+#        if not selx:
+#            FreeCAD.Console.PrintError("No edge selected.  Select an edge of the PDWrapper object and try again.\n")
+#            return
+#        if selx[0].Object != fp:
+#            FreeCAD.Console.PrintError("Select an edge of the PDWrapper object and try again.\n")
+#            return
+#        if len(selx[0].SubObjects) != 1 or "Edge" not in selx[0].SubElementNames[0]:
+#            FreeCAD.Console.PrintError("Select a single edge of the PDWrapper object and try again.\n")
+#            return
+#        edge = getattr(selx[0].Object.Shape,selx[0].SubElementNames[0])
+#        for ii in range (0, len(fp.Shape.Wires)):
+#            setattr(fp,"Wire"+str(ii+1),False)
+#            setattr(fp,"Wire"+str(ii+1)+"Exclusive",False)
+#            self.showWireProps(fp,ii+1,False)
+#            for e in fp.Shape.Wires[ii].Edges:
+#                if e.isSame(edge):
+#                    setattr(fp,"Wire"+str(ii+1),True)
+#                    self.showWireProps(fp,ii+1,True)
+#                    FreeCAD.Console.PrintMessage("Selected edge found in Wire"+str(ii+1)+"\n")
+#                    break
 #
 #
 #    def resetMeshCache(self,fp):
@@ -165,8 +198,11 @@ __version__ = "0.2021.10.05"
 #            return solids[idx-1]
 #
 #    def execute(self,fp):
+#        if self.bInhibitRecomputes:
+#            self.bInhibitRecomputes = False
+#            return
 #        if fp.Type == "WireWrapper":
-#            self.executeSketchWiresType(fp)
+#            self.executeWireWrapperType(fp)
 #            return
 #        if fp.TipManagement == "Automatic":
 #            if fp.PatternBase == fp.TipBase:
@@ -231,12 +267,14 @@ __version__ = "0.2021.10.05"
 #            FreeCAD.Console.PrintWarning(msg)
 #            FreeCAD.Console.PrintMessage("PDWrapper warnings may be suppressed with the ShowWarnings property set to false\n")
 #
-#    def executeSketchWiresType(self,fp):
+#    def executeWireWrapperType(self,fp):
 #        '''add some dynamic properties specific to this type and to this linked object'''
 #        if fp.LinkedObject:
 #            self.placeInBody(fp,fp.LinkedObject)
 #            fp.LinkedObject.ViewObject.Visibility = False
-#            wires = fp.LinkedObject.Shape.Wires
+#            wires = fp.LinkedObject.Shape.Wires[:fp.MaxWires]
+#            if len(fp.LinkedObject.Shape.Wires) > fp.MaxWires:
+#                self.warn(fp,"Wire count ("+str(len(fp.LinkedObject.Shape.Wires))+") exceeds MaxWires ("+str(fp.MaxWires)+") property.  It must be increased in order to render all the wires.\n")
 #        if not wires:
 #            fp.Shape = Part.Shape()
 #            return
@@ -313,6 +351,27 @@ __version__ = "0.2021.10.05"
 #            FreeCAD.Console.PrintError("Unable to recover WireOrder from WireOrderHistory\n")
 #        FreeCAD.ActiveDocument.commitTransaction()
 #
+#    def showWireProps(self,fp,NNN,bShow=True):
+#        '''show/hide all the wire properties associated with WireNNN'''
+#        wireName = "Wire"+str(NNN)
+#        if not hasattr(fp,wireName) or not hasattr(fp,wireName+"Scale"):
+#            return
+#        mode = 0 if bShow else 2
+#        fp.setEditorMode(wireName,mode)
+#        fp.setEditorMode(wireName+"Order",2 if mode == 2 else 1)
+#        fp.setEditorMode(wireName+"Exclusive",mode)
+#        fp.setEditorMode(wireName+"Scale",mode)
+#        fp.setEditorMode(wireName+"ScaleCopy",mode)
+#        fp.setEditorMode(wireName+"Offset",mode)
+#        fp.setEditorMode(wireName+"OffsetCopy",mode)
+#        fp.setEditorMode(wireName+"OffsetFill",mode)
+#        fp.setEditorMode(wireName+"OffsetOpenResult",mode)
+#        fp.setEditorMode(wireName+"OffsetIntersection",mode)
+#        fp.setEditorMode(wireName+"OffsetJoin",mode)
+#        fp.setEditorMode(wireName+"IsClosed",2 if mode == 2 else 1)
+#        FreeCADGui.Selection.clearSelection()
+#        FreeCADGui.Selection.addSelection(FreeCAD.ActiveDocument.Name,fp.Name)
+#
 #    def setupWireProps(self,fp,wires):
 #        ii = len(wires)
 
@@ -328,35 +387,36 @@ __version__ = "0.2021.10.05"
 #            fp.removeProperty(wireName+"OffsetFill")
 #            fp.removeProperty(wireName+"OffsetOpenResult")
 #            fp.removeProperty(wireName+"OffsetIntersection")
-#            fp.removeProperty(wireName+"OffsetJoinType")
+#            fp.removeProperty(wireName+"OffsetJoin")
 #            fp.removeProperty(wireName+"IsClosed")
 #            ii += 1
 #        for ii in range(0,len(wires)):
 #            wireName = "Wire"+str(ii+1)
+#            groupName = "Wire"+format(ii+1,'03')
 #            if not hasattr(fp,wireName):
-#                fp.addProperty("App::PropertyBool",wireName,wireName,"true = show wire and any scaled copies, false = discard wire and any scaled copies")
+#                fp.addProperty("App::PropertyBool",wireName,groupName,"true = show wire and any scaled copies, false = discard wire and any scaled copies")
 #                setattr(fp,wireName,True)
-#                fp.addProperty("App::PropertyInteger",wireName+"Order",wireName,"Position of this wire in the WireOrder property")
+#                fp.addProperty("App::PropertyInteger",wireName+"Order",groupName,"Position of this wire in the WireOrder property")
 #                fp.setEditorMode(wireName+"Order",1) #readonly
-#                fp.addProperty("App::PropertyBool",wireName+"Exclusive",wireName,"true = show only this wire, set WireNNN false for all others")
+#                fp.addProperty("App::PropertyBool",wireName+"Exclusive",groupName,"true = show only this wire, set WireNNN false for all others")
 #                setattr(fp,wireName+"Exclusive",False)
-#                fp.addProperty("App::PropertyFloat",wireName+"Scale",wireName,"Scale factor for this wire, if scale = 1.0 no scaling is done")
+#                fp.addProperty("App::PropertyFloat",wireName+"Scale",groupName,"Scale factor for this wire, if scale = 1.0 no scaling is done")
 #                setattr(fp,wireName+"Scale",1.0)
-#                fp.addProperty("App::PropertyBool",wireName+"ScaleCopy",wireName,"true = keep original, false = discard original")
+#                fp.addProperty("App::PropertyBool",wireName+"ScaleCopy",groupName,"true = keep original, false = discard original")
 #                setattr(fp,wireName+"ScaleCopy",False)
-#                fp.addProperty("App::PropertyFloat",wireName+"Offset",wireName,"Offset factor for this wire, if offset = 0.0 no offsetting is done")
+#                fp.addProperty("App::PropertyFloat",wireName+"Offset",groupName,"Offset factor for this wire, if offset = 0.0 no offsetting is done")
 #                setattr(fp,wireName+"Offset",0.0)
-#                fp.addProperty("App::PropertyBool",wireName+"OffsetCopy",wireName,"true = keep original, false = discard original")
+#                fp.addProperty("App::PropertyBool",wireName+"OffsetCopy",groupName,"true = keep original, false = discard original")
 #                setattr(fp,wireName+"OffsetCopy",False)
-#                fp.addProperty("App::PropertyBool",wireName+"OffsetFill",wireName,"true = fill in space creating a face")
+#                fp.addProperty("App::PropertyBool",wireName+"OffsetFill",groupName,"true = fill in space creating a face")
 #                setattr(fp,wireName+"OffsetFill",False)
-#                fp.addProperty("App::PropertyBool",wireName+"OffsetOpenResult",wireName,"true = make closed wire with rounded ends if original is open, false = make open wire")
+#                fp.addProperty("App::PropertyBool",wireName+"OffsetOpenResult",groupName,"true = make closed wire with rounded ends if original is open, false = make open wire")
 #                setattr(fp,wireName+"OffsetOpenResult",False)
-#                fp.addProperty("App::PropertyBool",wireName+"OffsetIntersection",wireName,"true = offset child wires as group, true = offset child wires independently")
+#                fp.addProperty("App::PropertyBool",wireName+"OffsetIntersection",groupName,"true = offset child wires as group, true = offset child wires independently")
 #                setattr(fp,wireName+"OffsetIntersection",False)
-#                fp.addProperty("App::PropertyEnumeration",wireName+"OffsetJoin",wireName,"Join type (arc, tangent, intersection)")
+#                fp.addProperty("App::PropertyEnumeration",wireName+"OffsetJoin",groupName,"Join type (arc, tangent, intersection)")
 #                setattr(fp,wireName+"OffsetJoin",["Arcs","Tangent","Intersection"])
-#                fp.addProperty("App::PropertyBool",wireName+"IsClosed",wireName,"whether wire is closed (readonly)")
+#                fp.addProperty("App::PropertyBool",wireName+"IsClosed",groupName,"whether wire is closed (readonly)")
 #                fp.setEditorMode(wireName+"IsClosed",1)#readonly
 #            setattr(fp,wireName+"IsClosed",wires[ii].isClosed())
 #            setattr(fp,wireName+"Order",fp.WireOrder[ii])
@@ -908,6 +968,8 @@ Part Design pattern (array) later.\n ", items, 0, False)
                                 wrapper.addProperty("App::PropertyIntegerList","WireOrder","WireOrder","Order of the wires in the produced Tip Shape")
                                 wrapper.addProperty("App::PropertyStringList","WireOrderHistory","WireOrder","History of Wire Order changes")
                                 wrapper.addProperty("App::PropertyBool","ResetFromHistory","WireOrder","Triggers reset of wire order from history, clears history")
+                                wrapper.addProperty("App::PropertyInteger","MaxWires","PDWrapper","Maximum number of wires to try to render").MaxWires = 100
+                                wrapper.addProperty("App::PropertyBool","SelectedOnly","PDWrapper","[Command trigger -- resets self back to False] Enable only the wires containing the edge selected in the 3D view")
                                 wrapper.Type = "WireWrapper" #neither additive nor subtractive, so hide these properties
                                 wrapper.Label2 = "(Wires)"
                                 wrapper.setEditorMode("PatternBase",2)
@@ -926,7 +988,6 @@ Part Design pattern (array) later.\n ", items, 0, False)
                                 wrapper.setEditorMode("MeshTolerance",2)
                                 wrapper.setEditorMode("RefineMesh",2)
                                 wrapper.setEditorMode("Refine",2)
-                                wrapper.setEditorMode("ShowWarnings",2)
                         else: #cancel
                             doc.abortTransaction()
                             return
@@ -936,10 +997,8 @@ Part Design pattern (array) later.\n ", items, 0, False)
                         wrapper.LinkedObject =selobj.Object
                         doc.commitTransaction()
             else:
-                FreeCAD.Console.PrintError("Selection error.  Select and object to add to the active body.\n")
-        else:
-            if not body:
-                FreeCAD.Console.PrintError("No active body.  Toggle a body active and try again.\n")
+                FreeCAD.Console.PrintError("Selection error.  Select an object to add to the active body.\n")
+
 
 def getBody(doc):
     from PySide import QtGui,QtCore
