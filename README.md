@@ -113,6 +113,9 @@ The scale factor to apply to this wire.  Default is 1.0.  In case of the default
 #### WireNNN Scale Copy (boolean)
 If true a copy of the wire is scaled rather than the wire itself.  In other words, if this is True, the original wire is retained.  If it is false the original wire is discarded and replaced by the scaled wire.  Default is True.<br/>
 <br/>
+#### WireNNN Scale Offset (boolean)
+Default: False.  If True, apply scale, if any, to the offset instead of to the original file.  One thing this allows is to fillet a wire.  If you make the offset of type Arcs and some positive value, e.g. 1.0, then scale the offset you can get the offset with the fillets back to the original size of the wire, effectively filleting it, assuming you can work out the math.  For this to work it probably needs to be a symmetrical wire, like a square.  For square wires I have found this formula to work quite well: original edge length / (original edge length + 2 * offset).  For example, with a side length of 10 and an offset of 2, you get 10 / (10 + 2 * 2) = 10/14 as the scale you need to get the filleted offset wire back to the original wire size.<br/>
+<br/>
 ### FaceMaker (enumeration)
 WireWrapper types can also make faces out of wires, or at least attempt to.  Default is None (no face).  Here are all the options and a brief explanation of the advantages and disadvantags of each option, or at least as I understand them.<br/>
 <br/>
@@ -178,8 +181,12 @@ This is the encapsulated object.  Other link properties will typically also poin
 ### Max Wires (WireWrapper types only) (integer)
 Default: 100.  The maximum number of wires to attempt to render.  You can change this value if you want to be able to render an object with more than Max Wires wires.  This property prevents FreeCAD from becoming unresponsive for too long while trying to render a complex object, such as an imported mesh, with many wires.<br/>
 <br/>
+### Show All (boolean trigger)
+Default: False.  If set to True, it sets itself back to False and runs a command to show all the wires.  This can be used to enable wires that have been hidden by the Selected Only command or by the WireNNN Exclusive command or any wires that have been toggled disabled.<br/>
+<br/>
 ### Selected Only (WireWrapper types only) (boolean trigger)
-Toggling this to True will trigger a command, after which it toggles itself back to False, ready for the next usage.  Usage: select a single edge of the WireWrapper type in the 3D view and toggle this from False to True.  It enables only those wires that contain this edge.  Sometimes it is only part of 1 wire, sometimes more than 1.  This command toggles any WireNNN Exclusive properties to False.  It also deselects the edge and reselects the entire object.  The purpose of this is to help find the wire an edge belongs to, which can sometimes be a challenge when there are many wires.  (Hidden wires may be reshown by toggling the WireNNN Exclusive property to True and back to False.)
+Toggling this to True will trigger a command, after which it toggles itself back to False, ready for the next usage.  Usage: select one or more edges in the 3D view of the PDWrapper and toggle this property to True.  It will search for any wires that contain all of the selected edges.  If any such wires are found those wire will be enabled and all other wires will be hidden, along with their WireNNN properties.  Use Show All to show all the wires that have been hidden by this command.<br/>
+<br/>
 ### Show Warnings (boolean)
 Default is true.  There are warnings when the PDWrapper Tip Shape contains multiple solids, a big no no in Part Design.  But such shapes are allowed by the PDWrapper object.  They are only problematic when the subsequent operation, if any, does not reconcile this by bridging all of the disconnected shapes back together.  In Part Design *every* boolean result in the chain must produce a single contiguous solid.  PDWrappers can be a way to get around this limitation if used carefully.  The Show Warnings property, if set to false, will disable output of these error messages, which can become annoying after a time.<br/>
 <br/>
@@ -234,6 +241,10 @@ The tool shape used in creating the Tip Shape.  This is ordinarily the encapsula
 
 
 ## Changelog
+* 0.2021.10.06.rev2
+* Show All property
+* WireNNN Scale Offset property
+* create / do not create file text as button labels
 * 0.2021.10.05
 * add Selected Only boolean trigger
 * change WireNNN group names to Wire00N, Wire0NN, or WireNNN to enforce sorting order
