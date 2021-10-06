@@ -175,6 +175,11 @@ If true the PDWrapper object claims the encapsulated object as a child in the tr
 ### Linked Object (link)
 This is the encapsulated object.  Other link properties will typically also point to this object, example Tip Tool.<br/>
 <br/>
+### Max Wires (WireWrapper types only) (integer)
+Default: 100.  The maximum number of wires to attempt to render.  You can change this value if you want to be able to render an object with more than Max Wires wires.  This property prevents FreeCAD from becoming unresponsive for too long while trying to render a complex object, such as an imported mesh, with many wires.<br/>
+<br/>
+### Selected Only (WireWrapper types only) (boolean trigger)
+Toggling this to True will trigger a command, after which it toggles itself back to False, ready for the next usage.  Usage: select a single edge of the WireWrapper type in the 3D view and toggle this from False to True.  It enables only those wires that contain this edge.  Sometimes it is only part of 1 wire, sometimes more than 1.  This command toggles any WireNNN Exclusive properties to False.  It also deselects the edge and reselects the entire object.  The purpose of this is to help find the wire an edge belongs to, which can sometimes be a challenge when there are many wires.  (Hidden wires may be reshown by toggling the WireNNN Exclusive property to True and back to False.)
 ### Show Warnings (boolean)
 Default is true.  There are warnings when the PDWrapper Tip Shape contains multiple solids, a big no no in Part Design.  But such shapes are allowed by the PDWrapper object.  They are only problematic when the subsequent operation, if any, does not reconcile this by bridging all of the disconnected shapes back together.  In Part Design *every* boolean result in the chain must produce a single contiguous solid.  PDWrappers can be a way to get around this limitation if used carefully.  The Show Warnings property, if set to false, will disable output of these error messages, which can become annoying after a time.<br/>
 <br/>
@@ -229,6 +234,10 @@ The tool shape used in creating the Tip Shape.  This is ordinarily the encapsula
 
 
 ## Changelog
+* 0.2021.10.05
+* add Selected Only boolean trigger
+* change WireNNN group names to Wire00N, Wire0NN, or WireNNN to enforce sorting order
+* add Max Wires property
 * 0.2021.10.04.rev5
 * Add 2D offset to WireWrapper types
 * 0.2021.10.04.rev4
