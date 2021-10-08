@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-__version__ = "0.2021.10.06.rev2"
-#__version__ = "0.2021.10.06.rev2"
+__version__ = "0.2021.10.07"
+#__version__ = "0.2021.10.07"
 ## PDWrapper a class to encapsulate non-Part Design objects into a PartDesign::FeaturePython object
 ## 2021, by <TheMarkster>
 #
@@ -18,6 +18,15 @@ __version__ = "0.2021.10.06.rev2"
 #        obj.addProperty("App::PropertyBool","ClaimChildren","PDWrapper","Whether to claim children in tree").ClaimChildren = True
 #        obj.addProperty("App::PropertyLink","TipBase","TipShape","Base shape for making the tip shape for this feature")
 #        obj.addProperty("App::PropertyLink","TipTool","TipShape","Tool shape for making the tip shape for this feature")
+#        obj.addProperty("App::PropertyFloat","TipShapeOffset","Offsetting","Offset (in mm) of the tip shape boolean result: default = 0.0 (no offset)").TipShapeOffset = 0.0
+#        obj.addProperty("App::PropertyBool","TipShapeOffsetCut","Offsetting","Whether to cut offset from shape or vice versa").TipShapeOffsetCut = False
+#        obj.addProperty("App::PropertyEnumeration","TipShapeOffsetMode","Offsetting","3D offset mode: Skin, Pipe, Recto-verso").TipShapeOffsetMode = ["Skin","Pipe","Recto-verso"]
+#        obj.addProperty("App::PropertyEnumeration","TipShapeOffsetJoin","Offsetting","3D offset join method: Arcs,Tangent,Intersection").TipShapeOffsetJoin = ["Arcs","Tangent","Intersection"]
+#        obj.addProperty("App::PropertyFloat","PatternShapeOffset","Offsetting","Offset (in mm) of the tip shape boolean result: default = 0.0 (no offset)").PatternShapeOffset = 0.0
+#        obj.addProperty("App::PropertyBool","PatternShapeOffsetCut","Offsetting","Whether to cut offset from shape or vice versa").PatternShapeOffsetCut = False
+#        obj.addProperty("App::PropertyBool","PatternOffsetApplyToTool","Offsetting","Whether to apply same offsetting to Pattern Tool Shape").PatternOffsetApplyToTool=True
+#        obj.addProperty("App::PropertyEnumeration","PatternShapeOffsetMode","Offsetting","3D offset mode: Skin, Pipe, Recto-verso").PatternShapeOffsetMode = ["Skin","Pipe","Recto-verso"]
+#        obj.addProperty("App::PropertyEnumeration","PatternShapeOffsetJoin","Offsetting","3D offset join method: Arcs,Tangent,Intersection").PatternShapeOffsetJoin = ["Arcs","Tangent","Intersection"]
 #        obj.addProperty("App::PropertyFloat","TipShapeScale","Scaling","Scale to be applied to tip shape boolean result").TipShapeScale = 1.0
 #        obj.addProperty("App::PropertyFloat","TipBaseScale","Scaling","Scale to be applied to tip base").TipBaseScale = 1.0
 #        obj.addProperty("App::PropertyFloat","TipToolScale","Scaling","Scale to be applied to tip tool").TipToolScale = 1.0
@@ -68,18 +77,14 @@ __version__ = "0.2021.10.06.rev2"
 #
 #
 #    def makeWireExclusive(self,fp,idx,exclusive=True):
-#        FreeCAD.ActiveDocument.openTransaction("Make Wire"+str(idx)+" Exclusive")
 #        for ii in range(1,len(fp.LinkedObject.Shape.Wires)+1):
 #            if hasattr(fp,"Wire"+str(ii)):
 #                if exclusive:
 #                   setattr(fp,"Wire"+str(ii)+"Exclusive",ii==idx)
 #                   setattr(fp,"Wire"+str(ii),ii==idx)
-#                   # don't hide props when using Exclusive #self.showWireProps(fp,ii,ii==idx)
 #                else:
 #                   setattr(fp,"Wire"+str(ii)+"Exclusive",False)
 #                   setattr(fp,"Wire"+str(ii),True)
-#                   #self.showWireProps(fp,ii,True)
-#        FreeCAD.ActiveDocument.commitTransaction()
 #
 #    def selectedOnly(self, fp):
 #        '''select one or more edges of the PDWireWrapper in the 3D view and run this command
@@ -198,22 +203,6 @@ __version__ = "0.2021.10.06.rev2"
 #            return tool_shape
 #        else:
 #            return fp.LinkedObject
-#    def getPreviousFeature(self,fp):
-#        if fp.Type == "WireWrapper":
-#           return None
-#        doc = FreeCAD.ActiveDocument
-#        if fp.Body:
-#            body = doc.getObject(fp.Body)
-#        else:
-#            raise Exception("Runtime error: can't find Body")
-#        solids = [sol for sol in body.Group if sol.isDerivedFrom("PartDesign::Feature")]
-#        if not fp in solids:
-#            raise Exception("PDWrapper object not in body")
-#        idx = solids.index(fp)
-#        if idx == 0:
-#            return None #fp is first solid feature
-#        else:
-#            return solids[idx-1]
 #
 #    def execute(self,fp):
 #        if self.bInhibitRecomputes:
@@ -224,8 +213,8 @@ __version__ = "0.2021.10.06.rev2"
 #            return
 #        if fp.TipManagement == "Automatic":
 #            if fp.PatternBase == fp.TipBase:
-#               fp.PatternBase = self.getPreviousFeature(fp)
-#            fp.TipBase = self.getPreviousFeature(fp)
+#               fp.PatternBase = fp.BaseFeature
+#            fp.TipBase = fp.BaseFeature
 #        if hasattr(fp,"Refine1"):
 #            fp.removeProperty("Refine1") #PD features might already have a Refine feature, but None types will not
 #        if fp.LinkedObject:
@@ -239,6 +228,19 @@ __version__ = "0.2021.10.06.rev2"
 #        base_shape = self.scale(base_shape, fp.TipBaseScale, fp.TipBaseScale != 1.0)
 #        tool_shape = self.getShape(fp,fp.TipTool)
 #        tool_shape = self.scale(tool_shape, fp.TipToolScale, fp.TipToolScale != 1.0)
+#        if fp.PatternShapeOffset != 0 and fp.PatternOffsetApplyToTool == True:
+#            psoTol = 1e-7
+#            psoMode = 0 if fp.PatternShapeOffsetMode == "Skin" else 1 if fp.PatternShapeOffsetMode == "Pipe" else 2 if fp.PatternShapeOffsetMode == "Recto-verso" else -1
+#            psoJoin = 0 if fp.PatternShapeOffsetJoin == "Arcs" else 1 if fp.PatternShapeOffsetJoin == "Tangent" else 2 if fp.PatternShapeOffsetMode == "Intersection" else -1
+#            psoFill = False
+#            tool_offset_shape = tool_shape.makeOffsetShape(fp.PatternShapeOffset,tolerance=psoTol,offsetMode = psoMode, join = psoJoin, fill = psoFill)
+#            if fp.PatternShapeOffsetCut:
+#                if fp.PatternShapeOffset > 0:
+#                    tool_shape = tool_offset_shape.cut(tool_shape)
+#                elif fp.PatternShapeOffset < 0:
+#                    tool_shape = tool_shape.cut(tool_offset_shape)
+#            else:
+#                 tool_shape = tool_offset_shape
 #        if fp.TipTool and fp.TipBase:
 #            op = fp.TipOperation
 #            if op == "Cut":
@@ -263,10 +265,39 @@ __version__ = "0.2021.10.06.rev2"
 #        if not fp.Shape.isNull() and fp.Refine:
 #            fp.Shape = fp.Shape.removeSplitter()
 #        fp.Shape = self.scale(fp.Shape,fp.TipShapeScale,fp.TipShapeScale != 1.0)
+#        if fp.TipShapeOffset != 0:
+#            tsoTol = 1e-7
+#            tsoMode = 0 if fp.TipShapeOffsetMode == "Skin" else 1 if fp.TipShapeOffsetMode == "Pipe" else 2 if fp.TipShapeOffsetMode == "Recto-verso" else -1
+#            tsoJoin = 0 if fp.TipShapeOffsetJoin == "Arcs" else 1 if fp.TipShapeOffsetJoin == "Tangent" else 2 if fp.TipShapeOffsetMode == "Intersection" else -1
+#            tsoFill = False
+#            offsetShape = fp.Shape.makeOffsetShape(fp.TipShapeOffset,tolerance=tsoTol,offsetMode = tsoMode, join = tsoJoin, fill = tsoFill)
+#            if fp.TipShapeOffsetCut:
+#                if fp.TipShapeOffset > 0:
+#                    fp.Shape = offsetShape.cut(fp.Shape)
+#                elif fp.TipShapeOffset < 0:
+#                    fp.Shape = fp.Shape.cut(offsetShape)
+#            else:
+#                fp.Shape = offsetShape
 #        if not "None" in fp.Type:
 #            addsubshape = self.makeAddSubShape(fp)
 #            fp.AddSubShape = addsubshape if not fp.Refine else addsubshape.removeSplitter()
 #            fp.AddSubShape = self.scale(fp.AddSubShape,fp.PatternShapeScale,fp.PatternShapeScale != 1.0)
+
+#            if fp.PatternShapeOffset != 0:
+#                psoTol = 1e-7
+#                psoMode = 0 if fp.PatternShapeOffsetMode == "Skin" else 1 if fp.PatternShapeOffsetMode == "Pipe" else 2 if fp.PatternShapeOffsetMode == "Recto-verso" else -1
+#                psoJoin = 0 if fp.PatternShapeOffsetJoin == "Arcs" else 1 if fp.PatternShapeOffsetJoin == "Tangent" else 2 if fp.PatternShapeOffsetMode == "Intersection" else -1
+#                psoFill = False
+#                pOffsetShape = fp.AddSubShape.makeOffsetShape(fp.PatternShapeOffset,tolerance=psoTol,offsetMode = psoMode, join = psoJoin, fill = psoFill)
+#                if fp.PatternShapeOffsetCut:
+#                    if fp.PatternShapeOffset > 0:
+#                        fp.AddSubShape = pOffsetShape.cut(fp.AddSubShape)
+#                    elif fp.PatternShapeOffset < 0:
+#                        fp.AddSubShape = fp.AddSubShape.cut(pOffsetShape)
+#                else:
+#                    fp.AddSubShape = pOffsetShape
+
+
 #        if len(fp.Shape.Solids)>1:
 #            self.warn(fp,"PDWrapper shape has multiple solids.  This could cause subsequent operations to fail or produce unexpected results.\n")
 #
@@ -300,9 +331,7 @@ __version__ = "0.2021.10.06.rev2"
 #        defaultOrder = list(range(1,len(wires)+1))
 #        if len(fp.WireOrder) != len(defaultOrder): #needs to be initialized or re-initialized
 #            fp.WireOrderHistory += [str(fp.WireOrder)]
-#            FreeCAD.ActiveDocument.openTransaction(fp.Name+" update wire order")
 #            fp.WireOrder = defaultOrder
-#            FreeCAD.ActiveDocument.commitTransaction()
 #        else:
 #            temp = [wires[fp.WireOrder[dd]-1] for dd in range(0,len(wires))]
 #            wires = temp
@@ -330,6 +359,7 @@ __version__ = "0.2021.10.06.rev2"
 #                    scaleCopy = getattr(fp,"Wire"+str(ii+1)+"ScaleCopy")
 #                    if scaleCopy: #we already know scale != 1.0
 #                        showWires.append(wires[ii].copy())
+#                    scaleOffset = getattr(fp,"Wire"+str(ii+1)+"ScaleOffset") #apply scale to offset
 #                    if not scaleOffset:
 #                        wire = wires[ii]
 #                    else:
@@ -984,11 +1014,12 @@ Part Design pattern (array) later.\n ", items, 0, False)
                                 wrapper.setEditorMode("PatternShapeScale",2)
                                 wrapper.setEditorMode("PatternToolScale",2)
                             elif item == items[8]: #WireWrapper
-                                wrapper = doc.addObject("Part::FeaturePython","PDWrapper")
+                                #wrapper = doc.addObject("Part::FeaturePython","PDWrapper")
+                                wrapper = body.newObject("Part::Part2DObjectPython","PDWrapper")
                                 PDW.PDWrapper(wrapper)
                                 PDW.PDWrapperVP(wrapper.ViewObject)
-                                if not wrapper in body.Group:
-                                    body.Group += [wrapper]
+                                #if not wrapper in body.Group:
+                                    #body.Group += [wrapper]
                                 wrapper.Body = body.Name
                                 wrapper.TipBase = None
                                 wrapper.TipTool = selobj.Object
