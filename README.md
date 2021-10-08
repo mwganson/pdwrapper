@@ -98,7 +98,7 @@ I am including all the options described in the API even though some might not b
 #### WireNN Offset Join (enumeration)
 This is an important option.  There are 3 Join modes available: "Arcs","Tangent", and "Intersection".  In Arcs mode you get rounded arcs where the offset edges are joined.  In Intersection mode you get sharp angles if the original source wire had a sharp angle.  I'm not sure what Tangent does.  The documentation is rather sparse here.  My experience has been Arcs is the mode most likely to succeed.  Offsets are difficult for OCCT and often fail.  If you get a failure try all 3 modes.  Try different offset values, smaller generally has better luck than larger.  Also try negative values, which cause the offset to go inwards.  In the following screenshot you can see some of the differences between the Arcs mode and the others.<br/>
 <br/>
-<img src="pdwrapper_scr5.png" alt="screenshot"><br/>
+<img src="pdwrapper_scr6.png" alt="screenshot"><br/>
 <br/>
 #### WireNNN Open Result (boolean)
 Default: false.  If true open wires are allowed to remain open.  For example, if you have a single line segment the offset can be a closed wire with rounded ends at the ends of the line segment if Open Results are not allowed (false).  It's a lot easier to sketch a single line segment and let the offset do the work of creating the rounded ends.  In the screenshot below the green wire is the original sketch and the black is the offset made with Open Result = false.<br/>
