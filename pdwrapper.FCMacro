@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-__version__ = "0.2021.10.07"
-#__version__ = "0.2021.10.07"
+__version__ = "0.2021.10.08"
+#__version__ = "0.2021.10.08"
 ## PDWrapper a class to encapsulate non-Part Design objects into a PartDesign::FeaturePython object
 ## 2021, by <TheMarkster>
 #
@@ -74,6 +74,9 @@ __version__ = "0.2021.10.07"
 #           fp.ShowAll = False
 #           self.showAll(fp)
 #           self.bInhibitRecomputes = False
+#        elif prop == "ResetWireOrder" and fp.ResetWireOrder == True:
+#            fp.ResetWireOrder = False
+#            self.resetWireOrder(fp)
 #
 #
 #    def makeWireExclusive(self,fp,idx,exclusive=True):
@@ -318,6 +321,7 @@ __version__ = "0.2021.10.07"
 #
 #    def executeWireWrapperType(self,fp):
 #        '''add some dynamic properties specific to this type and to this linked object'''
+#        fp.positionBySupport()
 #        if fp.LinkedObject:
 #            self.placeInBody(fp,fp.LinkedObject)
 #            fp.LinkedObject.ViewObject.Visibility = False
@@ -338,7 +342,7 @@ __version__ = "0.2021.10.07"
 #        self.setupWireProps(fp,wires) #adds missing WireNNN properties, removes unnecessary ones
 #        showWires = []
 #        for ii in range(0,len(wires)):
-#            if getattr(fp,"Wire"+str(ii+1)) == True: #whether to show the wire, if false we don't show copy either
+#            if getattr(fp,"Wire"+str(ii+1)) == True and getattr(fp,"Wire"+str(ii+1)+"Order") != 0: #whether to show the wire, if false we don't show copy either
 #                offset = getattr(fp,"Wire"+str(ii+1)+"Offset")
 #                if offset != 0.0: #offset the wire
 #                    offsetCopy = getattr(fp,"Wire"+str(ii+1)+"OffsetCopy")
@@ -369,6 +373,7 @@ __version__ = "0.2021.10.07"
 
 #                if offset == 0.0 and factor == 1.0: #if we didn't scale or offset, show original wire
 #                    showWires.append(wires[ii])
+
 #        if len(showWires)==1:
 #            fp.Shape = showWires[0]
 #        elif len(showWires) > 1:
@@ -385,6 +390,12 @@ __version__ = "0.2021.10.07"
 #            else:
 #                com = copy.BoundBox.Center
 #            fp.Shape = copy.scale(fp.TipShapeScale,com)
+#
+#    def resetWireOrder(self,fp):
+#        '''resets wire order to default values'''
+#        defaultOrder = list(range(1,len(fp.LinkedObject.Shape.Wires)+1))
+#        fp.WireOrderHistory += [str(fp.WireOrder)]
+#        fp.WireOrder = defaultOrder
 #
 #    def resetFromHistory(self,fp):
 #        FreeCAD.ActiveDocument.openTransaction("Reset WireOrder from History")
@@ -1014,12 +1025,12 @@ Part Design pattern (array) later.\n ", items, 0, False)
                                 wrapper.setEditorMode("PatternShapeScale",2)
                                 wrapper.setEditorMode("PatternToolScale",2)
                             elif item == items[8]: #WireWrapper
-                                #wrapper = doc.addObject("Part::FeaturePython","PDWrapper")
-                                wrapper = body.newObject("Part::Part2DObjectPython","PDWrapper")
+                                wrapper = doc.addObject("Part::FeaturePython","PDWrapper")
+                                #wrapper = body.newObject("Part::Part2DObjectPython","PDWrapper")
                                 PDW.PDWrapper(wrapper)
                                 PDW.PDWrapperVP(wrapper.ViewObject)
-                                #if not wrapper in body.Group:
-                                    #body.Group += [wrapper]
+                                if not wrapper in body.Group:
+                                    body.Group += [wrapper]
                                 wrapper.Body = body.Name
                                 wrapper.TipBase = None
                                 wrapper.TipTool = selobj.Object
@@ -1034,6 +1045,7 @@ Part Design pattern (array) later.\n ", items, 0, False)
                                 wrapper.addProperty("App::PropertyIntegerList","WireOrder","WireOrder","Order of the wires in the produced Tip Shape")
                                 wrapper.addProperty("App::PropertyStringList","WireOrderHistory","WireOrder","History of Wire Order changes")
                                 wrapper.addProperty("App::PropertyBool","ResetFromHistory","WireOrder","Triggers reset of wire order from history, clears history")
+                                wrapper.addProperty("App::PropertyBool","ResetWireOrder","WireOrder","Triggers rest of wire order to defaults").ResetWireOrder = False
                                 wrapper.addProperty("App::PropertyInteger","MaxWires","PDWrapper","Maximum number of wires to try to render").MaxWires = 100
                                 wrapper.addProperty("App::PropertyBool","SelectedOnly","PDWrapper","[Command trigger] Enable only the wire containing all the edges selected in the 3D view")
                                 wrapper.addProperty("App::PropertyBool","ShowAll","PDWrapper","[Command trigger] Enables all wires if any are hidden")
@@ -1045,6 +1057,15 @@ Part Design pattern (array) later.\n ", items, 0, False)
                                 wrapper.setEditorMode("PatternBaseScale",2)
                                 wrapper.setEditorMode("PatternShapeScale",2)
                                 wrapper.setEditorMode("PatternToolScale",2)
+                                wrapper.setEditorMode("TipShapeOffset",2)
+                                wrapper.setEditorMode("TipShapeOffsetCut",2)
+                                wrapper.setEditorMode("TipShapeOffsetMode",2)
+                                wrapper.setEditorMode("TipShapeOffsetJoin",2)
+                                wrapper.setEditorMode("PatternShapeOffset",2)
+                                wrapper.setEditorMode("PatternOffsetApplyToTool",2)
+                                wrapper.setEditorMode("PatternShapeOffsetCut",2)
+                                wrapper.setEditorMode("PatternShapeOffsetMode",2)
+                                wrapper.setEditorMode("PatternShapeOffsetJoin",2)
                                 wrapper.setEditorMode("TipBase",2)
                                 wrapper.setEditorMode("TipBaseScale",2)
                                 wrapper.setEditorMode("TipManagement",2)
