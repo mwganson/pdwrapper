@@ -150,11 +150,16 @@ This is an integer list that can be used to reorder the wires that are imported 
 <br/>
 As you can see this works quite well for the simple case shown here, but with a more complicated scenario it can be a challenge to work out what the wire order should be.  Still, this is better than nothing, which is what we have now where the only alternative is to go back an re-work the sketch.  Notes: The WireOrder property gets reset back to default anytime the number of wires in the Linked Object changes, for example when converting one wire to construction mode inside a sketch.<br/>
 <br/>
+Another use for Wire Order is if you set the order of a wire to 0 it will not be shown at all.  This can be a more convenient way to selectively disable certain wires.  For example, if you 3 wires and you want to disable Wire2 you would edit the Wire Order property (using the editor) to "[1,0,3]".  Note: Show All command does not re-enable wires hidden with this method.  Use Reset Wire Order to reset the Wire Order property back to defaults.<br/>
+<br/>
 #### Wire Order History (string list)
 This is an editable list of strings containing the history of the wire order changes that happen automatically when the number of wires in the Linked Object changes.  Your manual changes are not recorded here, only those that happen automatically.  But you may add them here manually if you want to.  This list gets cleared back to the most recent history item with the same length as the current wire order count when Reset From History is toggled from False to True.<br/>
 <br/>
-#### Rest From History (boolean used as a trigger to perform an action)
+#### Reset From History (boolean used as a trigger to perform an action)
 Toggle this from false to true to reset the wire order from the history.  The algorithm searches beginning at the end of the list until finds an entry in the history list of the same length as the current wire order.  It resets the wire order to that entry and removes the entry and any that are behind it in the list.  The boolean is set back to false ready for the next toggle to trigger the action again.<br/>
+<br/>
+#### Reset Wire Order (boolean trigger)
+Resets the Wire Order property back to defaults, stores old order in Wire Order History.<br/>
 <br/>
 
 ### Boolean Operations
@@ -268,6 +273,12 @@ The tool shape used in creating the Tip Shape.  This is ordinarily the encapsula
 
 
 ## Changelog
+* 0.2021.10.08
+* Add ability to hide wires by setting the wire order for that wire to 0
+* Add ResetWireOrder trigger
+* 0.2021.10.07
+* Add 3D offsetting for the Tip and Pattern shapes
+* Feature bloat is setting in.  It's time now to focus on fixing bugs and not adding more features.  Assuming I can resist the urge.
 * 0.2021.10.06.rev2
 * Show All property
 * WireNNN Scale Offset property
