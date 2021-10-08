@@ -168,6 +168,33 @@ Meshes can be encapsulated with PDWrapper objects, too.  In creating the solid f
 ### Mesh Refine (boolean)
 Mesh objects are in reality triangles connected together to form faces (sometimes called facets).  They are, quite frankly, ugly monstrosities.  The Mesh Refine property will usually remove some, but rarely all, of the extra triangles.  This is not to be confused with the Refine property all Part Design additive and subtractive features have.  The Mesh is refined before it is returned as a solid shape by the mesh conversion algorithm.  The PDWrapper will use the Tip Shape recipe to fuse/cut/whatever this solid with the previous solid feature, which might leave unrefined edges, which can be taken care of with the Refine property.  It should be noted that mesh objects are often downloaded from model sharing services, such as thingiverse, and there is need to modify them in one way or another.  The problem is often these mesh objects are defective.  Garbage in, garbage out.  Some might be so defective they cannot be converted into a shape or they might fail with boolean operations.<br/>
 <br/>
+## Offsetting
+### Pattern Offset Apply To Tool (boolean)
+Default: True.  If true apply any offset of the Pattern Shape also to the Pattern tool (the Linked Object).  If this is False and you use a pattern tool, such as linear pattern or polar pattern, the array copies will get the offset applied, but the original object will not.<br/>
+<br/>
+### Pattern Shape Offset (float)
+Default = 0.0 (no offset).  Applies a 3D offset to the result of the Pattern boolean (pattern shape to copied in feature pattern arrays).  If this value is negative the offset is applied inwards.<br/>
+<br/>
+### Pattern Shape Offset Cut (boolean)
+Default: False.  Whether to cut the offset from the original, creating a thickness with no open faces.  Think: hollow chocolate Easter bunnies.  If the offset is greater than 0 the original shape is cut from the offset.  If the offset is inward the offset is cut from the original shape.<br/>
+<br/>
+### Pattern Shape Offset Join (enumeration)
+Default: Arcs.  The join type for the pattern shape offset: can be "Arcs", "Tangent" or "Intersection".<br/>
+<br/>
+### Pattern Shape Offset Mode (enumeration)
+Default: Pipe.  The mode to use when creating the offset.  Honestly, I can't really see a difference except maybe sometimes one will succeed where the others fail.  Options: Pipe, Skin, Recto-verso.<br/>
+<br/>
+### Tip Shape Offset (float)
+Like Pattern Shape offset, but applied to the the tip boolean result.<br/>
+<br/>
+### Tip Shape Offset Cut (boolean)
+Default: False.  Whether to cut the offset from the original or vice-versa, creating a hollow solid, like a thickness but without an opening into the interior.<br/>
+<br/>
+### Tip Shape Offset Join
+### Tip Shape Offset Mode
+See Pattern shape properties of the same name.<br/>
+<br/>
+
 ## PDWRapper
 ### Body (string)
 This is the name of the Body object containing this PDWrapper and encapsulated object.<br/>
