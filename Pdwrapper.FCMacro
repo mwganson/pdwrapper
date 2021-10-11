@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-__version__ = "0.2021.10.11.rev2"
-#__version__ = "0.2021.10.11.rev2"
+__version__ = "0.2021.10.11.rev3"
+#__version__ = "0.2021.10.11.rev3"
 ## PDWrapper a class to encapsulate non-Part Design objects into a PartDesign::FeaturePython object
 ## 2021, by <TheMarkster>
 #
@@ -165,10 +165,12 @@ __version__ = "0.2021.10.11.rev2"
 #                if fp.LinkedObject != fp.BaseFeature: #user is re-using a feature from earlier in the tree
 #                    fp.TipBase = fp.BaseFeature#.BaseFeature
 #                    fp.PatternBase = fp.BaseFeature#.BaseFeature
-#            elif fp.Type == "None":
+#            elif fp.Type == "None" and fp.Enabled:
 #                fp.TipBase = fp.LinkedObject.BaseFeature
 #                fp.TipTool = fp.LinkedObject.BaseFeature
-#                
+#            elif fp.Type == "None" and not fp.Enabled:
+#                fp.TipTool = fp.BaseFeature
+#                fp.TipBase = fp.BaseFeature
 #        else: #not a PD object
 #            if fp.Type == "Additive":
 #                fp.TipBase = fp.BaseFeature
@@ -203,11 +205,17 @@ __version__ = "0.2021.10.11.rev2"
 #        base_shape = self.scale(base_shape, fp.TipBaseScale, fp.TipBaseScale != 1.0)
 #        tool_shape = self.getShape(fp,fp.TipTool,fp.UseTipToolAddSubShape)
 #        tool_shape = self.scale(tool_shape, fp.TipToolScale, fp.TipToolScale != 1.0)
+#        if not tool_shape:
+#            tool_shape = Part.Shape()
 #        tsCopy = tool_shape.copy()
-#        tsCopy.transformShape(fp.Placement.inverse().toMatrix(), True)
+#        if not tsCopy.isNull():
+#            tsCopy.transformShape(fp.Placement.inverse().toMatrix(), True)
 #        tool_shape = tsCopy
+#        if not base_shape:
+#            base_shape = Part.Shape()
 #        bsCopy = base_shape.copy()
-#        bsCopy.transformShape(fp.Placement.inverse().toMatrix(), True)
+#        if not bsCopy.isNull():
+#            bsCopy.transformShape(fp.Placement.inverse().toMatrix(), True)
 #        base_shape = bsCopy
 #        if fp.PatternShapeOffset != 0 and fp.PatternOffsetApplyToTool == True:
 #            psoTol = 1e-7
@@ -818,6 +826,7 @@ Part Design pattern (array) later.\n ", items, 0, False)
                                 wrapper.setEditorMode("PatternShapeOffsetJoin",2)
                                 wrapper.setEditorMode("PatternShapeOffsetMode",2)
                                 wrapper.setEditorMode("UsePatternBaseAddSubShape",2)
+                                wrapper.addProperty("App::PropertyBool","Enabled","PDWrapper","If False, passes through previous solid feature as tip shape").Enabled = True
                         else: #cancel
                             doc.abortTransaction()
                             return
