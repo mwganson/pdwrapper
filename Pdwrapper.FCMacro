@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-__version__ = "0.2021.10.11.rev3"
-#__version__ = "0.2021.10.11.rev3"
+__version__ = "0.2021.10.11.rev4"
+#__version__ = "0.2021.10.11.rev4"
 ## PDWrapper a class to encapsulate non-Part Design objects into a PartDesign::FeaturePython object
 ## 2021, by <TheMarkster>
 #
@@ -9,12 +9,15 @@ __version__ = "0.2021.10.11.rev3"
 #
 #class PDWrapper:
 #    def __init__(self,obj):
+#        obj.addProperty("App::PropertyBool","Enabled","PDWrapper","If False, passes through previous solid feature as tip shape").Enabled = True
 #        obj.addProperty("App::PropertyLink","PatternBase","PatternShape","Base shape presented for patterning")
 #        obj.addProperty("App::PropertyBool","UsePatternToolAddSubShape","PatternShape","Use pattern tools addsubshape property in place of Pattern tool's shape in boolean to create pattern shape").UsePatternToolAddSubShape = False
 #        obj.addProperty("App::PropertyBool","UsePatternBaseAddSubShape","PatternShape","Use pattern base's addsubshape property in place of Pattern base's shape in boolean to create pattern shape").UsePatternBaseAddSubShape = False
 #        obj.addProperty("App::PropertyBool","UseTipBaseAddSubShape","TipShape","Use tip base's addsubshape property in place of Tip Base's shape in boolean to create tip shape").UseTipBaseAddSubShape = False
 #        obj.addProperty("App::PropertyBool","UseTipToolAddSubShape","TipShape","Use tip tool's addsubshape property in place of Tip Tool's shape in boolean to create tip shape").UseTipToolAddSubShape = False
 #        obj.addProperty("App::PropertyLink","PatternTool","PatternShape","Tool used with Pattern Base for creating patten shape to use with patterning")
+#        obj.addProperty("App::PropertyString","PatternOperationDefault","PDWrapper","hidden property holds operation type originally set during creation")
+#        obj.addProperty("App::PropertyString","TipOperationDefault","PDWrapper","hidden property holds operation type originally set during creation")
 #        obj.addProperty("App::PropertyEnumeration","PatternOperation","PatternShape","Operation to make pattern shape from the base and tool -- not used if no tool").PatternOperation =["None","Cut","Fuse","Common","XOR"]
 #        obj.addProperty("App::PropertyLink","LinkedObject","PDWrapper","Object this wrapper is based on -- should normally be a solid based itself on the last item in the body (the tip).")
 #        obj.addProperty("App::PropertyString","Version","PDWrapper", "Version used to create this PDWrapper object").Version = __version__
@@ -51,6 +54,8 @@ __version__ = "0.2021.10.11.rev3"
 #        obj.setEditorMode("Type",1) #readonly
 #        obj.setEditorMode("Body",1) #readonly
 #        obj.setEditorMode("Version",1)
+#        obj.setEditorMode("TipOperationDefault",2) #hidden
+#        obj.setEditorMode("PatternOperationDefault",2)
 #        obj.Proxy = self
 #        self.bInhibitRecomputes = False
 #
@@ -168,9 +173,9 @@ __version__ = "0.2021.10.11.rev3"
 #            elif fp.Type == "None" and fp.Enabled:
 #                fp.TipBase = fp.LinkedObject.BaseFeature
 #                fp.TipTool = fp.LinkedObject.BaseFeature
-#            elif fp.Type == "None" and not fp.Enabled:
-#                fp.TipTool = fp.BaseFeature
-#                fp.TipBase = fp.BaseFeature
+#            elif fp.Type == "None":
+#                fp.TipTool = fp.LinkedObject
+#                fp.TipBase = fp.LinkedObject
 #        else: #not a PD object
 #            if fp.Type == "Additive":
 #                fp.TipBase = fp.BaseFeature
@@ -181,7 +186,20 @@ __version__ = "0.2021.10.11.rev3"
 #            elif fp.Type == "None":
 #                fp.TipBase = fp.BaseFeature
 #                fp.TipTool = fp.BaseFeature
+#        if not fp.Enabled:
+#            fp.TipBase = fp.BaseFeature
+#            fp.TipTool = fp.BaseFeature
+#            fp.TipOperation = "None"
+#            fp.PatternBase = fp.BaseFeature
+#            fp.PatternTool = fp.BaseFeature
+#            fp.PatternOperation = "None"
+#        else:
+#            fp.PatternOperation = fp.PatternOperationDefault
+#            fp.TipOperation = fp.TipOperationDefault
+
 #        fp.Label2 = "("+fp.LinkedObject.Label+")"
+#        if not fp.Enabled:
+#            fp.Label2 = "*"+fp.Label2+"*"
 #
 #    def execute(self,fp):
 #        if self.bInhibitRecomputes:
@@ -196,7 +214,7 @@ __version__ = "0.2021.10.11.rev3"
 #            fp.removeProperty("Refine1") #PD features might already have a Refine feature, but None types will not
 #        if fp.LinkedObject:
 #            self.placeInBody(fp,fp.LinkedObject)
-#            fp.LinkedObject.ViewObject.Visibility = False
+#            #fp.LinkedObject.ViewObject.Visibility = False
 #            if not fp.Type == "None":
 #               fp.Shape = self.getShape(fp,fp.LinkedObject)
 #        else:
@@ -711,7 +729,7 @@ Additive or Subtractive is required if you want to be able to use the wrapped ob
 Part Design pattern (array) later.\n ", items, 0, False)
                         if ok:
                             if item == items[0]:#Additive
-                                wrapper = doc.addObject("PartDesign::FeatureAdditivePython","PDW_Additive")
+                                wrapper = doc.addObject("PartDesign::FeatureAdditivePython","PDW_Add")
                                 PDW.PDWrapper(wrapper) #body.newObject would add this to the end each time and make it the new tip
                                 PDW.PDWrapperVP(wrapper.ViewObject) #we'll empower the user to make this decision each time
                                 tipBase,newTip = getTipBase(body,wrapper) #tipBase is previous solid feature or None
@@ -726,7 +744,7 @@ Part Design pattern (array) later.\n ", items, 0, False)
                                 wrapper.PatternOperation = "None" #operation to perform on base and tool to create pattern shape
                                 wrapper.PatternTool = None #tool for pattern shape boolean, if any
                             elif item == items[1]:#Subtractive
-                                wrapper = doc.addObject("PartDesign::FeatureSubtractivePython","PDW_Subtractive")
+                                wrapper = doc.addObject("PartDesign::FeatureSubtractivePython","PDW_Sub")
                                 PDW.PDWrapper(wrapper)
                                 PDW.PDWrapperVP(wrapper.ViewObject)
                                 tipBase,newTip = getTipBase(body,wrapper)
@@ -826,10 +844,11 @@ Part Design pattern (array) later.\n ", items, 0, False)
                                 wrapper.setEditorMode("PatternShapeOffsetJoin",2)
                                 wrapper.setEditorMode("PatternShapeOffsetMode",2)
                                 wrapper.setEditorMode("UsePatternBaseAddSubShape",2)
-                                wrapper.addProperty("App::PropertyBool","Enabled","PDWrapper","If False, passes through previous solid feature as tip shape").Enabled = True
                         else: #cancel
                             doc.abortTransaction()
                             return
+                        wrapper.TipOperationDefault = wrapper.TipOperation
+                        wrapper.PatternOperationDefault = wrapper.PatternOperation
                         if not selobj.Object in body.Group:
                             parents = selobj.Object.Parents
                             if parents:
