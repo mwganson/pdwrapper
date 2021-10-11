@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-__version__ = "0.2021.10.11"
-#__version__ = "0.2021.10.11"
+__version__ = "0.2021.10.11.rev2"
+#__version__ = "0.2021.10.11.rev2"
 ## PDWrapper a class to encapsulate non-Part Design objects into a PartDesign::FeaturePython object
 ## 2021, by <TheMarkster>
 #
@@ -70,9 +70,9 @@ __version__ = "0.2021.10.11"
 #            body.Group += [link]
 #        if hasattr(link,"Shape"):
 #            if hasattr(link,"AddSubShape") and bUseAddSubShape:
-#                return link.AddSubShape
+#                return link.AddSubShape if link.AddSubShape else Part.Shape()
 #            else:
-#                return link.Shape
+#                return link.Shape if link.Shape else Part.Shape()
 #        elif hasattr(link,"Mesh"):
 #            propName = link.Name+"_from_mesh"
 #            if hasattr(fp,propName) and not getattr(fp,propName).isNull():
