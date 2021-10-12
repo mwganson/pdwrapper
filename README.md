@@ -10,6 +10,10 @@ Body
         Tube
 </pre>
 
+While the idea behind creating this was to use it with non-Part Design objects, such as Part workbench solids, it has evolved into also being quite useful for wrapping earlier Part Design native features in the Part Design tree.  For example, we can wrap an Additive Box inside a Common (Additive) PDWrapper and turn it into a Common (intersection) Box, or turn a threaded Part Design Hole feature into a threaded rod.  Or, we can wrap a previous feature inside a "None" type PDWrapper and disable it, along with all the other features between it and the PDWrapper in the tree.  What's more, we can dynamically (via Expressions) enable/disable a PDWrapper and the object it encapsulates.  For example, if a model is above a certain height it might require some support structure.  With the PDWrapper's Enable property we can decide whether to include the support based on the height property.<br/>
+<br/>
+This is a very powerful macro with many capabilities, including 3D offsetting and scaling.  It is complicated, make no mistake, but if nothing else just in learning to master this macro you will gain insights into the Part Design workbench and how it works.
+
 ## Icon
 <a href="pdwrapper.svg">Download</a> the toolbar icon: <img src="pdwrapper.svg" alt="toolbar icon">
 
@@ -82,18 +86,7 @@ Meshes can be encapsulated with PDWrapper objects, too.  In creating the solid f
 ### Mesh Refine (boolean)
 Mesh objects are in reality triangles connected together to form faces (sometimes called facets).  They are, quite frankly, ugly monstrosities.  The Mesh Refine property will usually remove some, but rarely all, of the extra triangles.  This is not to be confused with the Refine property all Part Design additive and subtractive features have.  The Mesh is refined before it is returned as a solid shape by the mesh conversion algorithm.  The PDWrapper will use the Tip Shape recipe to fuse/cut/whatever this solid with the previous solid feature, which might leave unrefined edges, which can be taken care of with the Refine property.  It should be noted that mesh objects are often downloaded from model sharing services, such as thingiverse, and there is need to modify them in one way or another.  The problem is often these mesh objects are defective.  Garbage in, garbage out.  Some might be so defective they cannot be converted into a shape or they might fail with boolean operations.<br/>
 <br/>
-## Offsetting
 
-### Tip Shape Offset (float)
-Like Pattern Shape offset, but applied to the the tip boolean result.<br/>
-<br/>
-### Tip Shape Offset Cut (boolean)
-Default: False.  Whether to cut the offset from the original or vice-versa, creating a hollow solid, like a thickness but without an opening into the interior.<br/>
-<br/>
-### Tip Shape Offset Join
-### Tip Shape Offset Mode
-See Pattern shape properties of the same name.<br/>
-<br/>
 
 ## PDWRapper
 ### Body (string)
@@ -131,7 +124,7 @@ This is a property you will most likely already be familiar with.  All additive/
 Pattern Shape is the shape used by pattern tools, example: polar pattern, in making copies.  This shape is the result of a boolean operation (Pattern Operation) using Pattern Base and Pattern Tool.<br/>
 <br/>
 ### Offset Pattern Base (boolean)
-Default: False.  If True, the Pattern Offset (if other than 0.0) is applied to the Pattern Base object.  Pattern Base is typically the previous solid feature, but it can vary based on the type of PDWrapper created and the type of object being wrapped.  This property is controlled by the Tip Manager when Tip Management property is set to True (the default).<br/>
+Default: False.  If True, the Pattern Offset (if other than 0.0) is applied to the Pattern Base object.  Pattern Base is typically the previous solid feature, but it can vary based on the type of PDWrapper created and the type of object being wrapped.  This property is controlled by the Shape Manager when Shape Management property is set to True (the default).<br/>
 ### Offset Pattern Shape (boolean)
 Default: False.  If True the Pattern Offset (if other than 0.0) is applied to the Pattern Shape.  Pattern Shape is the shape used by the pattern tools (such as polar pattern, linear pattern, etc.) when making the arrays.  If you Right-click in the property view and choose Show All option, this shape is the AddSubShape property for those objects that support being patterned by the pattern tools.  Pattern Shape is created as a result of a boolean operation (Pattern Operation) using the Pattern Base and the Pattern Tool.  Set this to True and set the Pattern Offset property if you want to offset the copies created by the pattern tool.<br/>
 ### Offset Pattern Tool (boolean)
@@ -152,7 +145,7 @@ Default: Pipe.  The mode to use when creating the offset.  Honestly, I can't rea
 Base shape used in the boolean operation to create the Pattern Shape.<br/>
 <br/>
 ### Pattern Operation (enumeration)
-Boolean operation used to create Pattern Shape.  Options are None, Cut, Fuse, Common, XOR.  In some cases this is managed by the Tip Manager.  Set TipManagement to Manual if it is getting changed from where you have tried to set it.<br/>
+Boolean operation used to create Pattern Shape.  Options are None, Cut, Fuse, Common, XOR.  In some cases this is managed by the Shape Manager.  Set ShapeManagement to Manual if it is getting changed from where you have tried to set it.<br/>
 <br/>
 ### Pattern Tool (link)
 Tool shape used in the boolean operation to create the Pattern Shape.<br/>
@@ -186,12 +179,30 @@ These are fairly self-explanatory.  Use them to scale the shape of that linked o
 ## Tip Shape
 Here is where the recipe for building the Tip Shape is.  The Tip Shape is the shape you see in the 3D view when the PDWrapper object is the visible feature.  I call it Tip Shape because it's the shape the Body presents when this feature is the Tip for the Body.  It is created using the Tip Shape recipe, which includes Tip Base, Tip Tool, and Tip Operation (the boolean to use)<br/>
 <br/>
+
+### Tip Offset (float)
+Like Pattern Shape offset, but applied to objects in the Tip Shape section.  If Tip Offset is 0.0, then no offset is applied.  This property is used in all Tip Shape offsets, whether it's on the Tip Tool, the Tip Base, or the Tip Shape(the boolean result of Tip Operation applied to Tip Base and Tip Tool).<br/>
+<br/>
+### Tip Shape Cut (boolean)
+Default: False.  Whether to cut the offset from the original or vice-versa, creating a hollow solid, like a thickness but without an opening into the interior.<br/>
+<br/>
+### Tip Shape Offset Join
+### Tip Shape Offset Mode
+See Pattern shape properties of the same name.  These properties are applied to any and all offsets in the Tip Shape section.  Note: the objects themselves are not offset.  A copy of their shapes is offset and used in the Tip Operation boolean operation, or in the case of the Tip Shape, the offset is applied to the result.<br/>
+<br/>
 ### Offset Tip Base (boolean)
-Default: False.  If True the Tip Offset (if not 0.0) is applied to the Tip Base prior to using it in the Tip Operation (along with Tip Tool) to create the Tip Shape, the shape you see in the 3D view when the PDWrapper object is made visible and the shape the Body object inherits as its Shape Property when the PDWrapper object is the Body's Tip object.
+Default: False.  If True the Tip Offset (if not 0.0) is applied to the Tip Base prior to using it in the Tip Operation (along with Tip Tool) to create the Tip Shape, the shape you see in the 3D view when the PDWrapper object is made visible and the shape the Body object inherits as its Shape Property when the PDWrapper object is the Body's Tip object.<br/>
+### Offset Tip Shape (boolean)
+Default: False.  Tip Shape is the shape created when the boolean Tip Operation is applied to the Tip Base and the Tip Tool.  The Tip Base is typically the previous solid in the tree while the Tip Tool is the objected being wrapped.  If this property is True, then the offset is applied to the result.<br/>
+<br/>
+### Offset Tip Tool (boolean)
+Default: False.  If True the Tip Tool is offset by the amount in the Tip Offset property (in mm).
 ### Tip Base (link)
 The object used as the base for the Tip Operation (along with the Tip Tool) in generating the PDWrapper object's Tip Shape.  I call it Tip Shape because it is the shape the Body inherits when an object is the Tip feature.  It's also the shape any features that follow in the tree will combine with to create their Tip Shape.  Tip Base is always going to be the previous solid feature by default, but you can change it if you want a different Tip Shape.  Remember, the Base has the material that the Tool will cut away.  For example, to make a round hole in a cube you would use the cube as the base and a cylinder as the tool.<br/>
 <br/>
-### Tip Management (enumeration)
+### Tip Offset (float)
+The amount (in millimeters) by which to offset one or more of the objects in the Tip Shape section.  If both the Tip Base and the Tip Tool are being offset, then the same offset value must be used for each.  This one property controls all of the offsets.  It would not be difficult to have a separate offset for each if it proves necessary, but the property view is quite cluttered already without adding more properties.<br/>
+### Shape Management (enumeration)
 There are 2 modes available: Automatic and Manual.  In Automatic mode (the default) Tip Base and Pattern Base are automatically set to the current previous solid.  This way if the user moves the PDWrapper object or deletes the feature in front of it in the tree these 2 properties are automatically updated.  In Manual mode the user must manage these properties to ensure they are pointing the correct objects.<br/>
 <br/>
 ### Tip Operation (enumeration)
@@ -200,6 +211,16 @@ The boolean operation used in creating the Tip Shape.  Options are Fuse, Cut, Co
 ### Tip Tool (link)
 The tool shape used in creating the Tip Shape.  This is ordinarily the encapsulated object.  Note: for Fuse, Common, and XOR operation types it doesn't matter which shape is base and which is tool.  Only for Cut does it matter, where the tool is the cutting tool used to remove material from the base.<br/>
 <br/>
+### Use Tip Base Add Sub Shape (boolean)
+### Use Tip Tool Add Sub Shape (boolean)
+In creating the Tip Shape you have the option of using the shapes of Tip Base and Tip Tool or some combination of their pattern shapes, the ones used when making polar patterns of the object, for example.  Basically, the Add Sub Shapes (or pattern shapes) are the objects themselves only, whereas the Tip Base or Tip Tool shapes are usually created by combining the Add Sub Shapes with previous features.  Consider this model tree, the model is an Additive Box with a hole in it created with a pocketing a sketch:
+
+<pre>
+Body
+    Box
+    Pocket
+        Sketch</pre>
+Box's Shape and its AddSubShape are the same thing, the box's pattern shape.  Pocket's shape is the Box with the hole in it, but its AddSubShape (pattern shape) is the hole itself, or more accurately the shape of the tool created by extruding the sketch, the one used to cut the pocket.  If the sketch is just a circle then the Pocket's AddSubShape is a cylinder.  Which object you use in making the PDWrapper object's tip shape is up to you, whether it's the Box's shape or the cylinder's shape.  (Note: You might need to set Shape Management to Manual if you want to change many of these settings or else they will get reset by the Shape Manager.
 
 
 ## Changelog
@@ -238,7 +259,7 @@ The tool shape used in creating the Tip Shape.  This is ordinarily the encapsula
 * Add scaling support
 * 0.2021.10.02.rev2
 * fix placement issue where PDWrapper was first object in Body
-* If TipManagement is Automatic, also manage PatternBase if PatternBase = TipBase
+* If ShapeManagement is Automatic, also manage PatternBase if PatternBase = TipBase
 * remove some commented lines
 * use fp.Body (name of body) rather than active body
 * 
