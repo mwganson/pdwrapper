@@ -1,8 +1,9 @@
 ### This document (and this macro) is still under construction
 
-# PDWrapper
+# Macro PDWrapper
 
 With PDWrapper you can:
+
 * Use non-Part Design objects inside Part Design bodies
 * Dynamically enable/disable solid features in the Part Design tree: <a href="pdwrapper_dynamic_support_example.FCStd">download example</a>
 * Transform Part Design features into other types: e.g. transform a threaded Hole into a threaded rod
