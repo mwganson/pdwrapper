@@ -1,6 +1,18 @@
 ### This document (and this macro) is still under construction
 
 # PDWrapper
+
+With PDWrapper you can:
+* Use non-Part Design objects inside Part Design bodies
+* Dynamically enable/disable solid features in the Part Design tree: <a href="pdwrapper_dynamic_support_example.FCStd">download example</a>
+* Transform Part Design features into other types: e.g. transform a threaded Hole into a threaded rod
+* Create a new type primitive in addition to Additive and Subtractive: Common (intersection) primitives
+* Scale Part Design features or imported solids
+* 3D offsetting of solid features
+* 3D offset and cut away the original, creating a Thickness without an open face.
+* Use objects in pattern features (e.g. polar patterns) that would not otherwise work with them
+* Make a linear pattern of a linear pattern
+
 Part Design Wrapper object.  Encapsulates objects created outside Part Design for use inside Part Design bodies in FreeCAD.  For example, if you wish to use a Part workbench primitive, such as a Tube object in a Part Design model you can add it to the active body by selecting it and running the macro.  The macro creates a PDWrapper feature python object to encapsulate the Tube and allow it to work in the Part Design body.  In a new body the tree would look like this:
 
 <pre>
