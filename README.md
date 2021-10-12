@@ -237,6 +237,12 @@ Box's Shape and its AddSubShape are the same thing, the box's pattern shape.  Po
 
 
 ## Changelog
+* 0.2021.10.12.rev2 Lots of changes since 0.2021.10.08
+* Gone are the WireWrapper functions -- feature bloat -- needs to be a separate macro
+* Enabled is now an Integer rather than a boolean, makes it easier to get at it for expression binding
+* Double click the object to change Enabled to 0 or 1 (unless it's bound to an expression)
+* Bug fixes
+* Renamed / rearranged some properties for more useful grouping and to better reflect current usage
 * 0.2021.10.08
 * Add ability to hide wires by setting the wire order for that wire to 0
 * Add ResetWireOrder trigger
