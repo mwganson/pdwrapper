@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-__version__ = "0.2021.10.11.rev5"
-#__version__ = "0.2021.10.11.rev5"
+__version__ = "0.2021.10.12.rev2"
+#__version__ = "0.2021.10.12.rev2"
 ## PDWrapper a class to encapsulate non-Part Design objects into a PartDesign::FeaturePython object
 ## 2021, by <TheMarkster>
 #
@@ -9,7 +9,7 @@ __version__ = "0.2021.10.11.rev5"
 #
 #class PDWrapper:
 #    def __init__(self,obj):
-#        obj.addProperty("App::PropertyBool","Enabled","PDWrapper","If False, passes through previous solid feature as tip shape").Enabled = True
+#        obj.addProperty("App::PropertyIntegerConstraint","Enabled","PDWrapper","If False, passes through previous solid feature as tip shape").Enabled = (0,0,1,1)
 #        obj.addProperty("App::PropertyLink","PatternBase","PatternShape","Base shape presented for patterning")
 #        obj.addProperty("App::PropertyBool","UsePatternToolAddSubShape","PatternShape","Use pattern tools addsubshape property in place of Pattern tool's shape in boolean to create pattern shape").UsePatternToolAddSubShape = False
 #        obj.addProperty("App::PropertyBool","OffsetPatternBase","PatternShape","Whether to offset Pattern Base shape").OffsetPatternBase = False
@@ -213,14 +213,29 @@ __version__ = "0.2021.10.11.rev5"
 #            fp.TipOperation = fp.TipOperationDefault
 #
 #    def transformShape(self,fp,shp):
-#        if not fp.Enabled:
-#            fp.Placement = shp.Placement
-#        return shp
-##        fp.positionBySupport()
-##        bsCopy = shp.copy()
-##        if not bsCopy.isNull():
-##            bsCopy.transformShape(fp.Placement.inverse().toMatrix(), True)
-##        return bsCopy
+#        return Part.makeCompound([shp]) #this puts the shape's placement at default, but keeps its position
+##        if fp.Type == "None":
+##            if not fp.Enabled:
+##                fp.Placement = shp.Placement
+##            return shp
+##        
+###        fp.positionBySupport()
+##        FreeCAD.Console.PrintMessage(str(fp.Enabled)+":"+str(shp.Volume)+"\n")
+##        FreeCAD.Console.PrintMessage(str(shp.Volume == fp.LinkedObject.Shape.Volume)+"\n")
+##        FreeCAD.Console.PrintMessage(str(shp.Placement)+":"+str(fp.Placement)+"\n")
+##        if fp.Enabled:
+##            bsCopy = shp.copy()
+##            fp.Placement = bsCopy.Placement
+##            if not bsCopy.isNull():
+##                bsCopy.transformShape(fp.Placement.inverse().toMatrix(), True)
+##            return bsCopy
+##        else:
+##            bsCopy = shp.copy()
+##            fp.Placement = bsCopy.Placement
+##            #if not bsCopy.isNull():
+##                #bsCopy.transformShape(fp.Placement.inverse().toMatrix(), True)
+##            return bsCopy
+##        return shp
 #
 #    def execute(self,fp):
 #        if self.bInhibitRecomputes:
@@ -373,6 +388,15 @@ __version__ = "0.2021.10.11.rev5"
 #            return [self.Object.LinkedObject]
 #        else:
 #            return []
+#
+#    def setEdit(self,vp,modNum):
+#        if modNum == 0:
+#            vp.Object.Enabled = 0 if vp.Object.Enabled else 1
+#            FreeCADGui.activeDocument().resetEdit()
+#            FreeCAD.ActiveDocument.recompute()
+#        elif modNum == 3:
+#            FreeCADGui.runCommand('Part_ColorPerFace',0)
+#        return True
 #
 #    def onDelete(self, vobj, subelements):
 #        #only remove children from the body if they are claimed and not native PD objects
