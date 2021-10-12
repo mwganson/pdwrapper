@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-__version__ = "0.2021.10.12.rev2"
-#__version__ = "0.2021.10.12.rev2"
+__version__ = "0.2021.10.12.rev4"
+#__version__ = "0.2021.10.12.rev4"
 ## PDWrapper a class to encapsulate non-Part Design objects into a PartDesign::FeaturePython object
 ## 2021, by <TheMarkster>
 #
@@ -155,7 +155,7 @@ __version__ = "0.2021.10.12.rev2"
 #        elif base:
 #            return base_shape
 #        else:
-#            return fp.LinkedObject
+#            return fp.LinkedObject.Shape
 #
 #    def manageShape(self,fp):
 #        '''used for automatic mode shape management'''
@@ -214,28 +214,6 @@ __version__ = "0.2021.10.12.rev2"
 #
 #    def transformShape(self,fp,shp):
 #        return Part.makeCompound([shp]) #this puts the shape's placement at default, but keeps its position
-##        if fp.Type == "None":
-##            if not fp.Enabled:
-##                fp.Placement = shp.Placement
-##            return shp
-##        
-###        fp.positionBySupport()
-##        FreeCAD.Console.PrintMessage(str(fp.Enabled)+":"+str(shp.Volume)+"\n")
-##        FreeCAD.Console.PrintMessage(str(shp.Volume == fp.LinkedObject.Shape.Volume)+"\n")
-##        FreeCAD.Console.PrintMessage(str(shp.Placement)+":"+str(fp.Placement)+"\n")
-##        if fp.Enabled:
-##            bsCopy = shp.copy()
-##            fp.Placement = bsCopy.Placement
-##            if not bsCopy.isNull():
-##                bsCopy.transformShape(fp.Placement.inverse().toMatrix(), True)
-##            return bsCopy
-##        else:
-##            bsCopy = shp.copy()
-##            fp.Placement = bsCopy.Placement
-##            #if not bsCopy.isNull():
-##                #bsCopy.transformShape(fp.Placement.inverse().toMatrix(), True)
-##            return bsCopy
-##        return shp
 #
 #    def execute(self,fp):
 #        if self.bInhibitRecomputes:
@@ -295,6 +273,9 @@ __version__ = "0.2021.10.12.rev2"
 #            fp.AddSubShape = self.scale(fp.AddSubShape,fp.PatternShapeScale,fp.PatternShapeScale != 1.0)
 #            if fp.PatternOffset != 0 and fp.OffsetPatternShape:
 #                fp.AddSubShape = self.offset(fp,fp.AddSubShape,"Pattern")
+#
+#        fp.Placement = FreeCAD.Placement()
+#
 #        if len(fp.Shape.Solids)>1:
 #            self.warn(fp,"PDWrapper shape has multiple solids.  This could cause subsequent operations to fail or produce unexpected results.\n")
 #
