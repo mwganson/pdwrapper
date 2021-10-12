@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-__version__ = "0.2021.10.12.rev4"
-#__version__ = "0.2021.10.12.rev4"
+__version__ = "0.2021.10.12.rev5"
+#__version__ = "0.2021.10.12.rev5"
 ## PDWrapper a class to encapsulate non-Part Design objects into a PartDesign::FeaturePython object
 ## 2021, by <TheMarkster>
 #
@@ -9,7 +9,7 @@ __version__ = "0.2021.10.12.rev4"
 #
 #class PDWrapper:
 #    def __init__(self,obj):
-#        obj.addProperty("App::PropertyIntegerConstraint","Enabled","PDWrapper","If False, passes through previous solid feature as tip shape").Enabled = (0,0,1,1)
+#        obj.addProperty("App::PropertyIntegerConstraint","Enabled","PDWrapper","If False, passes through previous solid feature as tip shape").Enabled = (1,0,1,1)
 #        obj.addProperty("App::PropertyLink","PatternBase","PatternShape","Base shape presented for patterning")
 #        obj.addProperty("App::PropertyBool","UsePatternToolAddSubShape","PatternShape","Use pattern tools addsubshape property in place of Pattern tool's shape in boolean to create pattern shape").UsePatternToolAddSubShape = False
 #        obj.addProperty("App::PropertyBool","OffsetPatternBase","PatternShape","Whether to offset Pattern Base shape").OffsetPatternBase = False
@@ -867,16 +867,15 @@ Part Design pattern (array) later.\n ", items, 0, False)
                             parents = selobj.Object.Parents
                             if parents:
                                 if selobj.Object in parents[0][0].Group:
-                                    doc.openTransaction("Put "+selobj.Object.Name+" in Body")
                                     grp = parents[0][0].Group
                                     grp.remove(selobj.Object)
                                     parents[0][0].Group = grp
                                     body.Group += [selobj.Object]
-                                    doc.commitTransaction()
-                                    wrapper.Proxy.warn(wrapper,selobj.Object.Label+" removed from "+parents[0][0].Name+"\nUse undo to undo this, if desired.\n")
+                                    wrapper.Proxy.warn(wrapper,selobj.Object.Label+" removed from "+parents[0][0].Name+"\n")
                             body.Group += [selobj.Object]
                         wrapper.Body = body.Name
                         wrapper.LinkedObject =selobj.Object
+                        wrapper.LinkedObject.ViewObject.Visibility = False
                         if selobj.Object.isDerivedFrom("PartDesign::Feature"):
                             wrapper.ClaimChildren = False #preserve linear tree if wrapping a PD object
                         doc.commitTransaction()
