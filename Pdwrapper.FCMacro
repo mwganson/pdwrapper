@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
-__version__ = "0.2021.10.12.rev5"
-#__version__ = "0.2021.10.12.rev5"
+__version__ = "0.2021.10.13"
+#__version__ = "0.2021.10.13"
 ## PDWrapper a class to encapsulate non-Part Design objects into a PartDesign::FeaturePython object
 ## 2021, by <TheMarkster>
+#
+#DEBUG = True
 #
 #import FreeCAD, FreeCADGui
 #import Part
@@ -80,10 +82,10 @@ __version__ = "0.2021.10.12.rev5"
 #            body.Group += [link]
 #        if hasattr(link,"Shape"):
 #            if hasattr(link,"AddSubShape") and bUseAddSubShape:
-#                shp = link.AddSubShape if link.AddSubShape else Part.Shape()
+#                shp = link.AddSubShape.copy() if link.AddSubShape else Part.Shape()
 #            else:
-#                shp = link.Shape if link.Shape else Part.Shape()
-#            return self.transformShape(fp,shp)
+#                shp = link.Shape.copy() if link.Shape else Part.Shape()
+#            return shp
 #        elif hasattr(link,"Mesh"):
 #            propName = link.Name+"_from_mesh"
 #            if hasattr(fp,propName) and not getattr(fp,propName).isNull():
@@ -126,12 +128,12 @@ __version__ = "0.2021.10.12.rev5"
 #            when creating a polar pattern this is the shape to copy'''
 #        base = fp.PatternBase if fp.PatternBase else None #null shape
 #        base_shape = self.getShape(fp,base,fp.UsePatternBaseAddSubShape)
-#        base_shape = self.scale(base_shape, fp.PatternBaseScale, fp.PatternBaseScale != 1.0)
+#        base_shape = self.scale(fp,base_shape, fp.PatternBaseScale, fp.PatternBaseScale != 1.0)
 #        if fp.OffsetPatternBase:
 #            base_shape = self.offset(fp,base_shape,"Pattern")
 #        tool = fp.PatternTool if fp.PatternTool else None
 #        tool_shape = self.getShape(fp,tool,fp.UsePatternToolAddSubShape)
-#        tool_shape = self.scale(tool_shape, fp.PatternToolScale, fp.PatternToolScale != 1.0)
+#        tool_shape = self.scale(fp,tool_shape, fp.PatternToolScale, fp.PatternToolScale != 1.0)
 #        if fp.OffsetPatternTool:
 #            tool_shape = self.offset(fp,tool_shape,"Pattern")
 #        op = fp.PatternOperation
@@ -157,6 +159,11 @@ __version__ = "0.2021.10.12.rev5"
 #        else:
 #            return fp.LinkedObject.Shape
 #
+#    def restoreDefaults(self,fp):
+#        '''used by manageShape() to restore defaults on enable/disable'''
+#        fp.PatternOperation = fp.PatternOperationDefault
+#        fp.TipOperation = fp.TipOperationDefault
+#
 #    def manageShape(self,fp):
 #        '''used for automatic mode shape management'''
 #        fp.Label2 = "("+fp.LinkedObject.Label+")"
@@ -166,31 +173,45 @@ __version__ = "0.2021.10.12.rev5"
 #            return
 #        if fp.LinkedObject.isDerivedFrom("PartDesign::Feature"):
 #            if fp.Type == "Additive":
-#                fp.TipBase = fp.LinkedObject.BaseFeature
-#                fp.TipTool = fp.LinkedObject
-#                fp.UseTipToolAddSubShape = True
-#                fp.PatternBase = fp.LinkedObject.BaseFeature
-#                fp.PatternTool = fp.LinkedObject
-#                fp.UsePatternToolAddSubShape = True
-#                if fp.LinkedObject != fp.BaseFeature: #user is re-using a feature from earlier in the tree
-#                    fp.TipBase = fp.BaseFeature#.BaseFeature
-#                    fp.PatternBase = fp.BaseFeature#.BaseFeature
+#                if fp.Enabled:
+#                    fp.TipBase = fp.LinkedObject.BaseFeature
+#                    fp.TipTool = fp.LinkedObject
+#                    fp.UseTipToolAddSubShape = True
+#                    fp.PatternBase = fp.LinkedObject.BaseFeature
+#                    fp.PatternTool = fp.LinkedObject
+#                    fp.UsePatternToolAddSubShape = True
+#                    if fp.LinkedObject != fp.BaseFeature: #user is re-using a feature from earlier in the tree
+#                        fp.TipBase = fp.BaseFeature
+#                        fp.PatternBase = fp.BaseFeature
+#                    self.restoreDefaults(fp)
+#                else:
+#                    fp.TipBase = fp.BaseFeature
+#                    fp.TipTool = fp.BaseFeature
+#                    fp.TipOperation = "None"
 #            elif fp.Type == "Subtractive":
-#                fp.TipBase = fp.LinkedObject.BaseFeature
-#                fp.TipTool = fp.LinkedObject
-#                fp.UseTipToolAddSubShape = True
-#                fp.PatternBase = fp.LinkedObject.BaseFeature
-#                fp.PatternTool = fp.LinkedObject
-#                fp.UsePatternToolAddSubShape = True
-#                if fp.LinkedObject != fp.BaseFeature: #user is re-using a feature from earlier in the tree
-#                    fp.TipBase = fp.BaseFeature#.BaseFeature
-#                    fp.PatternBase = fp.BaseFeature#.BaseFeature
-#            elif fp.Type == "None" and fp.Enabled:
-#                fp.TipBase = fp.LinkedObject.BaseFeature
-#                fp.TipTool = fp.LinkedObject.BaseFeature
+#                if fp.Enabled:
+#                    fp.TipBase = fp.LinkedObject.BaseFeature
+#                    fp.TipTool = fp.LinkedObject
+#                    fp.UseTipToolAddSubShape = True
+#                    fp.PatternBase = fp.LinkedObject.BaseFeature
+#                    fp.PatternTool = fp.LinkedObject
+#                    fp.UsePatternToolAddSubShape = True
+#                    if fp.LinkedObject != fp.BaseFeature: #user is re-using a feature from earlier in the tree
+#                        fp.TipBase = fp.BaseFeature
+#                        fp.PatternBase = fp.BaseFeature
+#                    self.restoreDefaults(fp)
+#                elif not fp.Enabled:
+#                    fp.TipBase = fp.BaseFeature
+#                    fp.TipTool = fp.BaseFeature
+#                    fp.TipOperation = "None"
 #            elif fp.Type == "None":
-#                fp.TipTool = fp.LinkedObject
-#                fp.TipBase = fp.LinkedObject
+#                if fp.Enabled:
+#                    fp.TipBase = fp.LinkedObject.BaseFeature
+#                    fp.TipTool = fp.LinkedObject.BaseFeature
+#                elif not fp.Enabled:
+#                    fp.TipTool = fp.BaseFeature
+#                    fp.TipBase = fp.BaseFeature
+#
 #        else: #not a PD object
 #            if fp.Type == "Additive":
 #                fp.TipBase = fp.BaseFeature
@@ -201,19 +222,15 @@ __version__ = "0.2021.10.12.rev5"
 #            elif fp.Type == "None":
 #                fp.TipBase = fp.BaseFeature
 #                fp.TipTool = fp.BaseFeature
-#        if not fp.Enabled:
-#            fp.TipBase = fp.BaseFeature
-#            fp.TipTool = fp.BaseFeature
-#            fp.TipOperation = "None"
-#            fp.PatternBase = fp.BaseFeature
-#            fp.PatternTool = fp.BaseFeature
-#            fp.PatternOperation = "None"
-#        else:
-#            fp.PatternOperation = fp.PatternOperationDefault
-#            fp.TipOperation = fp.TipOperationDefault
-#
-#    def transformShape(self,fp,shp):
-#        return Part.makeCompound([shp]) #this puts the shape's placement at default, but keeps its position
+#            if not fp.Enabled:
+#                fp.TipBase = fp.BaseFeature
+#                fp.TipTool = fp.BaseFeature
+#                fp.TipOperation = "None"
+#                fp.PatternBase = fp.BaseFeature
+#                fp.PatternTool = fp.BaseFeature
+#                fp.PatternOperation = "None"
+#            else:
+#                self.restoreDefaults(fp)
 #
 #    def execute(self,fp):
 #        if self.bInhibitRecomputes:
@@ -224,15 +241,11 @@ __version__ = "0.2021.10.12.rev5"
 #            fp.removeProperty("Refine1") #PD features might already have a Refine feature, but None types will not
 #        if fp.LinkedObject:
 #            self.placeInBody(fp,fp.LinkedObject)
-#            #fp.LinkedObject.ViewObject.Visibility = False
-#            if not fp.Type == "None":
-#               fp.Shape = self.getShape(fp,fp.LinkedObject)
-#        else:
-#            fp.Shape = Part.Shape()
+#        shape = Part.Shape()
 #        base_shape = self.getShape(fp,fp.TipBase,fp.UseTipBaseAddSubShape)
-#        base_shape = self.scale(base_shape, fp.TipBaseScale, fp.TipBaseScale != 1.0)
+#        base_shape = self.scale(fp,base_shape, fp.TipBaseScale, fp.TipBaseScale != 1.0)
 #        tool_shape = self.getShape(fp,fp.TipTool,fp.UseTipToolAddSubShape)
-#        tool_shape = self.scale(tool_shape, fp.TipToolScale, fp.TipToolScale != 1.0)
+#        tool_shape = self.scale(fp,tool_shape, fp.TipToolScale, fp.TipToolScale != 1.0)
 #        if not tool_shape:
 #            tool_shape = Part.Shape()
 #        if not base_shape:
@@ -244,44 +257,60 @@ __version__ = "0.2021.10.12.rev5"
 #        if fp.TipTool and fp.TipBase:
 #            op = fp.TipOperation
 #            if op == "Cut":
-#                fp.Shape = self.transformShape(fp,base_shape.cut(tool_shape))
+#                cut = base_shape.cut(tool_shape)
+#                shape = cut
 #            elif op == "Fuse":
-#                fp.Shape = self.transformShape(fp,base_shape.fuse(tool_shape))
+#                fuse = base_shape.fuse(tool_shape)
+#                shape = fuse
 #            elif op == "Common":
-#                fp.Shape = self.transformShape(fp,base_shape.common(tool_shape))
+#                common = base_shape.common(tool_shape)
+#                shape = common
 #            elif op == "XOR":
 #                fusion = base_shape.fuse(tool_shape)
 #                common = base_shape.common(tool_shape)
-#                fp.Shape = self.transformShape(fp,fusion.cut(common))
+#                cut = fusion.cut(common)
+#                shape = cut
 #            elif op == "None":
-#                fp.Shape = self.transformShape(fp,base_shape) #passthrough the BaseFeature's shape as this object's shape
+#                shape = base_shape
 #        elif fp.TipBase:
-#            fp.Shape = self.transformShape(fp,base_shape)
+#            shape = base_shape
 #        elif fp.TipTool:
-#            fp.Shape = self.transformShape(fp,tool_shape)
+#            shape = tool_shape
 #
-#        if fp.OffsetTipShape and fp.TipOffset != 0:
-#            fp.Shape = self.transformShape(fp,self.offset(fp,fp.Shape,"Tip"))
+#        if fp.OffsetTipShape and fp.TipOffset != 0 and fp.Enabled:
+#            offset = self.offset(fp,shape,"Tip")
+#            shape = offset
 #
-#        if not fp.Shape.isNull() and fp.Refine:
-#            fp.Shape = self.transformShape(fp,fp.Shape.removeSplitter())
+#        if not fp.Shape.isNull() and fp.Refine and fp.Enabled:
+#            refined = shape.removeSplitter()
+#            shape = refined
 #
-#        fp.Shape = self.transformShape(fp,self.scale(fp.Shape,fp.TipShapeScale,fp.TipShapeScale != 1.0))
+#        scaled = self.scale(fp,shape,fp.TipShapeScale,bool(fp.Enabled and fp.TipShapeScale != 1.0))
+#        shape = scaled
+#
 #        if not "None" in fp.Type:
 #            addsubshape = self.makeAddSubShape(fp)
 #            fp.AddSubShape = addsubshape if not fp.Refine else addsubshape.removeSplitter()
-#            fp.AddSubShape = self.scale(fp.AddSubShape,fp.PatternShapeScale,fp.PatternShapeScale != 1.0)
+#            fp.AddSubShape = self.scale(fp,fp.AddSubShape,fp.PatternShapeScale,fp.PatternShapeScale != 1.0)
 #            if fp.PatternOffset != 0 and fp.OffsetPatternShape:
 #                fp.AddSubShape = self.offset(fp,fp.AddSubShape,"Pattern")
 #
-#        fp.Placement = FreeCAD.Placement()
-#
 #        if len(fp.Shape.Solids)>1:
 #            self.warn(fp,"PDWrapper shape has multiple solids.  This could cause subsequent operations to fail or produce unexpected results.\n")
+#        if not shape.isNull():
+#            shape.transformShape(shape.Placement.toMatrix(), True)
+#        fp.Shape = shape
+#
+#    def debug(self,msg):
+#        if not DEBUG:
+#            return
+#        FreeCAD.Console.PrintMessage(msg+"\n")
 #
 #    def offset(self,fp,shp,tipOrPattern):
 #        '''shp is shape to offset, tipOrPattern is a string = "Pattern" or "Tip", returns offset shape
 #           if bCut = True, the shp is cut from the offset or vice versa if offset < 0'''
+#        if shp == None or shp.isNull():
+#            return shp
 #        if tipOrPattern == "Pattern":
 #            if fp.PatternOffset == 0:
 #                return shp
@@ -313,7 +342,7 @@ __version__ = "0.2021.10.12.rev5"
 #            else:
 #                return offsetShp
 #
-#    def scale(self,shp,factor,bScale):
+#    def scale(self,fp,shp,factor,bScale):
 #        '''scale and return shp scaled if bScale = true'''
 #        if not shp or shp.isNull():
 #            return shp
@@ -691,7 +720,7 @@ BASENAME = "pdwrapper"
 
 def getTipBase(fromBody,wrapper): #empower the user by letting him select where to put this new wrapper
     '''return (before feature, new tip)'''
-    from PySide import QtGui,QtCore
+    from PySide import QtGui
     def parens(name,label):
         return name + " ("+label+")" if label != name else name
     solids = [ii for ii in fromBody.Group if hasattr(ii,"Shape") and len(ii.Shape.Solids) >= 1 and ii.isDerivedFrom("PartDesign::Feature")]
@@ -718,9 +747,12 @@ change this after the wrapper and the wrapped object are placed.\n", items2, def
               #second -1 because we want the last solid to be the new tip
             return (solids[items2.index(item2)-1],solids[-1])
 
+def setDefaults(wrapobj):
+    wrapobj.PatternOperationDefault = wrapobj.PatternOperation
+    wrapobj.TipOperationDefault = wrapobj.TipOperation
 
 def makeObject(PDW):
-    from PySide import QtGui,QtCore
+    from PySide import QtGui
     doc = FreeCAD.ActiveDocument
     body=FreeCADGui.ActiveDocument.ActiveView.getActiveObject("pdbody")
     if not body:
@@ -788,7 +820,6 @@ Part Design pattern (array) later.\n ", items, 0, False)
                                 wrapper.PatternTool = selobj.Object
                                 wrapper.PatternBase = wrapper.TipBase
                                 wrapper.PatternOperation = "Common"
-
                             elif item == items[3]:#Common subtractive
                                 wrapper = doc.addObject("PartDesign::FeatureSubtractivePython","PDW_Common_Sub")
                                 PDW.PDWrapper(wrapper)
@@ -804,7 +835,6 @@ Part Design pattern (array) later.\n ", items, 0, False)
                                 wrapper.PatternTool = selobj.Object
                                 wrapper.PatternBase = wrapper.TipBase
                                 wrapper.PatternOperation = "Common"
-
                             elif item == items[4]: #XOR additive
                                 wrapper = doc.addObject("PartDesign::FeatureAdditivePython","PDW_XOR_Add")
                                 PDW.PDWrapper(wrapper)
@@ -843,26 +873,15 @@ Part Design pattern (array) later.\n ", items, 0, False)
                                 body.insertObject(wrapper, tipBase, True)
                                 body.Tip = newTip
                                 newTip.ViewObject.Visibility = True
-                                wrapper.TipBase = tipBase
-                                wrapper.TipTool = tipBase
                                 wrapper.TipOperation = "None"
                                 wrapper.Type = "None" #neither additive nor subtractive, so hide these properties
-                                wrapper.setEditorMode("PatternBase",2)
-                                wrapper.setEditorMode("PatternTool",2)
-                                wrapper.setEditorMode("PatternOperation",2)
-                                wrapper.setEditorMode("PatternBaseScale",2)
-                                wrapper.setEditorMode("PatternShapeScale",2)
-                                wrapper.setEditorMode("PatternToolScale",2)
-                                wrapper.setEditorMode("PatternOffset",2)
-                                wrapper.setEditorMode("PatternOffsetCut",2)
-                                wrapper.setEditorMode("PatternOffsetJoin",2)
-                                wrapper.setEditorMode("PatternOffsetMode",2)
-                                wrapper.setEditorMode("UsePatternBaseAddSubShape",2)
+                                unused = [prop for prop in wrapper.PropertiesList if "Pattern" in prop or "AddSubShape" in prop]
+                                for prop in unused:
+                                    wrapper.setEditorMode(prop,2)
                         else: #cancel
                             doc.abortTransaction()
                             return
-                        wrapper.TipOperationDefault = wrapper.TipOperation
-                        wrapper.PatternOperationDefault = wrapper.PatternOperation
+                        setDefaults(wrapper) #save default operations for enable/disable
                         if not selobj.Object in body.Group:
                             parents = selobj.Object.Parents
                             if parents:
@@ -875,7 +894,8 @@ Part Design pattern (array) later.\n ", items, 0, False)
                             body.Group += [selobj.Object]
                         wrapper.Body = body.Name
                         wrapper.LinkedObject =selobj.Object
-                        wrapper.LinkedObject.ViewObject.Visibility = False
+                        if wrapper.Type != "None":
+                            wrapper.LinkedObject.ViewObject.Visibility = False
                         if selobj.Object.isDerivedFrom("PartDesign::Feature"):
                             wrapper.ClaimChildren = False #preserve linear tree if wrapping a PD object
                         doc.commitTransaction()
@@ -884,7 +904,7 @@ Part Design pattern (array) later.\n ", items, 0, False)
 
 
 def getBody(doc):
-    from PySide import QtGui,QtCore
+    from PySide import QtGui
     def parens(name,label):
         return name + " ("+label+")" if name != label else name
     bodies = [obj for obj in doc.Objects if obj.TypeId == "PartDesign::Body"]
@@ -934,7 +954,7 @@ if __name__ == "__main__":
     noImport = False #user elects not to save import file
 
     if not bHasFile:
-        from PySide import QtCore,QtGui
+        from PySide import QtGui
         window = QtGui.QApplication.activeWindow()
         mb = QtGui.QMessageBox()
         mb.setWindowTitle(BASENAME+" setup")
@@ -987,7 +1007,7 @@ This makes it available to the system upon restarting FreeCAD and loading docume
         import pdwrapper as PDW
         if PDW.__version__ != __version__:
             writeFile()
-            from PySide import QtCore,QtGui
+            from PySide import QtGui
             window = QtGui.QApplication.activeWindow()
             QtGui.QMessageBox.information(window,"Version upated",BASENAME+".py has been updated.  You must restart FreeCAD for the new changes to take effect.")
         else:
