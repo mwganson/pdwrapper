@@ -8,3 +8,9 @@ In the screenshot below 2 concepts are demonstrated: 1) using a None type to get
 <br/>
 
 <img src="pdwrapper_scr7.png" alt="screenshot showing draft array of sketches and additive holes">
+
+## Part Workbench Variable Fillet as a Common Additive
+
+Part Design has a fillet tool, but it does not at the time of this writing support variable fillets.  We can use the Part fillet tool to create a variable fillet on a Part Design feature, and then import that fillet in as a Common Additive type.<br/>
+<br/>
+<img src="pdwrapper_scr8.png" alt="screenshot showing using Part workbench variable fillet in PD">
