@@ -18,7 +18,7 @@ With PDWrapper you can:
 * When PDWrapper object is the Body's Tip it can have multiple solids (generates warning)
 
 
-Example of using PDWrapper to convert an array of Holes into threaded rods by wrapping it inside an Additive type (the PDW_Add object) :<br/>
+Example of using PDWrapper to use a Draft Array of sketches and also how to convert an array of Holes into threaded rods by wrapping it inside an Additive type (the PDW_Add object) :<br/>
 <br/>
 
 <img src="examples/pdwrapper_scr7.png" alt="screenshot">
