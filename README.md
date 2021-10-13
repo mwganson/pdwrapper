@@ -14,7 +14,6 @@ With PDWrapper you can:
 * Use objects in pattern features (e.g. polar patterns) that would not otherwise work with them
 * Make a linear pattern of a linear pattern without using multi-transform
 * Use Draft Arrays of solid objects in Part Design
-* Use Draft Arrays of sketches in Part Design <a href="examples/pdwrapper_draft_array_of_sketches_example.FCStd">download example</a>
 * When PDWrapper object is the Body's Tip it can have multiple solids (generates warning)
 
 Part Design Wrapper object.  Encapsulates objects created outside Part Design for use inside Part Design bodies in FreeCAD.  For example, if you wish to use a Part workbench primitive, such as a Tube object in a Part Design model you can add it to the active body by selecting it and running the macro.  The macro creates a PDWrapper feature python object to encapsulate the Tube and allow it to work in the Part Design body.  In a new body the tree would look like this:
