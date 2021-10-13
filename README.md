@@ -21,7 +21,14 @@ With PDWrapper you can:
 Example of using PDWrapper to use a Draft Array of sketches and also how to convert an array of Holes into threaded rods by wrapping it inside an Additive type (the PDW_Add object) :<br/>
 <br/>
 
-<img src="examples/pdwrapper_scr7.png" alt="screenshot">
+<img src="examples/pdwrapper_scr7.png" alt="screenshot"><br/>
+<br/>
+
+Here we use a Part Workbench variable fillet wrapped inside a PDWrapper Common Additive type.<br/>
+<br/>
+<img src="examples/pdwrapper_scr8.png" alt="screenshot"><br/>
+<br/>
+
 
 Part Design Wrapper object.  Encapsulates objects created outside Part Design for use inside Part Design bodies in FreeCAD.  For example, if you wish to use a Part workbench primitive, such as a Tube object in a Part Design model you can add it to the active body by selecting it and running the macro.  The macro creates a PDWrapper feature python object to encapsulate the Tube and allow it to work in the Part Design body.  In a new body the tree would look like this:
 
