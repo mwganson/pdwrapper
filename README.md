@@ -149,8 +149,6 @@ Default: True.  If set to False it disables the PDWrapper object by passing it's
 This is the encapsulated object.  Other link properties will typically also point to this object, example Tip Tool.<br/>
 ### Shape Management (enumeration)
 Default: "Automatic".  Options: "Automatic", "Manual".  In Automatic mode the Tip Base, Tip Tool, Pattern Base, Pattern Tool, and a few other properties are managed for you automatically by the Shape Manager when the tree changes, for example if the object is moved within the tree or if another object ahead of it in the tree is deleted.  In Manual mode you must manage this yourself.  In Manual mode you have more control because in Automatic mode some of your property changes might be undone.<br/>
-### Show Warnings (boolean)
-Default is true.  There are warnings when the PDWrapper Tip Shape contains multiple solids, a big no no in Part Design.  But such shapes are allowed by the PDWrapper object.  They are only problematic when the subsequent operation, if any, does not reconcile this by bridging all of the disconnected shapes back together.  In Part Design *every* boolean result in the chain must produce a single contiguous solid.  PDWrappers can be a way to get around this limitation if used carefully.  The Show Warnings property, if set to false, will disable output of these and a few other warning messages, which can become annoying after a time.<br/>
 ### Type (string) (readonly)
 This is the feature python type used in creating the PDWrapper object.  This must be done at creation time when the base class is selected.  If this is "Additive" it means the PDWrapper object is of type PartDesign::FeatureAdditivePython.  If "Subtractive", PartDesign::FeatureSubtractivePython.  If "None", PartDesign::FeaturePython.  If this is "None" then the PDWrapper object cannot be used as the base for a pattern tool, such as linear patterns.  (In such cases, some properties related only to patterns will be hidden.  If "Additive" the pattern feature will fuse the copies with existing material.  If "Subtractive" the pattern tool will cut the copies from existing material.  If "None" you can't use the wrapper in patterns.<br/>
 ### Version (string)
@@ -245,6 +243,15 @@ Body
         Sketch</pre>
 Box's Shape and its AddSubShape are the same thing, the box's pattern shape because Box is the first shape in the tree and there is nothing in front of it for it to fuse with.  Pocket's shape is the Box with the hole in it, but its AddSubShape (pattern shape) is the hole itself, or more accurately the shape of the tool created by extruding the sketch, the one used to cut the pocket.  If the sketch is just a circle then the Pocket's AddSubShape is a cylinder.  Which object you use in making the PDWrapper object's tip shape is up to you, whether it's the Box's shape or the cylinder's shape.  (Note: You might need to set Shape Management to Manual if you want to change many of these settings or else they will get reset by the Shape Manager.
 
+## User Interface
+### Show Offset Props (boolean)
+Default: False.  Whether to show properties related to offsetting options.
+### Show Scale Props (boolean)
+Default: False.  Whether to show properties related to scaling options.
+### ShowMeshProps (boolean)
+Default: False (unless wrapped object is a mesh).  Whether to show properties related to mesh objects.
+### Show Warnings (boolean)
+Default is true.  There are warnings when the PDWrapper Tip Shape contains multiple solids, a big no no in Part Design.  But such shapes are allowed by the PDWrapper object.  They are only problematic when the subsequent operation, if any, does not reconcile this by bridging all of the disconnected shapes back together.  In Part Design *every* boolean result in the chain must produce a single contiguous solid.  PDWrappers can be a way to get around this limitation if used carefully.  The Show Warnings property, if set to false, will disable output of these and a few other warning messages, which can become annoying after a time.<br/>
 
 ## Changelog
 * 0.2021.10.14.rev2 Put Type property in PDWrapper section
