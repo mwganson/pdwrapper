@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-__version__ = "0.2021.10.13"
-#__version__ = "0.2021.10.13"
+__version__ = "0.2021.10.13.rev2"
+#__version__ = "0.2021.10.13.rev2"
 ## PDWrapper a class to encapsulate non-Part Design objects into a PartDesign::FeaturePython object
 ## 2021, by <TheMarkster>
 #
@@ -34,6 +34,8 @@ __version__ = "0.2021.10.13"
 #        obj.addProperty("App::PropertyLink","TipBase","TipShape","Base shape for making the tip shape for this feature")
 #        obj.addProperty("App::PropertyLink","TipTool","TipShape","Tool shape for making the tip shape for this feature")
 #        obj.addProperty("App::PropertyFloat","TipOffset","TipShape","Offset (in mm) of the tip shape boolean result: default = 0.0 (no offset)").TipOffset = 0.0
+#        obj.addProperty("App::PropertyBool","PatternScaleCut","Scaling","Whether to cut scaled object from shape or vice versa").PatternScaleCut = False
+#        obj.addProperty("App::PropertyBool","TipScaleCut","Scaling","Whether to cut scaled object from shape or vice versa").TipScaleCut = False
 #        obj.addProperty("App::PropertyBool","TipOffsetCut","TipShape","Whether to cut offset from shape or vice versa").TipOffsetCut = False
 #        obj.addProperty("App::PropertyEnumeration","TipOffsetMode","TipShape","3D offset mode: Skin, Pipe, Recto-verso").TipOffsetMode = ["Skin","Pipe","Recto-verso"]
 #        obj.addProperty("App::PropertyEnumeration","TipOffsetJoin","TipShape","3D offset join method: Arcs,Tangent,Intersection").TipOffsetJoin = ["Arcs","Tangent","Intersection"]
@@ -110,7 +112,7 @@ __version__ = "0.2021.10.13"
 #                    sh = sh.multiFuse(solids[1:])
 #                    sh = sh.removeSplitter() if fp.RefineMesh else sh
 #                    setattr(fp,propName,sh)
-#                return getattr(fp,propName)
+#                return getattr(fp,propName).copy()
 #
 #    def placeInBody(self,fp,link):
 #        def checkSolids(link):
@@ -128,12 +130,12 @@ __version__ = "0.2021.10.13"
 #            when creating a polar pattern this is the shape to copy'''
 #        base = fp.PatternBase if fp.PatternBase else None #null shape
 #        base_shape = self.getShape(fp,base,fp.UsePatternBaseAddSubShape)
-#        base_shape = self.scale(fp,base_shape, fp.PatternBaseScale, fp.PatternBaseScale != 1.0)
+#        base_shape = self.scale(fp,base_shape, fp.PatternBaseScale, fp.PatternBaseScale != 1.0,fp.PatternScaleCut)
 #        if fp.OffsetPatternBase:
 #            base_shape = self.offset(fp,base_shape,"Pattern")
 #        tool = fp.PatternTool if fp.PatternTool else None
 #        tool_shape = self.getShape(fp,tool,fp.UsePatternToolAddSubShape)
-#        tool_shape = self.scale(fp,tool_shape, fp.PatternToolScale, fp.PatternToolScale != 1.0)
+#        tool_shape = self.scale(fp,tool_shape, fp.PatternToolScale, fp.PatternToolScale != 1.0,fp.PatternScaleCut)
 #        if fp.OffsetPatternTool:
 #            tool_shape = self.offset(fp,tool_shape,"Pattern")
 #        op = fp.PatternOperation
@@ -243,9 +245,9 @@ __version__ = "0.2021.10.13"
 #            self.placeInBody(fp,fp.LinkedObject)
 #        shape = Part.Shape()
 #        base_shape = self.getShape(fp,fp.TipBase,fp.UseTipBaseAddSubShape)
-#        base_shape = self.scale(fp,base_shape, fp.TipBaseScale, fp.TipBaseScale != 1.0)
+#        base_shape = self.scale(fp,base_shape, fp.TipBaseScale, fp.TipBaseScale != 1.0,fp.TipScaleCut)
 #        tool_shape = self.getShape(fp,fp.TipTool,fp.UseTipToolAddSubShape)
-#        tool_shape = self.scale(fp,tool_shape, fp.TipToolScale, fp.TipToolScale != 1.0)
+#        tool_shape = self.scale(fp,tool_shape, fp.TipToolScale, fp.TipToolScale != 1.0,fp.TipScaleCut)
 #        if not tool_shape:
 #            tool_shape = Part.Shape()
 #        if not base_shape:
@@ -285,13 +287,13 @@ __version__ = "0.2021.10.13"
 #            refined = shape.removeSplitter()
 #            shape = refined
 #
-#        scaled = self.scale(fp,shape,fp.TipShapeScale,bool(fp.Enabled and fp.TipShapeScale != 1.0))
+#        scaled = self.scale(fp,shape,fp.TipShapeScale,bool(fp.Enabled and fp.TipShapeScale != 1.0),fp.TipScaleCut)
 #        shape = scaled
 #
 #        if not "None" in fp.Type:
 #            addsubshape = self.makeAddSubShape(fp)
 #            fp.AddSubShape = addsubshape if not fp.Refine else addsubshape.removeSplitter()
-#            fp.AddSubShape = self.scale(fp,fp.AddSubShape,fp.PatternShapeScale,fp.PatternShapeScale != 1.0)
+#            fp.AddSubShape = self.scale(fp,fp.AddSubShape,fp.PatternShapeScale,fp.PatternShapeScale != 1.0,fp.PatternScaleCut)
 #            if fp.PatternOffset != 0 and fp.OffsetPatternShape:
 #                fp.AddSubShape = self.offset(fp,fp.AddSubShape,"Pattern")
 #
@@ -342,13 +344,23 @@ __version__ = "0.2021.10.13"
 #            else:
 #                return offsetShp
 #
-#    def scale(self,fp,shp,factor,bScale):
+#    def scale(self,fp,shp,factor,bScale,bCut):
 #        '''scale and return shp scaled if bScale = true'''
 #        if not shp or shp.isNull():
 #            return shp
 #        if bScale:
 #            scaleds = [sol.scale(factor,sol.CenterOfMass) for sol in shp.Solids]
-#            return Part.makeCompound(scaleds)
+#            if not bCut:
+#                return Part.makeCompound(scaleds)
+#            else: #bCut
+#                unscaleds = [sol for sol in shp.Solids]
+#                cuts = []
+#                for ii in range(0,len(shp.Solids)):
+#                    if factor > 1:
+#                        cuts.append(scaleds[ii].cut(unscaleds[ii]))
+#                    else:
+#                        cuts.append(unscaleds[ii].cut(scaleds[ii]))
+#                return Part.makeCompound(cuts)
 #        else:
 #            return shp
 #
