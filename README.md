@@ -17,17 +17,18 @@ With PDWrapper you can:
 * Use Mesh objects directly in Part Design
 
 ## Brief Examples
+#### Dynamic Solid Features
 Example of using a PDWrapper None type to dynamically enable/disable certain features in the tree, removing them from the solid feature chain.  When the height of the Additive Box falls below a certain threshold value the support structure isn't used in the model.<br/>
 <br/>
 <img src="examples/pdwrapper_scr10.png" alt="screenshot"><br/>
 <br/>
-
+#### Draft Arrays / Additive Holes
 Example of using PDWrapper to use a Draft Array of sketches and also how to convert an array of Holes into threaded rods by wrapping it inside an Additive type (the PDW_Add object) :<br/>
 <br/>
 
 <img src="examples/pdwrapper_scr7.png" alt="screenshot"><br/>
 <br/>
-
+#### Part WB Variable Fillets
 Here we use a Part Workbench variable fillet wrapped inside a PDWrapper Common Additive type.<br/>
 <br/>
 <img src="examples/pdwrapper_scr8.png" alt="screenshot"><br/>
@@ -36,10 +37,12 @@ And here the same object as above, but this time imported as type XOR Additive:<
 <br/>
 <img src="examples/pdwrapper_scr9.png" alt="screeenshot"><br/>
 <br/>
+#### Mesh Objects
 Importing a mesh object directly into a Part Design body using PDWrapper Additive type.  The wrapper object does the conversion to a solid automatically.<br/>
 <br/>
 <img src="pdwrapper_scr11.png" alt="imported mesh example screenshot"><br/>
 <br/>
+#### Curves WB Sketch on Surface (requires Curves WB Addon to be installed)
 Solid objects from other workbenches are easily incorporated in Part Design bodies using a PDWrapper to encapsulate them.  In this <a href="examples/pdwrapper_curves_sketch_on_surface_example.FCStd">example</a> a Sketch on Surface object from Curves Workbench is encapsulated in a PDWrapper Subtractive type so it cuts the text from the Additive Cylinder.<br/>
 <br/>
 <img src="examples/pdwrapper_scr12.png" alt="curves workbench sketch on surface screenshot"><br/>
