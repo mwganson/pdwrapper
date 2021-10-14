@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-__version__ = "0.2021.10.14.rev5"
-#__version__ = "0.2021.10.14.rev5"
+__version__ = "0.2021.10.14.rev6"
+#__version__ = "0.2021.10.14.rev6"
 ## PDWrapper a class to encapsulate non-Part Design objects into a PartDesign::FeaturePython object
 ## 2021, by <TheMarkster>
 #
@@ -88,9 +88,11 @@ __version__ = "0.2021.10.14.rev5"
 #
 #    def showProps(self,fp,propType):
 #        '''propType is "Offset" or "Scale"'''
+#        if not hasattr(fp,"Type"):
+#            return
 #        bShow = getattr(fp,"Show"+propType+"Props")
 #        props = [p for p in fp.PropertiesList if propType in p and not "Show" in p]
-#        if hasattr(fp,"Type") and fp.Type == "None":
+#        if fp.Type == "None":
 #            props = [p for p in props if not "Pattern" in p]
 #        modeMap = {True:0,False:2}
 #        for prop in props:
