@@ -17,6 +17,10 @@ With PDWrapper you can:
 * Use Draft Arrays of sketches in Part Design <a href="examples/pdwrapper_draft_array_of_sketches_example.FCStd">Example</a>
 * When PDWrapper object is the Body's Tip it can have multiple solids (generates warning)
 
+Example of using a PDWrapper None type to dynamically enable/disable certain features in the tree, removing them from the solid feature chain.<br/>
+<br/>
+<img src="examples/pdwrapper_scr10.png" alt="screenshot"><br/>
+<br/>
 
 Example of using PDWrapper to use a Draft Array of sketches and also how to convert an array of Holes into threaded rods by wrapping it inside an Additive type (the PDW_Add object) :<br/>
 <br/>
