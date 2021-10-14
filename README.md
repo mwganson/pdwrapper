@@ -141,17 +141,10 @@ Default: True.  If set to False it disables the PDWrapper object by passing it's
 This is the encapsulated object.  Other link properties will typically also point to this object, example Tip Tool.<br/>
 <br/>
 ### Shape Management (enumeration)
-Default: "Automatic".  Options: "Automatic", "Manual".  In Automatic mode the Tip Base, Tip Tool, Pattern Base, Pattern Tool, and a few other properties are managed for you automatically when the tree changes, for example if the object is moved within the tree or if another object ahead of it in the tree is deleted.  In Manual mode you must manage this yourself.  In Manual mode you have more control because in Automatic mode some of your property changes might be undone.<br/>
+Default: "Automatic".  Options: "Automatic", "Manual".  In Automatic mode the Tip Base, Tip Tool, Pattern Base, Pattern Tool, and a few other properties are managed for you automatically by the Shape Manager when the tree changes, for example if the object is moved within the tree or if another object ahead of it in the tree is deleted.  In Manual mode you must manage this yourself.  In Manual mode you have more control because in Automatic mode some of your property changes might be undone.<br/>
 <br/>
-### Max Wires (WireWrapper types only) (integer)
-Default: 100.  The maximum number of wires to attempt to render.  You can change this value if you want to be able to render an object with more than Max Wires wires.  This property prevents FreeCAD from becoming unresponsive for too long while trying to render a complex object, such as an imported mesh, with many wires.<br/>
-<br/>
-### Show All (boolean trigger)
-Default: False.  If set to True, it sets itself back to False and runs a command to show all the wires.  This can be used to enable wires that have been hidden by the Selected Only command or by the WireNNN Exclusive command or any wires that have been toggled disabled.<br/>
-<br/>
-
 ### Show Warnings (boolean)
-Default is true.  There are warnings when the PDWrapper Tip Shape contains multiple solids, a big no no in Part Design.  But such shapes are allowed by the PDWrapper object.  They are only problematic when the subsequent operation, if any, does not reconcile this by bridging all of the disconnected shapes back together.  In Part Design *every* boolean result in the chain must produce a single contiguous solid.  PDWrappers can be a way to get around this limitation if used carefully.  The Show Warnings property, if set to false, will disable output of these error messages, which can become annoying after a time.<br/>
+Default is true.  There are warnings when the PDWrapper Tip Shape contains multiple solids, a big no no in Part Design.  But such shapes are allowed by the PDWrapper object.  They are only problematic when the subsequent operation, if any, does not reconcile this by bridging all of the disconnected shapes back together.  In Part Design *every* boolean result in the chain must produce a single contiguous solid.  PDWrappers can be a way to get around this limitation if used carefully.  The Show Warnings property, if set to false, will disable output of these and a few other warning messages, which can become annoying after a time.<br/>
 <br/>
 ### Version (string)
 The version of PDWrapper macro used to create this PDWrapper object.  It need not necessarily be the same version as currently installed (unless some change I made breaks existing models, which happens from time to time early in development).<br/>
@@ -169,21 +162,16 @@ Default: False.  If True, the Pattern Offset (if other than 0.0) is applied to t
 Default: False.  If True the Pattern Offset (if other than 0.0) is applied to the Pattern Shape.  Pattern Shape is the shape used by the pattern tools (such as polar pattern, linear pattern, etc.) when making the arrays.  If you Right-click in the property view and choose Show All option, this shape is the AddSubShape property for those objects that support being patterned by the pattern tools.  Pattern Shape is created as a result of a boolean operation (Pattern Operation) using the Pattern Base and the Pattern Tool.  Set this to True and set the Pattern Offset property if you want to offset the copies created by the pattern tool.<br/>
 ### Offset Pattern Tool (boolean)
 Default: False.  If True the Pattern Offset, if other than 0.0, is applied to the Pattern Tool object.  The Pattern Tool is typically the encapsulated object.
-### Pattern Offset (float)
-Default = 0.0 (no offset).  Applies a 3D offset to the result of the Pattern boolean (pattern shape to copied in feature pattern arrays).  If this value is negative the offset is applied inwards.<br/>
-<br/>
-### Pattern Offset Cut (boolean)
-Default: False.  Whether to cut the offset from the original, creating a thickness with no open faces.  Think: hollow chocolate Easter bunnies.  If the offset is greater than 0 the original shape is cut from the offset.  If the offset is inward the offset is cut from the original shape.  This property affects all of the Pattern objects: the Base, the Shape, and the Tool when they are offset.  They're either all cut or all not cut.  We could have individual Cut booleans for each object, but the property view is already too cluttered, so Pattern Offset, Pattern Offset Cut, Pattern Offset Join, and Pattern Offset Mode all get shared.<br/>
-<br/>
-### Pattern Offset Join (enumeration)
-Default: Arcs.  The join type for the pattern shape offset: can be "Arcs", "Tangent" or "Intersection".<br/>
-<br/>
-### Pattern Offset Mode (enumeration)
-Default: Pipe.  The mode to use when creating the offset.  Honestly, I can't really see a difference except maybe sometimes one will succeed where the others fail.  Options: Pipe, Skin, Recto-verso.<br/>
-<br/>
 ### Pattern Base (link)
 Base shape used in the boolean operation to create the Pattern Shape.<br/>
-<br/>
+### Pattern Offset (float)
+Default = 0.0 (no offset).  Applies a 3D offset to the result of the Pattern boolean (pattern shape to copied in feature pattern arrays).  If this value is negative the offset is applied inwards.<br/>
+### Pattern Offset Cut (boolean)
+Default: False.  Whether to cut the offset from the original, creating a thickness with no open faces.  Think: hollow chocolate Easter bunnies.  If the offset is greater than 0 the original shape is cut from the offset.  If the offset is inward the offset is cut from the original shape.  This property affects all of the Pattern objects: the Base, the Shape, and the Tool when they are offset.  They're either all cut or all not cut.  We could have individual Cut booleans for each object, but the property view is already too cluttered, so Pattern Offset, Pattern Offset Cut, Pattern Offset Join, and Pattern Offset Mode all get shared.<br/>
+### Pattern Offset Join (enumeration)
+Default: Arcs.  The join type for the pattern shape offset: can be "Arcs", "Tangent" or "Intersection".  My experience has been Arcs mode is the most reliable to succeed.  Offsets are difficult for FreeCAD.<br/>
+### Pattern Offset Mode (enumeration)
+Default: Pipe.  The mode to use when creating the offset.  Honestly, I can't really see a difference except maybe sometimes one will succeed where the others fail.  Options: Pipe, Skin, Recto-verso.<br/>
 ### Pattern Operation (enumeration)
 Boolean operation used to create Pattern Shape.  Options are None, Cut, Fuse, Common, XOR.  In some cases this is managed by the Shape Manager.  Set ShapeManagement to Manual if it is getting changed from where you have tried to set it.<br/>
 <br/>
@@ -204,10 +192,11 @@ Body
 In this example Box's Shape property is the fusion/union of the Pad and the Box, and it's AddSubShape property is just the Box itself.  If Use Pattern Base Add Sub Shape is True, then only the Box itself is used in the Pattern Operation.<br/>
 ### Use Pattern Tool Add Sub Shape (boolean)
 Same as Use Pattern Base Add Sub Shape, except applied to the Pattern Tool instead of the Pattern Base.<br/>
-<br/>
 ## Scaling
-PDWrapper objects support scaling of shapes used in the 2 recipes for creating the Tip Shape and the Pattern Shape as well as scaling of Tip Shape and Pattern Shape.  Note: scales are independent of one another and can be applied multiple times.  For example, if TipTool is scaled to 2.0 and TipShape is also scaled to 2.0, then the TipTool final scale is 4.0.  Negative values may be used, which produce sometimes a mirror effect.  For better mirroring / scaling control consider encapsulating a Draft Clone of the Linked Object.  To do this, first wrap the linked object in a None type.  At this point the PDWrapper of the linked object merely propagates the previous solid feature's shape as its own.  The effect of this is the linked object is now in the body, but currently having no impact on the tip shape.  Then wrap with another PDWrapper the Draft Clone as an additive/subtractive/whatever type.  Alternatively, edit the Body's Group property to include the Linked Object.  This has the same effect, but does not need the first PDWrapper.  Then you can wrap the Draft Clone as one of the additive or subtractive types.<br/>
-<br/>
+PDWrapper objects support scaling of shapes used in the 2 recipes for creating the Tip Shape and the Pattern Shape as well as scaling of Tip Shape and Pattern Shape.  Note: scales are independent of one another and can be applied multiple times.  For example, if TipTool is scaled to 2.0 and TipShape is also scaled to 2.0, then the TipTool final scale is 4.0.  Negative values may be used, which produce sometimes a mirror effect.  For better mirroring / scaling control consider encapsulating a Draft Clone of the Linked Object.  To do this, wrap the Draft Clone as one of the additive or subtractive types if it's a clone of one of the solid features in the tree.  If it's a clone of a non-Part Design object, then that object needs to also be wrapped in a None type so it uses the Body's local coordinate system and to avoid links out of scope warnings.<br/>
+### Pattern Scale Cut (boolean)
+### Tip Scale Cut (boolean)
+Default: False.  If True, and if scale is other than 1.0, the original object is cut from the scaled object if scale is greater than 1.0 or the scaled object is cut from the original if scale is less than 1.0.  This basically hollows out the interior.  It's sort of a Thickness, but without the open face.  Of course, you can cut out the face, if desired, in a subsequent operation.
 ### Pattern Base Scale (float)
 ### Pattern Shape Scale (float)
 ### Pattern Tool Scale (float)
@@ -215,17 +204,12 @@ PDWrapper objects support scaling of shapes used in the 2 recipes for creating t
 ### Tip Shape Scale (float)
 ### Tip Tool Scale (float)
 These are fairly self-explanatory.  Use them to scale the shape of that linked object before using it in the recipe to create the shape.  For example, if you want to scale the Tip Tool object (which is usually the linked object) then you would set the Tip Tool Scale property to the desired scale factor.  Tip Shape Scale and Pattern Shape Scale scale the results of the boolean operations and are applied in addition to the base and tool scales.  Experiment with these to see the effects.  When scaling patterns you must scale the Tip Tool separately if you want to also scale the original element of the pattern.  If Scale = 1.0, then no scaling is done.<br/>
-<br/>
 ## Tip Shape
 Here is where the recipe for building the Tip Shape is.  The Tip Shape is the shape you see in the 3D view when the PDWrapper object is the visible feature.  I call it Tip Shape because it's the shape the Body presents when this feature is the Tip for the Body.  It is created using the Tip Shape recipe, which includes Tip Base, Tip Tool, and Tip Operation (the boolean to use)<br/>
-<br/>
-
 ### Tip Offset (float)
 Like Pattern Shape offset, but applied to objects in the Tip Shape section.  If Tip Offset is 0.0, then no offset is applied.  This property is used in all Tip Shape offsets, whether it's on the Tip Tool, the Tip Base, or the Tip Shape(the boolean result of Tip Operation applied to Tip Base and Tip Tool).<br/>
-<br/>
 ### Tip Shape Cut (boolean)
-Default: False.  Whether to cut the offset from the original or vice-versa, creating a hollow solid, like a thickness but without an opening into the interior.<br/>
-<br/>
+Default: False.  Whether to cut the offset from the original or vice-versa, creating a hollow solid, like a thickness but without an opening into the interior.  See also Tip Scale Cut, which works on scales instead of offsets.<br/>
 ### Tip Shape Offset Join
 ### Tip Shape Offset Mode
 See Pattern shape properties of the same name.  These properties are applied to any and all offsets in the Tip Shape section.  Note: the objects themselves are not offset.  A copy of their shapes is offset and used in the Tip Operation boolean operation, or in the case of the Tip Shape, the offset is applied to the result.<br/>
@@ -246,7 +230,7 @@ The amount (in millimeters) by which to offset one or more of the objects in the
 There are 2 modes available: Automatic and Manual.  In Automatic mode (the default) Tip Base and Pattern Base are automatically set to the current previous solid.  This way if the user moves the PDWrapper object or deletes the feature in front of it in the tree these 2 properties are automatically updated.  In Manual mode the user must manage these properties to ensure they are pointing the correct objects.<br/>
 <br/>
 ### Tip Operation (enumeration)
-The boolean operation used in creating the Tip Shape.  Options are Fuse, Cut, Common, and XOR.  Unlike in the case with Pattern Operation, there is no None option for creating the Tip Shape.  A NULL shape for the Tip Shape would only result in an error, anyway.<br/>
+The boolean operation used in creating the Tip Shape.  Options are Fuse, Cut, Common, XOR, and None.  The Tip Tool object is Cut from the Tip Base object if Cut is the Tip Operaton to form the Tip Shape, for example.  If "None", then the Tip Base is returned as the shape.<br/>
 <br/>
 ### Tip Tool (link)
 The tool shape used in creating the Tip Shape.  This is ordinarily the encapsulated object.  Note: for Fuse, Common, and XOR operation types it doesn't matter which shape is base and which is tool.  Only for Cut does it matter, where the tool is the cutting tool used to remove material from the base.<br/>
@@ -260,10 +244,11 @@ Body
     Box
     Pocket
         Sketch</pre>
-Box's Shape and its AddSubShape are the same thing, the box's pattern shape.  Pocket's shape is the Box with the hole in it, but its AddSubShape (pattern shape) is the hole itself, or more accurately the shape of the tool created by extruding the sketch, the one used to cut the pocket.  If the sketch is just a circle then the Pocket's AddSubShape is a cylinder.  Which object you use in making the PDWrapper object's tip shape is up to you, whether it's the Box's shape or the cylinder's shape.  (Note: You might need to set Shape Management to Manual if you want to change many of these settings or else they will get reset by the Shape Manager.
+Box's Shape and its AddSubShape are the same thing, the box's pattern shape because Box is the first shape in the tree and there is nothing in front of it for it to fuse with.  Pocket's shape is the Box with the hole in it, but its AddSubShape (pattern shape) is the hole itself, or more accurately the shape of the tool created by extruding the sketch, the one used to cut the pocket.  If the sketch is just a circle then the Pocket's AddSubShape is a cylinder.  Which object you use in making the PDWrapper object's tip shape is up to you, whether it's the Box's shape or the cylinder's shape.  (Note: You might need to set Shape Management to Manual if you want to change many of these settings or else they will get reset by the Shape Manager.
 
 
 ## Changelog
+* 0.2021.10.13.rev2 Lots of bug fixes
 * 0.2021.10.12.rev2 Lots of changes since 0.2021.10.08
 * Gone are the WireWrapper functions -- feature bloat -- needs to be a separate macro
 * Enabled is now an Integer rather than a boolean, makes it easier to get at it for expression binding
