@@ -39,6 +39,13 @@ Importing a mesh object directly into a Part Design body using PDWrapper Additiv
 <br/>
 <img src="pdwrapper_scr11.png" alt="imported mesh example screenshot"><br/>
 <br/>
+Solid objects from other workbenches are easily incorporated in Part Design bodies using a PDWrapper to encapsulate them.  In this <a href="examples/pdwrapper_curves_sketch_on_surface_example.FCStd">example</a> a Sketch on Surface object from Curves Workbench is encapsulated in a PDWrapper Subtractive type so it cuts the text from the Additive Cylinder.<br/>
+<br/>
+<img src="examples/pdwrapper_scr12.png" alt="curves workbench sketch on surface screenshot"><br/>
+<br/>
+
+## Overview
+
 Part Design Wrapper object.  Encapsulates objects created outside Part Design for use inside Part Design bodies in FreeCAD.  For example, if you wish to use a Part workbench primitive, such as a Tube object in a Part Design model you can add it to the active body by selecting it and running the macro.  The macro creates a PDWrapper feature python object to encapsulate the Tube and allow it to work in the Part Design body.  In a new body the tree would look like this:
 
 <pre>
