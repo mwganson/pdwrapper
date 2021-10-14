@@ -163,18 +163,16 @@ This is a property you will most likely already be familiar with.  All additive/
 ## Pattern Shape
 Pattern Shape is the shape used by pattern tools, example: polar pattern, in making copies.  This shape is the result of a boolean operation (Pattern Operation) using Pattern Base and Pattern Tool.<br/>
 <br/>
-### Offset Pattern Base (boolean)
-Default: False.  If True, the Pattern Offset (if other than 0.0) is applied to the Pattern Base object.  Pattern Base is typically the previous solid feature, but it can vary based on the type of PDWrapper created and the type of object being wrapped.  This property is controlled by the Shape Manager when Shape Management property is set to True (the default).<br/>
-### Offset Pattern Shape (boolean)
-Default: False.  If True the Pattern Offset (if other than 0.0) is applied to the Pattern Shape.  Pattern Shape is the shape used by the pattern tools (such as polar pattern, linear pattern, etc.) when making the arrays.  If you Right-click in the property view and choose Show All option, this shape is the AddSubShape property for those objects that support being patterned by the pattern tools.  Pattern Shape is created as a result of a boolean operation (Pattern Operation) using the Pattern Base and the Pattern Tool.  Set this to True and set the Pattern Offset property if you want to offset the copies created by the pattern tool.<br/>
-### Offset Pattern Tool (boolean)
-Default: False.  If True the Pattern Offset, if other than 0.0, is applied to the Pattern Tool object.  The Pattern Tool is typically the encapsulated object.
+### Pattern Base Offset (float)
+Default: 0.0  If other than 0.0, the Offset is applied to the Pattern Base object.  Pattern Base is typically the previous solid feature, but it can vary based on the type of PDWrapper created and the type of object being wrapped.  The Pattern Base property is controlled by the Shape Manager when Shape Management property is set to True (the default).<br/>
+### Pattern Shape Offset (float)
+Default: 0.0  If other than 0.0 the offset is applied to the Pattern Shape.  Pattern Shape is the shape used by the pattern tools (such as polar pattern, linear pattern, etc.) when making the arrays.  If you Right-click in the property view and choose Show All option, this shape is the AddSubShape property for those objects that support being patterned by the pattern tools.  Pattern Shape is created as a result of a boolean operation (Pattern Operation) using the Pattern Base and the Pattern Tool.<br/>
+### Pattern Tool Offset (float)
+Default: 0.0  If other than 0.0, the offset is applied to the Pattern Tool object.  The Pattern Tool is typically the encapsulated object.
 ### Pattern Base (link)
 Base shape used in the boolean operation to create the Pattern Shape.<br/>
-### Pattern Offset (float)
-Default = 0.0 (no offset).  Applies a 3D offset to the result of the Pattern boolean (pattern shape to copied in feature pattern arrays).  If this value is negative the offset is applied inwards.<br/>
 ### Pattern Offset Cut (boolean)
-Default: False.  Whether to cut the offset from the original, creating a thickness with no open faces.  Think: hollow chocolate Easter bunnies.  If the offset is greater than 0 the original shape is cut from the offset.  If the offset is inward the offset is cut from the original shape.  This property affects all of the Pattern objects: the Base, the Shape, and the Tool when they are offset.  They're either all cut or all not cut.  We could have individual Cut booleans for each object, but the property view is already too cluttered, so Pattern Offset, Pattern Offset Cut, Pattern Offset Join, and Pattern Offset Mode all get shared.<br/>
+Default: False.  Whether to cut the offset from the original, creating a thickness with no open faces.  Think: hollow chocolate Easter bunnies.  If the offset is greater than 0 the original shape is cut from the offset.  If the offset is inward the offset is cut from the original shape.  This property affects all of the Pattern objects: the Base, the Shape, and the Tool when they are offset.  They're either all cut or all not cut.  We could have individual Cut booleans for each object, but the property view is already too cluttered, so this is shared by all the pattern shapes: Pattern Shape, Pattern Tool, and Pattern Base.<br/>
 ### Pattern Offset Join (enumeration)
 Default: Arcs.  The join type for the pattern shape offset: can be "Arcs", "Tangent" or "Intersection".  My experience has been Arcs mode is the most reliable to succeed.  Offsets are difficult for FreeCAD.<br/>
 ### Pattern Offset Mode (enumeration)
@@ -213,21 +211,19 @@ Default: False.  If True, and if scale is other than 1.0, the original object is
 These are fairly self-explanatory.  Use them to scale the shape of that linked object before using it in the recipe to create the shape.  For example, if you want to scale the Tip Tool object (which is usually the linked object) then you would set the Tip Tool Scale property to the desired scale factor.  Tip Shape Scale and Pattern Shape Scale scale the results of the boolean operations and are applied in addition to the base and tool scales.  Experiment with these to see the effects.  When scaling patterns you must scale the Tip Tool separately if you want to also scale the original element of the pattern.  If Scale = 1.0, then no scaling is done.<br/>
 ## Tip Shape
 Here is where the recipe for building the Tip Shape is.  The Tip Shape is the shape you see in the 3D view when the PDWrapper object is the visible feature.  I call it Tip Shape because it's the shape the Body presents when this feature is the Tip for the Body.  It is created using the Tip Shape recipe, which includes Tip Base, Tip Tool, and Tip Operation (the boolean to use)<br/>
-### Tip Offset (float)
-Like Pattern Shape offset, but applied to objects in the Tip Shape section.  If Tip Offset is 0.0, then no offset is applied.  This property is used in all Tip Shape offsets, whether it's on the Tip Tool, the Tip Base, or the Tip Shape(the boolean result of Tip Operation applied to Tip Base and Tip Tool).<br/>
 ### Tip Shape Cut (boolean)
 Default: False.  Whether to cut the offset from the original or vice-versa, creating a hollow solid, like a thickness but without an opening into the interior.  See also Tip Scale Cut, which works on scales instead of offsets.<br/>
 ### Tip Shape Offset Join
 ### Tip Shape Offset Mode
 See Pattern shape properties of the same name.  These properties are applied to any and all offsets in the Tip Shape section.  Note: the objects themselves are not offset.  A copy of their shapes is offset and used in the Tip Operation boolean operation, or in the case of the Tip Shape, the offset is applied to the result.<br/>
 <br/>
-### Offset Tip Base (boolean)
-Default: False.  If True the Tip Offset (if not 0.0) is applied to the Tip Base prior to using it in the Tip Operation (along with Tip Tool) to create the Tip Shape, the shape you see in the 3D view when the PDWrapper object is made visible and the shape the Body object inherits as its Shape Property when the PDWrapper object is the Body's Tip object.<br/>
-### Offset Tip Shape (boolean)
-Default: False.  Tip Shape is the shape created when the boolean Tip Operation is applied to the Tip Base and the Tip Tool.  The Tip Base is typically the previous solid in the tree while the Tip Tool is the objected being wrapped.  If this property is True, then the offset is applied to the result.<br/>
+### Tip Base Offset (float)
+Default: 0.0  If not 0.0 the offset is applied to the Tip Base prior to using it in the Tip Operation (along with Tip Tool) to create the Tip Shape, the shape you see in the 3D view and the shape of the Body the PDWrapper object is the Body's Tip object.<br/>
+### Tip Shape Offset (float)
+Default: 0.0  Tip Shape is the shape created when the boolean Tip Operation is applied to the Tip Base and the Tip Tool.  The Tip Base is typically the previous solid in the tree while the Tip Tool is the objected being wrapped.  If this property is other than 0.0, then the offset is applied to the result.<br/>
 <br/>
-### Offset Tip Tool (boolean)
-Default: False.  If True the Tip Tool is offset by the amount in the Tip Offset property (in mm).
+### Tip Tool Offset (float)
+Default: 0.0  If any value other than 0.0 the Tip Tool is offset by the amount in the Tip Offset property.
 ### Tip Base (link)
 The object used as the base for the Tip Operation (along with the Tip Tool) in generating the PDWrapper object's Tip Shape.  I call it Tip Shape because it is the shape the Body inherits when an object is the Tip feature.  It's also the shape any features that follow in the tree will combine with to create their Tip Shape.  Tip Base is always going to be the previous solid feature by default, but you can change it if you want a different Tip Shape.  Remember, the Base has the material that the Tool will cut away.  For example, to make a round hole in a cube you would use the cube as the base and a cylinder as the tool.<br/>
 <br/>
@@ -255,6 +251,8 @@ Box's Shape and its AddSubShape are the same thing, the box's pattern shape beca
 
 
 ## Changelog
+* 0.2021.10.13.rev3 Changed Offset booleans to floats to allow for individual offsetting, and also enable removing a couple properties<br/>
+  since these can act as booleans by testing against 0.0.
 * 0.2021.10.13.rev2 Lots of bug fixes
 * 0.2021.10.12.rev2 Lots of changes since 0.2021.10.08
 * Gone are the WireWrapper functions -- feature bloat -- needs to be a separate macro
