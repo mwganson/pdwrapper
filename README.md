@@ -8,7 +8,7 @@ With PDWrapper you can:
 * Create a new type primitive in addition to Additive and Subtractive: Common (intersection) primitives
 * Scale Part Design features or imported solids
 * 3D offsetting of solid features
-* 3D offset and cut away the original, creating a Thickness without an open face.
+* 3D offset / scale and cut away the original, creating a Thickness without an open face.
 * Use objects in pattern features (e.g. polar patterns) that would not otherwise work with them
 * Make a linear pattern of a linear pattern without using multi-transform
 * Use Draft Arrays of solid objects in Part Design
