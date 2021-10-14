@@ -5,8 +5,8 @@ With PDWrapper you can:
 * Use non-Part Design objects inside Part Design bodies, including links
 * Dynamically enable/disable solid features in the Part Design tree: <a href="examples/pdwrapper_dynamic_support_example.FCStd">download example</a>
 * Transform Part Design features into other types: e.g. transform a threaded Hole into a threaded rod
-* Create a new type primitive in addition to Additive and Subtractive: Common (intersection) primitives
-* Scale Part Design features or imported solids
+* Create a new type primitive in addition to Additive and Subtractive: Common (intersection) primitives, along with XOR types
+* 3D scaling of Part Design features or wrapped solids
 * 3D offsetting of solid features
 * 3D offset / scale and cut away the original, creating a Thickness without an open face.
 * Use objects in pattern features (e.g. polar patterns) that would not otherwise work with them
