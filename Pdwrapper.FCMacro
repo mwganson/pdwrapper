@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-__version__ = "0.2021.10.14.rev2"
-#__version__ = "0.2021.10.14.rev2"
+__version__ = "0.2021.10.14.rev3"
+#__version__ = "0.2021.10.14.rev3"
 ## PDWrapper a class to encapsulate non-Part Design objects into a PartDesign::FeaturePython object
 ## 2021, by <TheMarkster>
 #
@@ -991,7 +991,7 @@ if __name__ == "__main__":
     version = code.splitlines()[1][16:]
     real_path = os.path.realpath(__file__)
     dir_path = os.path.dirname(real_path)
-    py_file = real_path.replace(".FCMacro",".py").replace('Pdwrapper','pdwrapper')
+    py_file = real_path.replace(".FCMacro",".py").replace('PDWrapper','pdwrapper')
     bHasFile = os.path.exists(py_file)
     noImport = False #user elects not to save import file
 
