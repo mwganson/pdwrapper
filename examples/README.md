@@ -21,3 +21,10 @@ In the screenshot below 2 concepts are demonstrated: 1) using a None type to get
 Part Design has a fillet tool, but it does not at the time of this writing support variable fillets.  We can use the Part fillet tool to create a variable fillet on a Part Design feature, and then import that fillet in as a Common Additive type.<br/>
 <br/>
 <img src="pdwrapper_scr8.png" alt="screenshot showing using Part workbench variable fillet in PD">
+
+## Curves Workbench Sketch on Surface Tool
+
+Curves workbench has a fantastic tool for wrapping text on the surface of a cylinder.  In this example, the sketch on surface object is wrapped in a PDWrapper Subtractive type, so it cuts the text out of the Additive Cylinder.  Note the use of the Shapestring as an Extra Object, no need to convert it to a sketch.<br/>
+<br/>
+<img src="pdwrapper_scr12.png" alt="curves sketch on surface screenshot"><br/>
+<br/>
