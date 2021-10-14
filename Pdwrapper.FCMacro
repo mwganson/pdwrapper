@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-__version__ = "0.2021.10.14.rev6"
-#__version__ = "0.2021.10.14.rev6"
+__version__ = "0.2021.10.14.rev7"
+#__version__ = "0.2021.10.14.rev7"
 ## PDWrapper a class to encapsulate non-Part Design objects into a PartDesign::FeaturePython object
 ## 2021, by <TheMarkster>
 #
@@ -354,7 +354,7 @@ __version__ = "0.2021.10.14.rev6"
 #            psoFill = False
 #            offsetShp = shp.makeOffsetShape(factor,tolerance=psoTol,offsetMode = psoMode, join = psoJoin, fill = psoFill)
 #            if fp.PatternOffsetCut:
-#                if fp.PatternOffset < 0:
+#                if factor < 0:
 #                    return shp.cut(offsetShp)
 #                else:
 #                    return offsetShp.cut(shp)
@@ -369,7 +369,7 @@ __version__ = "0.2021.10.14.rev6"
 #            tsoFill = False
 #            offsetShp = shp.makeOffsetShape(factor,tolerance=tsoTol,offsetMode = tsoMode, join = tsoJoin, fill = tsoFill)
 #            if fp.TipOffsetCut:
-#                if fp.TipOffset < 0:
+#                if factor < 0:
 #                    return shp.cut(offsetShp)
 #                else:
 #                    return offsetShp.cut(shp)
