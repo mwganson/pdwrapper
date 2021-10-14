@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-__version__ = "0.2021.10.13.rev3"
-#__version__ = "0.2021.10.13.rev3"
+__version__ = "0.2021.10.14"
+#__version__ = "0.2021.10.14"
 ## PDWrapper a class to encapsulate non-Part Design objects into a PartDesign::FeaturePython object
 ## 2021, by <TheMarkster>
 #
@@ -11,15 +11,18 @@ __version__ = "0.2021.10.13.rev3"
 #
 #class PDWrapper:
 #    def __init__(self,obj):
+#        obj.addProperty("App::PropertyBool","ShowOffsetProps","UserInterface","Show/Hide properties related to Offsetting").ShowOffsetProps = False
+#        obj.addProperty("App::PropertyBool","ShowScaleProps","UserInterface","Show/Hide properties related to Scaling").ShowScaleProps = False
+#        obj.addProperty("App::PropertyBool","ShowMeshProps","UserInterface","Show/Hide properties related to Meshes").ShowMeshProps = False
 #        obj.addProperty("App::PropertyIntegerConstraint","Enabled","PDWrapper","If False, passes through previous solid feature as tip shape").Enabled = (1,0,1,1)
 #        obj.addProperty("App::PropertyLink","PatternBase","PatternShape","Base shape presented for patterning")
 #        obj.addProperty("App::PropertyBool","UsePatternToolAddSubShape","PatternShape","Use pattern tools addsubshape property in place of Pattern tool's shape in boolean to create pattern shape").UsePatternToolAddSubShape = False
-#        obj.addProperty("App::PropertyFloat","PatternBaseOffset","PatternShape","Offset Pattern Base shape (0.0 = no offset)").PatternBaseOffset = 0.0
-#        obj.addProperty("App::PropertyFloat","PatternToolOffset","PatternShape","Offset of Pattern Tool shape").PatternToolOffset = 0.0
-#        obj.addProperty("App::PropertyFloat","PatternShapeOffset","PatternShape","Offset of Pattern Shape (result of Pattern Boolean operation)").PatternShapeOffset = 0.0
-#        obj.addProperty("App::PropertyFloat","TipShapeOffset","TipShape","Offset of Tip Shape (result of Tip Boolean operation)").TipShapeOffset = 0.0
-#        obj.addProperty("App::PropertyFloat","TipBaseOffset","TipShape","Whether to offset Tip Base shape").TipBaseOffset = 0.0
-#        obj.addProperty("App::PropertyFloat","TipToolOffset","TipShape","Whether to offset Tip Tool shape").TipToolOffset = 0.0
+#        obj.addProperty("App::PropertyFloat","PatternBaseOffset","PatternOffset","Offset Pattern Base shape (0.0 = no offset)").PatternBaseOffset = 0.0
+#        obj.addProperty("App::PropertyFloat","PatternToolOffset","PatternOffset","Offset of Pattern Tool shape").PatternToolOffset = 0.0
+#        obj.addProperty("App::PropertyFloat","PatternShapeOffset","PatternOffset","Offset of Pattern Shape (result of Pattern Boolean operation)").PatternShapeOffset = 0.0
+#        obj.addProperty("App::PropertyFloat","TipShapeOffset","TipOffset","Offset of Tip Shape (result of Tip Boolean operation)").TipShapeOffset = 0.0
+#        obj.addProperty("App::PropertyFloat","TipBaseOffset","TipOffset","Whether to offset Tip Base shape").TipBaseOffset = 0.0
+#        obj.addProperty("App::PropertyFloat","TipToolOffset","TipOffset","Whether to offset Tip Tool shape").TipToolOffset = 0.0
 #        obj.addProperty("App::PropertyBool","UsePatternBaseAddSubShape","PatternShape","Use pattern base's addsubshape property in place of Pattern base's shape in boolean to create pattern shape").UsePatternBaseAddSubShape = False
 #        obj.addProperty("App::PropertyBool","UseTipBaseAddSubShape","TipShape","Use tip base's addsubshape property in place of Tip Base's shape in boolean to create tip shape").UseTipBaseAddSubShape = False
 #        obj.addProperty("App::PropertyBool","UseTipToolAddSubShape","TipShape","Use tip tool's addsubshape property in place of Tip Tool's shape in boolean to create tip shape").UseTipToolAddSubShape = False
@@ -33,24 +36,22 @@ __version__ = "0.2021.10.13.rev3"
 #        obj.addProperty("App::PropertyBool","ClaimChildren","PDWrapper","Whether to claim children in tree").ClaimChildren = True
 #        obj.addProperty("App::PropertyLink","TipBase","TipShape","Base shape for making the tip shape for this feature")
 #        obj.addProperty("App::PropertyLink","TipTool","TipShape","Tool shape for making the tip shape for this feature")
-##        obj.addProperty("App::PropertyFloat","TipOffset","TipShape","Offset (in mm) of the tip shape boolean result: default = 0.0 (no offset)").TipOffset = 0.0
-#        obj.addProperty("App::PropertyBool","PatternScaleCut","Scaling","Whether to cut scaled object from shape or vice versa").PatternScaleCut = False
-#        obj.addProperty("App::PropertyBool","TipScaleCut","Scaling","Whether to cut scaled object from shape or vice versa").TipScaleCut = False
-#        obj.addProperty("App::PropertyBool","TipOffsetCut","TipShape","Whether to cut offset from shape or vice versa").TipOffsetCut = False
-#        obj.addProperty("App::PropertyEnumeration","TipOffsetMode","TipShape","3D offset mode: Skin, Pipe, Recto-verso").TipOffsetMode = ["Skin","Pipe","Recto-verso"]
-#        obj.addProperty("App::PropertyEnumeration","TipOffsetJoin","TipShape","3D offset join method: Arcs,Tangent,Intersection").TipOffsetJoin = ["Arcs","Tangent","Intersection"]
-##        obj.addProperty("App::PropertyFloat","PatternOffset","PatternShape","Offset (in mm) of the tip shape boolean result: default = 0.0 (no offset)").PatternOffset = 0.0
-#        obj.addProperty("App::PropertyBool","PatternOffsetCut","PatternShape","Whether to cut offset from shape or vice versa").PatternOffsetCut = False
-#        obj.addProperty("App::PropertyEnumeration","PatternOffsetMode","PatternShape","3D offset mode: Skin, Pipe, Recto-verso").PatternOffsetMode = ["Skin","Pipe","Recto-verso"]
-#        obj.addProperty("App::PropertyEnumeration","PatternOffsetJoin","PatternShape","3D offset join method: Arcs,Tangent,Intersection").PatternOffsetJoin = ["Arcs","Tangent","Intersection"]
-#        obj.addProperty("App::PropertyFloat","TipShapeScale","Scaling","Scale to be applied to tip shape boolean result").TipShapeScale = 1.0
-#        obj.addProperty("App::PropertyFloat","TipBaseScale","Scaling","Scale to be applied to tip base").TipBaseScale = 1.0
-#        obj.addProperty("App::PropertyFloat","TipToolScale","Scaling","Scale to be applied to tip tool").TipToolScale = 1.0
-#        obj.addProperty("App::PropertyFloat","PatternShapeScale","Scaling","Scale to be applied to pattern shape").PatternShapeScale = 1.0
-#        obj.addProperty("App::PropertyFloat","PatternBaseScale","Scaling","Scale to be applied to pattern base").PatternBaseScale = 1.0
-#        obj.addProperty("App::PropertyFloat","PatternToolScale","Scaling","Scale to be applied to pattern tool").PatternToolScale = 1.0
+#        obj.addProperty("App::PropertyBool","PatternScaleCut","PatternScale","Whether to cut scaled object from shape or vice versa").PatternScaleCut = False
+#        obj.addProperty("App::PropertyBool","TipScaleCut","TipScale","Whether to cut scaled object from shape or vice versa").TipScaleCut = False
+#        obj.addProperty("App::PropertyBool","TipOffsetCut","TipOffset","Whether to cut offset from shape or vice versa").TipOffsetCut = False
+#        obj.addProperty("App::PropertyEnumeration","TipOffsetMode","TipOffset","3D offset mode: Skin, Pipe, Recto-verso").TipOffsetMode = ["Skin","Pipe","Recto-verso"]
+#        obj.addProperty("App::PropertyEnumeration","TipOffsetJoin","TipOffset","3D offset join method: Arcs,Tangent,Intersection").TipOffsetJoin = ["Arcs","Tangent","Intersection"]
+#        obj.addProperty("App::PropertyBool","PatternOffsetCut","PatternOffset","Whether to cut offset from shape or vice versa").PatternOffsetCut = False
+#        obj.addProperty("App::PropertyEnumeration","PatternOffsetMode","PatternOffset","3D offset mode: Skin, Pipe, Recto-verso").PatternOffsetMode = ["Skin","Pipe","Recto-verso"]
+#        obj.addProperty("App::PropertyEnumeration","PatternOffsetJoin","PatternOffset","3D offset join method: Arcs,Tangent,Intersection").PatternOffsetJoin = ["Arcs","Tangent","Intersection"]
+#        obj.addProperty("App::PropertyFloat","TipShapeScale","TipScale","Scale to be applied to tip shape boolean result").TipShapeScale = 1.0
+#        obj.addProperty("App::PropertyFloat","TipBaseScale","TipScale","Scale to be applied to tip base").TipBaseScale = 1.0
+#        obj.addProperty("App::PropertyFloat","TipToolScale","TipScale","Scale to be applied to tip tool").TipToolScale = 1.0
+#        obj.addProperty("App::PropertyFloat","PatternShapeScale","PatternScale","Scale to be applied to pattern shape").PatternShapeScale = 1.0
+#        obj.addProperty("App::PropertyFloat","PatternBaseScale","PatternScale","Scale to be applied to pattern base").PatternBaseScale = 1.0
+#        obj.addProperty("App::PropertyFloat","PatternToolScale","PatternScale","Scale to be applied to pattern tool").PatternToolScale = 1.0
 #        obj.addProperty("App::PropertyEnumeration","TipOperation","TipShape","Operation to perform with Tip Base and Tip Tool to create feature shape").TipOperation=["Fuse","Cut","Common","XOR","None"]
-#        obj.addProperty("App::PropertyBool","Refine","PDWrapper","Whether to refine shape (removes extra edges")
+#        obj.addProperty("App::PropertyBool","Refine","PartDesign","Whether to refine shape (removes extra edges")
 #        obj.addProperty("App::PropertyString","Type","PatternShape","This object type, can be Additive, Subtractive, Common, XOR, None")
 #        obj.addProperty("App::PropertyFloatConstraint","MeshTolerance","Mesh","Tolerance when wrapping mesh objects").MeshTolerance = (0.1,0.001,10000,.1)
 #        obj.addProperty("App::PropertyBool","RefineMesh","Mesh","Whether to refine Mesh shape after conversion").RefineMesh = True
@@ -58,19 +59,42 @@ __version__ = "0.2021.10.13.rev3"
 #"If Automatic, wrapper manages Tip Base, Tip Tool, Pattern Base, Pattern Tool based on\n\
 #its position in the tree and its type and whether the linked object is a Part Design object\n\
 #or an outside object. If Manual, user must manage these when the tree changes.").ShapeManagement = ["Automatic","Manual"]
-#        obj.addProperty("App::PropertyBool","ShowWarnings","PDWrapper","Set to false to disable annoying warning messages\n").ShowWarnings=True
+#        obj.addProperty("App::PropertyBool","ShowWarnings","UserInterface","Set to false to disable annoying warning messages\n").ShowWarnings=True
 #        obj.ShapeManagement = "Automatic"
 #        obj.setEditorMode("Type",1) #readonly
 #        obj.setEditorMode("Body",1) #readonly
 #        obj.setEditorMode("Version",1)
 #        obj.setEditorMode("TipOperationDefault",2) #hidden
 #        obj.setEditorMode("PatternOperationDefault",2)
+#        self.showProps(obj,"Scale")
+#        self.showProps(obj,"Offset")
+#        self.showProps(obj,"Mesh")
 #        obj.Proxy = self
 #        self.bInhibitRecomputes = False
 #
 #    def onChanged(self,fp,prop):
 #        if prop == "MeshTolerance" or prop == "RefineMesh":
 #            self.resetMeshCache(fp)
+#            fp.touch()
+#        elif prop == "ShowOffsetProps":
+#            self.bInhibitRecomputes = True
+#            self.showProps(fp,"Offset")
+#        elif prop == "ShowScaleProps":
+#            self.bInhibitRecomputes = True
+#            self.showProps(fp,"Scale")
+#        elif prop == "ShowMeshProps":
+#            self.bInhibitRecomputes = True
+#            self.showProps(fp,"Mesh")
+#
+#    def showProps(self,fp,propType):
+#        '''propType is "Offset" or "Scale"'''
+#        bShow = getattr(fp,"Show"+propType+"Props")
+#        props = [p for p in fp.PropertiesList if propType in p and not "Show" in p]
+#        if fp.Type == "None":
+#            props = [p for p in props if not "Pattern" in p]
+#        modeMap = {True:0,False:2}
+#        for prop in props:
+#            fp.setEditorMode(prop,modeMap[bShow])
 #
 #    def resetMeshCache(self,fp):
 #        meshProps = [prop for prop in fp.PropertiesList if "_from_mesh" in prop]
@@ -90,8 +114,9 @@ __version__ = "0.2021.10.13.rev3"
 #            return shp
 #        elif hasattr(link,"Mesh"):
 #            propName = link.Name+"_from_mesh"
+#            fp.ShowMeshProps = True
 #            if hasattr(fp,propName) and not getattr(fp,propName).isNull():
-#                return getattr(fp,propName)
+#                return getattr(fp,propName).copy()
 #            else: #cache the shape so we do not have to rebuild on each access
 #                if not hasattr(fp,propName):
 #                    fp.addProperty("Part::PropertyPartShape",propName)
@@ -234,15 +259,7 @@ __version__ = "0.2021.10.13.rev3"
 #            else:
 #                self.restoreDefaults(fp)
 #
-#    def execute(self,fp):
-#        if self.bInhibitRecomputes:
-#            self.bInhibitRecomputes = False
-#            return
-#        self.manageShape(fp)
-#        if hasattr(fp,"Refine1"):
-#            fp.removeProperty("Refine1") #PD features might already have a Refine feature, but None types will not
-#        if fp.LinkedObject:
-#            self.placeInBody(fp,fp.LinkedObject)
+#    def makeTipShape(self,fp):
 #        shape = Part.Shape()
 #        base_shape = self.getShape(fp,fp.TipBase,fp.UseTipBaseAddSubShape)
 #        base_shape = self.scale(fp,base_shape, fp.TipBaseScale, fp.TipBaseScale != 1.0,fp.TipScaleCut)
@@ -278,6 +295,19 @@ __version__ = "0.2021.10.13.rev3"
 #            shape = base_shape
 #        elif fp.TipTool:
 #            shape = tool_shape
+#        return shape
+#
+#    def execute(self,fp):
+#        if self.bInhibitRecomputes:
+#            self.bInhibitRecomputes = False
+#            return
+#        self.manageShape(fp)
+#        if hasattr(fp,"Refine1"):
+#            fp.removeProperty("Refine1") #PD features might already have a Refine feature, but None types will not
+#        if fp.LinkedObject:
+#            self.placeInBody(fp,fp.LinkedObject)
+#
+#        shape = self.makeTipShape(fp)
 #
 #        if fp.TipShapeOffset != 0 and fp.Enabled:
 #            offset = self.offset(fp,shape,fp.TipShapeOffset,"Tip")
