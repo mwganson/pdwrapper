@@ -251,6 +251,9 @@ Box's Shape and its AddSubShape are the same thing, the box's pattern shape beca
 
 
 ## Changelog
+* 0.2021.10.14 Hide Offset, Scale, and Mesh properties by default (cleans up UI dramatically)
+* Rearrange properties into more subgroups for better or for worse
+* Create User Interface group with ShowMeshProps, ShowOffsetProps, ShowScaleProps, and ShowWarnings
 * 0.2021.10.13.rev3 Changed Offset booleans to floats to allow for individual offsetting, and also enable removing a couple properties<br/>
   since these can act as booleans by testing against 0.0.
 * 0.2021.10.13.rev2 Lots of bug fixes
