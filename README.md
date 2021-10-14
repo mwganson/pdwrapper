@@ -102,13 +102,10 @@ There is another shape that the PDWrapper object provides.  This one I have call
 If you can grasp the above concepts you should be able to make use of PDWrappers in your workflow.<br/>
 ## PDWrapper Types
 There are several options for the type of PDWrapper object.  The object type must be selected during creation time because it cannot be changed dynamically later.  If later you wish to change PDWrapper types you will need to delete the object and create a new one, but in some instances the necessary changes can be made dynamically.  For example, if you create a common additive type you can easily change it to additive or XOR additive by changing the recipes for making the Pattern Shape and the Tool Shape.  But if you create a common additive type you cannot later change it to a common subtractive type.  This must be done at object creation time.<br/>
-<br/>
 ### Additive
 This PDWrapper type adds to (fuses with) the previous solid feature in the Body.  If it is used in a Part Design pattern feature, such as in a polar pattern feature, the copies produced will add to the existing geometry.  The Tip Shape recipe is to fuse the previous solid feature with the encapsulated object.  The Pattern Shape recipe is to simply use the encapsulated object's shape.  This is probably going to be the most commonly used type.<br/>
-<br/>
 ### Subtractive
 This PDWrapper type cuts the encapsulated object from the previous solid feature.  It should not be the first solid feature in the tree because there is nothing ahead of it to remove material from.  The Tip Shape recipe is to cut the Tip Tool (encapsulated object) from the Tip Base (previous solid feature) with a boolean cut.  The Pattern Shape recipe is simply to present the shape of the encapsulated object.  Note: we don't need to use a Cut as the Pattern Operation.  We're building the tool to use in the pattern, not making the cut at this time.   The pattern tool, such as a linear pattern, will cut the Pattern Shape from existing material when making the pattern.  For example, the Tube discussed above, if wrapped with a Subtractive PDWrapper, and then patterned with the linear pattern tool would cut material away with each copy.  Care should be taken, of course, not to leave material unconnected (multiple solids) to the rest of the produced shape.<br/>
-<br/>
 ### Common (Additive)
 The PDWrapper type performs boolean Common with the previous solid feature and the encapsulated object for the Tip Shape.  For the Pattern Shape the recipe is the same.  I'll discuss the various boolean operation types in more detail below.  Because it's an additive type the Pattern Shape gets fused with existing material even though the 2 shapes are created using Common booleans.  FreeCAD does not have Common boolean pattern tools, they are either additive (fuse) or subtractive (cut).  We can get around this limitation by encapsulating a Draft Array inside a Common Additive type.  The caveat here is that single solid limitation.  Part Design has additive and subtractive primitives, but no Common primitives.  Well, it does now!  We can remedy this by using Part workbench primitives encapsulated within Common Additive or Common Subtractive PDWrapper types.<br/>
 ### Common (Subtractive)
@@ -133,9 +130,9 @@ XOR is eXclusive OR meaning matieral is returned in the result where either the 
 ## Properties
 Many properties are hidden by default in order to clean up the interface so it is not so intimidating / confusing / messy.  Offset, Scale, and Mesh related properties are shown/hidden in the User Interface section.
 ## Mesh
+Meshes can be encapsulated with PDWrapper objects, too.  The Part Workbench tool to create shapes from meshes is not parametric, but this one is.   But currently if the Mesh object changes he solid is not rebuilt automatically.  Mesh objects rarely change, but when they do you must manually trigger a rebuild of the shape.  You can do this by changing the tolerance value from the current value and back again or toggle the Mesh Refine property, discussed in the next section, to trigger the rebuild.  The reason for this is rebuilding the mesh shape can sometimes take a long time to do, so we don't want to rebuild every recompute.<br/>
 ### Mesh Tolerance (float constraint)
-Meshes can be encapsulated with PDWrapper objects, too.  In creating the solid from the mesh a tolerance value is used the same way a tolerance value is asked for in the Part workbench Create shape from mesh tool.  That tool is not parametric, but this one is.  If you change the Mesh Tolerance property the solid is rebuilt.  But currently if the Mesh object changes he solid is not rebuilt automatically.  Mesh objects rarely change, but when they do you must manually trigger a rebuild of the shape.  You can do this by changing the tolerance value from the current value and back again or toggle the Mesh Refine property, discussed in the next section, to trigger the rebuild.  The reason for this is rebuilding the mesh shape can sometimes take a long time to do, so we don't want to rebuild every recompute.<br/>
-<br/>
+In creating the solid from the mesh a tolerance value is used the same way a tolerance value is asked for in the Part workbench Create shape from mesh tool. The wiki is silent as to exactly what this property does.  My understanding is it relates to how the facets are sewn together, perhaps for removing gaps between facets.  If you change the Mesh Tolerance property the solid is rebuilt.
 ### Mesh Refine (boolean)
 Mesh objects are in reality triangles connected together to form faces (sometimes called facets).  They are, quite frankly, ugly monstrosities.  The Mesh Refine property will usually remove some, but rarely all, of the extra triangles.  This is not to be confused with the Refine property all Part Design additive and subtractive features have.  The Mesh is refined before it is returned as a solid shape by the mesh conversion algorithm.  The PDWrapper will use the Tip Shape recipe to fuse/cut/whatever this solid with the previous solid feature, which might leave unrefined edges, which can be taken care of with the Refine property.  It should be noted that mesh objects are often downloaded from model sharing services, such as thingiverse, and there is need to modify them in one way or another.  The problem is often these mesh objects are defective.  Garbage in, garbage out.  Some might be so defective they cannot be converted into a shape or they might fail with boolean operations.<br/>
 <br/>
@@ -144,39 +141,30 @@ Mesh objects are in reality triangles connected together to form faces (sometime
 This is the name of the Body object containing this PDWrapper and encapsulated object.<br/>
 <br/>
 ### Claim Children (boolean)
-If true the PDWrapper object claims the encapsulated object as a child in the tree view.  Default is true.  You can toggle this from true to false and back again to see its effect.  If Claim Children is true and if the PDWrapper object is deleted, then it will remove the encapsulated object from the Body (unless the encapsulated object is a Part Design feature or a 2D object).  If Claim Children is false, then the encapsulated object is left in the Body.  So, this can be a convenient way to put something into a body.<br/>
-<br/>
+If true the PDWrapper object claims the encapsulated object as a child in the tree view.  Default is true.  You can toggle this from true to false and back again to see its effect.  If Claim Children is true and if the PDWrapper object is deleted, then it will remove the encapsulated object from the Body (unless the encapsulated object is a Part Design feature or a 2D object).  If Claim Children is false, then the encapsulated object is left in the Body.  So, this can be a convenient way to put something into a body.
 ### Enabled (boolean)
 Default: True.  If set to False it disables the PDWrapper object by passing it's base feature's shape (the feature ahead of it in the tree) as its own shape to the next feature in the tree.  This allows for dynamically changing which objects are part of the model, which can be a very powerful tool.  For example, set it to False in a spreadsheet if a certain property is less than some value.<br/>
 ### Linked Object (link)
 This is the encapsulated object.  Other link properties will typically also point to this object, example Tip Tool.<br/>
-<br/>
 ### Shape Management (enumeration)
 Default: "Automatic".  Options: "Automatic", "Manual".  In Automatic mode the Tip Base, Tip Tool, Pattern Base, Pattern Tool, and a few other properties are managed for you automatically by the Shape Manager when the tree changes, for example if the object is moved within the tree or if another object ahead of it in the tree is deleted.  In Manual mode you must manage this yourself.  In Manual mode you have more control because in Automatic mode some of your property changes might be undone.<br/>
-<br/>
 ### Show Warnings (boolean)
 Default is true.  There are warnings when the PDWrapper Tip Shape contains multiple solids, a big no no in Part Design.  But such shapes are allowed by the PDWrapper object.  They are only problematic when the subsequent operation, if any, does not reconcile this by bridging all of the disconnected shapes back together.  In Part Design *every* boolean result in the chain must produce a single contiguous solid.  PDWrappers can be a way to get around this limitation if used carefully.  The Show Warnings property, if set to false, will disable output of these and a few other warning messages, which can become annoying after a time.<br/>
-<br/>
 ### Type (string) (readonly)
 This is the feature python type used in creating the PDWrapper object.  This must be done at creation time when the base class is selected.  If this is "Additive" it means the PDWrapper object is of type PartDesign::FeatureAdditivePython.  If "Subtractive", PartDesign::FeatureSubtractivePython.  If "None", PartDesign::FeaturePython.  If this is "None" then the PDWrapper object cannot be used as the base for a pattern tool, such as linear patterns.  (In such cases, some properties related only to patterns will be hidden.  If "Additive" the pattern feature will fuse the copies with existing material.  If "Subtractive" the pattern tool will cut the copies from existing material.  If "None" you can't use the wrapper in patterns.<br/>
 ### Version (string)
 The version of PDWrapper macro used to create this PDWrapper object.  It need not necessarily be the same version as currently installed (unless some change I made breaks existing models, which happens from time to time early in development).<br/>
-<br/>
 ## Part Design
 ### Refine (boolean)
 This is a property you will most likely already be familiar with.  All additive/subtractive Part Design features have this property.  The None type does not, but we add it to them in the PDWrapper group.<br/>
-<br/>
 ## Pattern Shape
 Pattern Shape is the shape used by pattern tools, example: polar pattern, in making copies.  This shape is the result of a boolean operation (Pattern Operation) using Pattern Base and Pattern Tool.<br/>
-<br/>
 ### Pattern Base (link)
 Base shape used in the boolean operation to create the Pattern Shape.<br/>
 ### Pattern Operation (enumeration)
 Boolean operation used to create Pattern Shape.  Options are None, Cut, Fuse, Common, XOR.  In some cases this is managed by the Shape Manager.  Set ShapeManagement to Manual if it is getting changed from where you have tried to set it.<br/>
-<br/>
 ### Pattern Tool (link)
 Tool shape used in the boolean operation to create the Pattern Shape.<br/>
-<br/>
 ### Use Pattern Base Add Sub Shape (boolean)
 Default: False.  If True the Pattern Base object's AddSubShape is used in place of its Shape in all operations.  As an example, if you have a model with a Pad and an Additive Box:
 <pre>
@@ -204,23 +192,33 @@ Default: Pipe.  The mode to use when creating the offset.  Honestly, I can't rea
 ## Scaling
 PDWrapper objects support scaling of shapes used in the 2 recipes for creating the Tip Shape and the Pattern Shape as well as scaling of Tip Shape and Pattern Shape.  Note: scales are independent of one another and can be applied multiple times.  For example, if TipTool is scaled to 2.0 and TipShape is also scaled to 2.0, then the TipTool final scale is 4.0.  Negative values may be used, which produce sometimes a mirror effect.  For better mirroring / scaling control consider encapsulating a Draft Clone of the Linked Object.  To do this, wrap the Draft Clone as one of the additive or subtractive types if it's a clone of one of the solid features in the tree.  If it's a clone of a non-Part Design object, then that object needs to also be wrapped in a None type so it uses the Body's local coordinate system and to avoid links out of scope warnings.<br/>
 ## Pattern Scale
+Pattern scaling only affects the model when a pattern feature is used, such as making a polar pattern.  If you are not making a pattern, then all the pattern-related properties can be ignored.  Scale defaults are all 1.0.  If scale factor is other than 1.0, then scaling is done, otherwise it is not.  Example: scale = 2.0 means the new scaled object is 2x the size of the original.
 ### Pattern Scale Cut (boolean)
+Default: False.  If True, the original pattern shape is cut from the scaled shape if scale factor is > 1, else if scale < 1, the scaled shape is cut from the original pattern shape.
 ### Pattern Base Scale (float)
+Applies only to Pattern Base object.  Note: the object itself isn't scaled.  Instead a copy of its shape is made and that copy is scaled during production of the Pattern Shape.
 ### Pattern Shape Scale (float)
+Applies the scale to the result of the Pattern Operation.
 ### Pattern Tool Scale (float)
+Applies the scale to a copy of the Pattern Tool object.
 ## Tip Scale
+Scaling can be applied independently to the 3 Tip shapes:  Tip Base, Tip Tool, and Tip Shape.  Tip Base is the base object used in the Tip Operation, typically the previous solid feature in the tree, aka the PDWrapper object's BaseFeature.  If Tip Base is scaled, a copy of the Tip Base is made and that copy is scaled and used in the Tip Operation.  Same for Tip Base scaling.  The Base and Tool are scaled first, and then scaling is applied to the result (Tip Shape).  If you scale Tip Base = 2.0, Tip Tool = 2.0, and Tip Shape = 2.0 you are scaling 8x because each scale is applied independently.
 ### Tip Base Scale (float)
+Scale applied to a copy of the Tip Base shape, which is then used to create the Tip Shape.
 ### Tip Scale Cut (boolean)
 Default: False.  If True, and if scale is other than 1.0, the original object is cut from the scaled object if scale is greater than 1.0 or the scaled object is cut from the original if scale is less than 1.0.  This basically hollows out the interior.  It's sort of a Thickness, but without the open face.  Of course, you can cut out the face, if desired, in a subsequent operation.
 ### Tip Shape Scale (float)
+Scale applied to Tip Shape, which is the result of the Tip Operation, a boolean operation performed on the Tip Base and the Tip Tool.
 ### Tip Tool Scale (float)
-These are fairly self-explanatory.  Use them to scale the shape of that linked object before using it in the recipe to create the shape.  For example, if you want to scale the Tip Tool object (which is usually the linked object) then you would set the Tip Tool Scale property to the desired scale factor.  Tip Shape Scale and Pattern Shape Scale scale the results of the boolean operations and are applied in addition to the base and tool scales.  Experiment with these to see the effects.  When scaling patterns you must scale the Tip Tool separately if you want to also scale the original element of the pattern.  If Scale = 1.0, then no scaling is done.<br/>
+Scaled applied to the Tip Tool, or technically to a copy of the Tip Tool shape.  The Tip Tool object itself is unchanged.  The scaled copy is then used in the Tip Operation to create the Tip Shape.
 ## Tip Offset
+Where scaling is a percentage (1.0 = 100%) offsetting is a dimension.  The default is 0.0, which is no offsetting at all.  An Offset value of 1.0 would mean offset by 1 mm.
 ### Tip Offset Cut (boolean)
 Default: False.  Whether to cut the offset from the original or vice-versa, creating a hollow solid, like a thickness but without an opening into the interior.  See also Tip Scale Cut, which works on scales instead of offsets.<br/>
-### Tip Shape Offset Join
-### Tip Shape Offset Mode
-See Pattern shape properties of the same name.  These properties are applied to any and all offsets in the Tip Shape section.  Note: the objects themselves are not offset.  A copy of their shapes is offset and used in the Tip Operation boolean operation, or in the case of the Tip Shape, the offset is applied to the result.<br/>
+### Tip Shape Offset Join (enumeration)
+Default: Arcs.  The join type for the tip shape offset: can be "Arcs", "Tangent" or "Intersection".  My experience has been Arcs mode is the most reliable to succeed.  Offsets are difficult for FreeCAD.<br/>
+### Tip Shape Offset Mode (enumeration)
+Default: Pipe.  The mode to use when creating the offset.  Honestly, I can't really see a difference except maybe sometimes one will succeed where the others fail.  Options: Pipe, Skin, Recto-verso.<br/>
 ### Tip Base Offset (float)
 Default: 0.0  If not 0.0 the offset is applied to the Tip Base prior to using it in the Tip Operation (along with Tip Tool) to create the Tip Shape, the shape you see in the 3D view and the shape of the Body the PDWrapper object is the Body's Tip object.<br/>
 ### Tip Shape Offset (float)
@@ -228,8 +226,7 @@ Default: 0.0  Tip Shape is the shape created when the boolean Tip Operation is a
 ### Tip Tool Offset (float)
 Default: 0.0  If any value other than 0.0 the Tip Tool is offset by the amount in the Tip Offset property.
 ## Tip Shape
-Here is where the recipe for building the Tip Shape is.  The Tip Shape is the shape you see in the 3D view when the PDWrapper object is the visible feature.  I call it Tip Shape because it's the shape the Body presents when this feature is the Tip for the Body.  It is created using the Tip Shape recipe, which includes Tip Base, Tip Tool, and Tip Operation (the boolean to use)<br/>
-
+Here are the properties that make up the recipe for building the tip shape.  The Tip Shape is the shape you see in the 3D view when the PDWrapper object is the visible feature.  I call it Tip Shape because it's the shape the Body presents when this feature is the Tip for the Body.  It is created using the Tip Shape recipe, which includes Tip Base, Tip Tool, and Tip Operation (the boolean to use)<br/>
 ### Tip Base (link)
 The object used as the base for the Tip Operation (along with the Tip Tool) in generating the PDWrapper object's Tip Shape.  I call it Tip Shape because it is the shape the Body inherits when an object is the Tip feature.  It's also the shape any features that follow in the tree will combine with to create their Tip Shape.  Tip Base is always going to be the previous solid feature by default, but you can change it if you want a different Tip Shape.  Remember, the Base has the material that the Tool will cut away.  For example, to make a round hole in a cube you would use the cube as the base and a cylinder as the tool.<br/>
 ### Tip Operation (enumeration)
