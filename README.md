@@ -34,9 +34,12 @@ Here we use a Part Workbench variable fillet wrapped inside a PDWrapper Common A
 <br/>
 And here the same object as above, but this time imported as type XOR Additive:<br/>
 <br/>
-<img src="examples/pdwrapper_scr9.png" alt="screeenshot"><br/><br/>
+<img src="examples/pdwrapper_scr9.png" alt="screeenshot"><br/>
 <br/>
-
+Importing a mesh object directly into a Part Design body using PDWrapper Additive type:<br/>
+<br/>
+<img src="pdwrapper_scr11.png" alt="imported mesh example screenshot"><br/>
+<br/>
 Part Design Wrapper object.  Encapsulates objects created outside Part Design for use inside Part Design bodies in FreeCAD.  For example, if you wish to use a Part workbench primitive, such as a Tube object in a Part Design model you can add it to the active body by selecting it and running the macro.  The macro creates a PDWrapper feature python object to encapsulate the Tube and allow it to work in the Part Design body.  In a new body the tree would look like this:
 
 <pre>
