@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-__version__ = "0.2021.10.13.rev2"
-#__version__ = "0.2021.10.13.rev2"
+__version__ = "0.2021.10.13.rev3"
+#__version__ = "0.2021.10.13.rev3"
 ## PDWrapper a class to encapsulate non-Part Design objects into a PartDesign::FeaturePython object
 ## 2021, by <TheMarkster>
 #
@@ -14,12 +14,12 @@ __version__ = "0.2021.10.13.rev2"
 #        obj.addProperty("App::PropertyIntegerConstraint","Enabled","PDWrapper","If False, passes through previous solid feature as tip shape").Enabled = (1,0,1,1)
 #        obj.addProperty("App::PropertyLink","PatternBase","PatternShape","Base shape presented for patterning")
 #        obj.addProperty("App::PropertyBool","UsePatternToolAddSubShape","PatternShape","Use pattern tools addsubshape property in place of Pattern tool's shape in boolean to create pattern shape").UsePatternToolAddSubShape = False
-#        obj.addProperty("App::PropertyBool","OffsetPatternBase","PatternShape","Whether to offset Pattern Base shape").OffsetPatternBase = False
-#        obj.addProperty("App::PropertyBool","OffsetPatternTool","PatternShape","Whether to offset Pattern Tool shape").OffsetPatternTool = False
-#        obj.addProperty("App::PropertyBool","OffsetPatternShape","PatternShape","Whether to offset Pattern Shape (result of Pattern Boolean operation)").OffsetPatternShape = False
-#        obj.addProperty("App::PropertyBool","OffsetTipShape","TipShape","Whether to offset Tip Shape (result of Tip Boolean operation)").OffsetTipShape = False
-#        obj.addProperty("App::PropertyBool","OffsetTipBase","TipShape","Whether to offset Tip Base shape").OffsetTipBase = False
-#        obj.addProperty("App::PropertyBool","OffsetTipTool","TipShape","Whether to offset Tip Tool shape").OffsetTipTool = False
+#        obj.addProperty("App::PropertyFloat","PatternBaseOffset","PatternShape","Offset Pattern Base shape (0.0 = no offset)").PatternBaseOffset = 0.0
+#        obj.addProperty("App::PropertyFloat","PatternToolOffset","PatternShape","Offset of Pattern Tool shape").PatternToolOffset = 0.0
+#        obj.addProperty("App::PropertyFloat","PatternShapeOffset","PatternShape","Offset of Pattern Shape (result of Pattern Boolean operation)").PatternShapeOffset = 0.0
+#        obj.addProperty("App::PropertyFloat","TipShapeOffset","TipShape","Offset of Tip Shape (result of Tip Boolean operation)").TipShapeOffset = 0.0
+#        obj.addProperty("App::PropertyFloat","TipBaseOffset","TipShape","Whether to offset Tip Base shape").TipBaseOffset = 0.0
+#        obj.addProperty("App::PropertyFloat","TipToolOffset","TipShape","Whether to offset Tip Tool shape").TipToolOffset = 0.0
 #        obj.addProperty("App::PropertyBool","UsePatternBaseAddSubShape","PatternShape","Use pattern base's addsubshape property in place of Pattern base's shape in boolean to create pattern shape").UsePatternBaseAddSubShape = False
 #        obj.addProperty("App::PropertyBool","UseTipBaseAddSubShape","TipShape","Use tip base's addsubshape property in place of Tip Base's shape in boolean to create tip shape").UseTipBaseAddSubShape = False
 #        obj.addProperty("App::PropertyBool","UseTipToolAddSubShape","TipShape","Use tip tool's addsubshape property in place of Tip Tool's shape in boolean to create tip shape").UseTipToolAddSubShape = False
@@ -33,13 +33,13 @@ __version__ = "0.2021.10.13.rev2"
 #        obj.addProperty("App::PropertyBool","ClaimChildren","PDWrapper","Whether to claim children in tree").ClaimChildren = True
 #        obj.addProperty("App::PropertyLink","TipBase","TipShape","Base shape for making the tip shape for this feature")
 #        obj.addProperty("App::PropertyLink","TipTool","TipShape","Tool shape for making the tip shape for this feature")
-#        obj.addProperty("App::PropertyFloat","TipOffset","TipShape","Offset (in mm) of the tip shape boolean result: default = 0.0 (no offset)").TipOffset = 0.0
+##        obj.addProperty("App::PropertyFloat","TipOffset","TipShape","Offset (in mm) of the tip shape boolean result: default = 0.0 (no offset)").TipOffset = 0.0
 #        obj.addProperty("App::PropertyBool","PatternScaleCut","Scaling","Whether to cut scaled object from shape or vice versa").PatternScaleCut = False
 #        obj.addProperty("App::PropertyBool","TipScaleCut","Scaling","Whether to cut scaled object from shape or vice versa").TipScaleCut = False
 #        obj.addProperty("App::PropertyBool","TipOffsetCut","TipShape","Whether to cut offset from shape or vice versa").TipOffsetCut = False
 #        obj.addProperty("App::PropertyEnumeration","TipOffsetMode","TipShape","3D offset mode: Skin, Pipe, Recto-verso").TipOffsetMode = ["Skin","Pipe","Recto-verso"]
 #        obj.addProperty("App::PropertyEnumeration","TipOffsetJoin","TipShape","3D offset join method: Arcs,Tangent,Intersection").TipOffsetJoin = ["Arcs","Tangent","Intersection"]
-#        obj.addProperty("App::PropertyFloat","PatternOffset","PatternShape","Offset (in mm) of the tip shape boolean result: default = 0.0 (no offset)").PatternOffset = 0.0
+##        obj.addProperty("App::PropertyFloat","PatternOffset","PatternShape","Offset (in mm) of the tip shape boolean result: default = 0.0 (no offset)").PatternOffset = 0.0
 #        obj.addProperty("App::PropertyBool","PatternOffsetCut","PatternShape","Whether to cut offset from shape or vice versa").PatternOffsetCut = False
 #        obj.addProperty("App::PropertyEnumeration","PatternOffsetMode","PatternShape","3D offset mode: Skin, Pipe, Recto-verso").PatternOffsetMode = ["Skin","Pipe","Recto-verso"]
 #        obj.addProperty("App::PropertyEnumeration","PatternOffsetJoin","PatternShape","3D offset join method: Arcs,Tangent,Intersection").PatternOffsetJoin = ["Arcs","Tangent","Intersection"]
@@ -131,13 +131,13 @@ __version__ = "0.2021.10.13.rev2"
 #        base = fp.PatternBase if fp.PatternBase else None #null shape
 #        base_shape = self.getShape(fp,base,fp.UsePatternBaseAddSubShape)
 #        base_shape = self.scale(fp,base_shape, fp.PatternBaseScale, fp.PatternBaseScale != 1.0,fp.PatternScaleCut)
-#        if fp.OffsetPatternBase:
-#            base_shape = self.offset(fp,base_shape,"Pattern")
+#        if fp.PatternBaseOffset != 0:
+#            base_shape = self.offset(fp,base_shape,fp.PatternBaseOffset,"Pattern")
 #        tool = fp.PatternTool if fp.PatternTool else None
 #        tool_shape = self.getShape(fp,tool,fp.UsePatternToolAddSubShape)
 #        tool_shape = self.scale(fp,tool_shape, fp.PatternToolScale, fp.PatternToolScale != 1.0,fp.PatternScaleCut)
-#        if fp.OffsetPatternTool:
-#            tool_shape = self.offset(fp,tool_shape,"Pattern")
+#        if fp.PatternToolOffset != 0.0:
+#            tool_shape = self.offset(fp,tool_shape,fp.PatternToolOffset,"Pattern")
 #        op = fp.PatternOperation
 #        if not tool:
 #            return base_shape if base else Part.Shape()
@@ -252,10 +252,10 @@ __version__ = "0.2021.10.13.rev2"
 #            tool_shape = Part.Shape()
 #        if not base_shape:
 #            base_shape = Part.Shape()
-#        if fp.TipOffset != 0 and fp.OffsetTipTool:
-#            tool_shape = self.offset(fp,tool_shape,"Tip")
-#        if fp.TipOffset != 0 and fp.OffsetTipBase:
-#            base_shape = self.offset(fp,base_shape,"Tip")
+#        if fp.TipToolOffset != 0:
+#            tool_shape = self.offset(fp,tool_shape,fp.TipToolOffset,"Tip")
+#        if fp.TipBaseOffset != 0:
+#            base_shape = self.offset(fp,base_shape,fp.TipBaseOffset,"Tip")
 #        if fp.TipTool and fp.TipBase:
 #            op = fp.TipOperation
 #            if op == "Cut":
@@ -279,8 +279,8 @@ __version__ = "0.2021.10.13.rev2"
 #        elif fp.TipTool:
 #            shape = tool_shape
 #
-#        if fp.OffsetTipShape and fp.TipOffset != 0 and fp.Enabled:
-#            offset = self.offset(fp,shape,"Tip")
+#        if fp.TipShapeOffset != 0 and fp.Enabled:
+#            offset = self.offset(fp,shape,fp.TipShapeOffset,"Tip")
 #            shape = offset
 #
 #        if not fp.Shape.isNull() and fp.Refine and fp.Enabled:
@@ -294,8 +294,8 @@ __version__ = "0.2021.10.13.rev2"
 #            addsubshape = self.makeAddSubShape(fp)
 #            fp.AddSubShape = addsubshape if not fp.Refine else addsubshape.removeSplitter()
 #            fp.AddSubShape = self.scale(fp,fp.AddSubShape,fp.PatternShapeScale,fp.PatternShapeScale != 1.0,fp.PatternScaleCut)
-#            if fp.PatternOffset != 0 and fp.OffsetPatternShape:
-#                fp.AddSubShape = self.offset(fp,fp.AddSubShape,"Pattern")
+#            if fp.PatternShapeOffset != 0:
+#                fp.AddSubShape = self.offset(fp,fp.AddSubShape,fp.PatternShapeOffset,"Pattern")
 #
 #        if len(fp.Shape.Solids)>1:
 #            self.warn(fp,"PDWrapper shape has multiple solids.  This could cause subsequent operations to fail or produce unexpected results.\n")
@@ -308,19 +308,19 @@ __version__ = "0.2021.10.13.rev2"
 #            return
 #        FreeCAD.Console.PrintMessage(msg+"\n")
 #
-#    def offset(self,fp,shp,tipOrPattern):
+#    def offset(self,fp,shp,factor,tipOrPattern):
 #        '''shp is shape to offset, tipOrPattern is a string = "Pattern" or "Tip", returns offset shape
 #           if bCut = True, the shp is cut from the offset or vice versa if offset < 0'''
 #        if shp == None or shp.isNull():
 #            return shp
 #        if tipOrPattern == "Pattern":
-#            if fp.PatternOffset == 0:
+#            if factor == 0:
 #                return shp
 #            psoTol = 1e-7
 #            psoMode = 0 if fp.PatternOffsetMode == "Skin" else 1 if fp.PatternOffsetMode == "Pipe" else 2 if fp.PatternOffsetMode == "Recto-verso" else -1
 #            psoJoin = 0 if fp.PatternOffsetJoin == "Arcs" else 1 if fp.PatternOffsetJoin == "Tangent" else 2 if fp.PatternOffsetMode == "Intersection" else -1
 #            psoFill = False
-#            offsetShp = shp.makeOffsetShape(fp.PatternOffset,tolerance=psoTol,offsetMode = psoMode, join = psoJoin, fill = psoFill)
+#            offsetShp = shp.makeOffsetShape(factor,tolerance=psoTol,offsetMode = psoMode, join = psoJoin, fill = psoFill)
 #            if fp.PatternOffsetCut:
 #                if fp.PatternOffset < 0:
 #                    return shp.cut(offsetShp)
@@ -329,13 +329,13 @@ __version__ = "0.2021.10.13.rev2"
 #            else:
 #                return offsetShp
 #        elif tipOrPattern == "Tip":
-#            if fp.TipOffset == 0:
+#            if factor == 0:
 #                return shp
 #            tsoTol = 1e-7
 #            tsoMode = 0 if fp.TipOffsetMode == "Skin" else 1 if fp.TipOffsetMode == "Pipe" else 2 if fp.TipOffsetMode == "Recto-verso" else -1
 #            tsoJoin = 0 if fp.TipOffsetJoin == "Arcs" else 1 if fp.TipOffsetJoin == "Tangent" else 2 if fp.TipOffsetMode == "Intersection" else -1
 #            tsoFill = False
-#            offsetShp = shp.makeOffsetShape(fp.TipOffset,tolerance=tsoTol,offsetMode = tsoMode, join = tsoJoin, fill = tsoFill)
+#            offsetShp = shp.makeOffsetShape(factor,tolerance=tsoTol,offsetMode = tsoMode, join = tsoJoin, fill = tsoFill)
 #            if fp.TipOffsetCut:
 #                if fp.TipOffset < 0:
 #                    return shp.cut(offsetShp)
