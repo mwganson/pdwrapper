@@ -17,6 +17,7 @@ With PDWrapper you can:
 * Use Mesh objects directly in Part Design
 
 ## Brief Examples
+Look in the examples folder for these files.
 #### Dynamic Solid Features
 Example of using a PDWrapper None type to dynamically enable/disable certain features in the tree, removing them from the solid feature chain.  When the height of the Additive Box falls below a certain threshold value the support structure isn't used in the model.<br/>
 <br/>
