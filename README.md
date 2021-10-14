@@ -36,7 +36,7 @@ And here the same object as above, but this time imported as type XOR Additive:<
 <br/>
 <img src="examples/pdwrapper_scr9.png" alt="screeenshot"><br/>
 <br/>
-Importing a mesh object directly into a Part Design body using PDWrapper Additive type:<br/>
+Importing a mesh object directly into a Part Design body using PDWrapper Additive type.  The wrapper object does the conversion to a solid automatically.<br/>
 <br/>
 <img src="pdwrapper_scr11.png" alt="imported mesh example screenshot"><br/>
 <br/>
