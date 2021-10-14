@@ -1,5 +1,3 @@
-### This document (and this macro) is still under construction
-
 # Macro PDWrapper
 
 With PDWrapper you can:
@@ -16,6 +14,7 @@ With PDWrapper you can:
 * Use Draft Arrays of solid objects in Part Design
 * Use Draft Arrays of sketches in Part Design <a href="examples/pdwrapper_draft_array_of_sketches_example.FCStd">Example</a>
 * When PDWrapper object is the Body's Tip it can have multiple solids (generates warning)
+* Use Mesh objects directly in Part Design
 
 Example of using a PDWrapper None type to dynamically enable/disable certain features in the tree, removing them from the solid feature chain.  When the height of the Additive Box falls below a certain threshold value the support structure isn't used in the model.<br/>
 <br/>
