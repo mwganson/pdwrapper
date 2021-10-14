@@ -56,8 +56,8 @@ Part Design Wrapper object.  Encapsulates objects created outside Part Design fo
 <pre>
 Body
     Origin
-    PDWrapper
-        Tube
+    Tube
+    PDW_Add (Tube)
 </pre>
 
 While the idea behind creating this was to use it with non-Part Design objects, such as Part workbench solids, it has evolved into also being quite useful for wrapping earlier Part Design native features in the Part Design tree.  For example, we can wrap an Additive Box inside a Common (Additive) PDWrapper and turn it into a Common (intersection) Box, or turn a threaded Part Design Hole feature into a threaded rod.  Or, we can wrap a previous feature inside a "None" type PDWrapper and disable it, along with all the other features between it and the PDWrapper in the tree.  What's more, we can dynamically (via Expressions) enable/disable a PDWrapper and the object it encapsulates.  For example, if a model is above a certain height it might require some support structure.  With the PDWrapper's Enable property we can decide whether to include the support based on the height property.<br/>
@@ -254,6 +254,7 @@ Default: False (unless wrapped object is a mesh).  Whether to show properties re
 Default is true.  There are warnings when the PDWrapper Tip Shape contains multiple solids, a big no no in Part Design.  But such shapes are allowed by the PDWrapper object.  They are only problematic when the subsequent operation, if any, does not reconcile this by bridging all of the disconnected shapes back together.  In Part Design *every* boolean result in the chain must produce a single contiguous solid.  PDWrappers can be a way to get around this limitation if used carefully.  The Show Warnings property, if set to false, will disable output of these and a few other warning messages, which can become annoying after a time.<br/>
 
 ## Changelog
+* 0.2021.10.14.rev4 fix bug where "Type" property was being accessed before the object was fully initialized.
 * 0.2021.10.14.rev3 fix bug related to installing with addon manager
 * 0.2021.10.14.rev2 Put Type property in PDWrapper section
 * 0.2021.10.14 Hide Offset, Scale, and Mesh properties by default (cleans up UI dramatically)
