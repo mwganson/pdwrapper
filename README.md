@@ -98,25 +98,26 @@ This PDWrapper type cuts the encapsulated object from the previous solid feature
 <br/>
 ### Common (Additive)
 The PDWrapper type performs boolean Common with the previous solid feature and the encapsulated object for the Tip Shape.  For the Pattern Shape the recipe is the same.  I'll discuss the various boolean operation types in more detail below.  Because it's an additive type the Pattern Shape gets fused with existing material.  FreeCAD does not have Common boolean pattern tools, they are either additive (fuse) or subtractive (cut).  We can get around this limitation by encapsulating a Draft Array inside a Common Additive type.  The caveat here is that single solid limitation.  The more useful scenario is using the Tip Shape and not so much using the Pattern Shape with this type.  Part Design has additive and subtractive primitives, but no Common primitives.  We can remedy this by using Part workbench primitives encapsulated within Common Additive  or Common Subtractive PDWrapper types.<br/>
-<br/>
 ### Common (Subtractive)
 This is similar to Common (Additive) except instead of adding material during pattern creation, FreeCAD will remove material.  The recipes for Tip Shape and Pattern Shape are the same.  The only difference is when using a pattern tool.<br/>
-<br/>
 ### XOR (Additive)
 Here we use the XOR boolean (exclusive or).  The recipes for XOR and Common types are the same except XOR is used in place of Common for the boolean operations.  I'll discuss boolean operations in more detail below.<br/>
-<br/>
 ### XOR (Subtractive)
 Subtractive version of XOR (Additive).  Only difference is tool patterns will remove material rather than add material.<br/>
-<br/>
 ### None
 Use this type where you don't want the wrapped object to be part of the solid feature chain.  Perhaps you want it for reference or so it can be a dependency of another object that will be part of the solid feature chain.  Basically, it's a way of getting the non-Part Design object into the body.<br/>
 <br/>
 If you wrap a Part Design object that's already in the body it will remove that object (and all objects between the linked object and the PDWrapper in the feature tree) from the solid feature chain.  The objects are still there and still in the tree and are still recomputed and can still be used as references, but they won't be part of the solid feature train.  This can be useful where you would like to dynamically incorporate solid features into your body based on some condition.  (See the Enabled property.)
-<br/>
-
 ### Boolean Operations
-The Common boolean operation is sometimes called intersection.  In boolean logic terms it is a boolean AND operation.  For there to be material returned from the operation at a given coordinate there must be material at that coordinate in both the Base shape AND the Tool shape.  Contrast this with a fusion operation, which is logical OR.  If Base shape has material OR Tool shape has material at a given coordinate then material will be at that coordinate in the result.  And with the Cut operation you have (I think) logical NOT AND or NAND.  Base shape at a given coordinate AND NOT Tool shape material at that same given location in order for there to be material in the result.  XOR is eXclusive OR meaning matieral is returned in the result where either the Base Shape has material OR the Tool Shape has material but not BOTH.  It might help to think of this as the OPPOSITE of Common.  Where the Common removes all material except intersecting material, XOR removes only intersecting material.  It differs from a Cut because material from the Tool Shape is retained with XOR whereas with a Cut it is not. <br/>
-<br/>
+These are called boolean operations because they employ boolean logic in their algorithms.
+#### Common boolean
+The Common boolean operation is sometimes called intersection.  In boolean logic terms it is a boolean AND operation.  For there to be material returned from the operation at a given coordinate there must be material at that coordinate in both the Base shape AND the Tool shape.<br/>
+#### Fuse boolean
+Fusing is a logical OR.  If Base shape has material OR Tool shape (or BOTH) has material at a given coordinate then material will be at that coordinate in the result.  This is also sometimes called a Union or Fusion.<br/>
+#### Cut boolean
+With the Cut operation you have (I think) logical NOT AND or NAND.  Base shape material at a given coordinate AND NOT Tool shape material at that same given location in order for there to be material in the result.
+#### XOR boolean
+XOR is eXclusive OR meaning matieral is returned in the result where either the Base Shape has material OR the Tool Shape has material but NOT BOTH.  It might help to think of this as the OPPOSITE of Common.  Where the Common removes all material except intersecting material, XOR removes only intersecting material.  It differs from a Cut because material from the Tool Shape is retained with XOR whereas with a Cut it is not because all of the tool material is removed.  Boolean XOR will have limited use in Part Design due to the single solid limitation. <br/>
 ## Properties
 ## Mesh
 ### Mesh Tolerance (float constraint)
@@ -125,8 +126,6 @@ Meshes can be encapsulated with PDWrapper objects, too.  In creating the solid f
 ### Mesh Refine (boolean)
 Mesh objects are in reality triangles connected together to form faces (sometimes called facets).  They are, quite frankly, ugly monstrosities.  The Mesh Refine property will usually remove some, but rarely all, of the extra triangles.  This is not to be confused with the Refine property all Part Design additive and subtractive features have.  The Mesh is refined before it is returned as a solid shape by the mesh conversion algorithm.  The PDWrapper will use the Tip Shape recipe to fuse/cut/whatever this solid with the previous solid feature, which might leave unrefined edges, which can be taken care of with the Refine property.  It should be noted that mesh objects are often downloaded from model sharing services, such as thingiverse, and there is need to modify them in one way or another.  The problem is often these mesh objects are defective.  Garbage in, garbage out.  Some might be so defective they cannot be converted into a shape or they might fail with boolean operations.<br/>
 <br/>
-
-
 ## PDWRapper
 ### Body (string)
 This is the name of the Body object containing this PDWrapper and encapsulated object.<br/>
