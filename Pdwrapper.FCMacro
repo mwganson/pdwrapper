@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-__version__ = "0.2021.10.14.rev7"
-#__version__ = "0.2021.10.14.rev7"
+__version__ = "0.2021.10.14.rev8"
+#__version__ = "0.2021.10.14.rev8"
 ## PDWrapper a class to encapsulate non-Part Design objects into a PartDesign::FeaturePython object
 ## 2021, by <TheMarkster>
 #
@@ -443,14 +443,19 @@ __version__ = "0.2021.10.14.rev7"
 #        else:
 #            return []
 #
+#    def setupContextMenu(self, vobj, menu):
+#        text = {True:"Disable %1",False:"Enable %1"}
+#        action = menu.addAction(text[vobj.Object.Enabled].replace("%1",vobj.Object.Label))
+#        action.triggered.connect(lambda: self.setEdit(vobj,0))
+#
 #    def setEdit(self,vp,modNum):
 #        if modNum == 0:
 #            vp.Object.Enabled = 0 if vp.Object.Enabled else 1
-#            FreeCADGui.activeDocument().resetEdit()
+#            vp.Document.resetEdit()
 #            FreeCAD.ActiveDocument.recompute()
 #        elif modNum == 3:
 #            FreeCADGui.runCommand('Part_ColorPerFace',0)
-#        return True
+#        return False
 #
 #    def onDelete(self, vobj, subelements):
 #        #only remove children from the body if they are claimed and not native PD objects
