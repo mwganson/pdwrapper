@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-__version__ = "0.2021.10.16"
-#__version__ = "0.2021.10.16"
+__version__ = "0.2021.10.16.rev2"
+#__version__ = "0.2021.10.16.rev2"
 ## PDWrapper a class to encapsulate non-Part Design objects into a PartDesign::FeaturePython object
 ## 2021, by <TheMarkster>
 #
@@ -194,6 +194,8 @@ __version__ = "0.2021.10.16"
 #        for ghost in ghosts:
 #            ghost.setEditorMode("Placement",1) #readonly  User must not edit this property, but rather the fp property
 #            ghost.addProperty("App::PropertyString","GhostlyMessage","Base","Boo").GhostlyMessage="Edit the PDWrapper's Placement Adjustment property, not this Placement."
+#            if not ghost in fp._Body.Group:
+#                fp._Body.Group += [ghost]
 #        self.recompute()
 #
 #    def showGhosts(self):
