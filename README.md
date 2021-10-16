@@ -202,6 +202,12 @@ Applies only to Pattern Base object.  Note: the object itself isn't scaled.  Ins
 Applies the scale to the result of the Pattern Operation.
 ### Pattern Tool Scale (float)
 Applies the scale to a copy of the Pattern Tool object.
+## Placement Adjustments
+Sometimes the shapes are not oriented as we expect them to be and need to be adjusted.  Sometimes we might want to adjust them even when they are in the expected orientations.  These Placement properties are used in addition to the shapes' placements.  For example, Pattern Base Placement is not for the Pattern Base object it is an offset to be used with the copy of the Pattern Base object's shape that is used in creating the Pattern Shape, which is the shape used by the pattern tools, such as linear pattern feature.<br/>
+### Edit Placement Adjustments (boolean trigger)
+Default: False.  Toggle it to True to bring up the Placement Adjustment editor, which it does and then sets itself back to False.  This dialog can also be accessed by right clicking the PDWrapper in the tree and selecting Edit Placement Adjustments from the context menu.<br/>
+<br/>
+
 ## Tip Scale
 Scaling can be applied independently to the 3 Tip shapes:  Tip Base, Tip Tool, and Tip Shape.  Tip Base is the base object used in the Tip Operation, typically the previous solid feature in the tree, aka the PDWrapper object's BaseFeature.  If Tip Base is scaled, a copy of the Tip Base is made and that copy is scaled and used in the Tip Operation.  Same for Tip Base scaling.  The Base and Tool are scaled first, and then scaling is applied to the result (Tip Shape).  If you scale Tip Base = 2.0, Tip Tool = 2.0, and Tip Shape = 2.0 you are scaling 8x because each scale is applied independently.
 ### Tip Base Scale (float)
