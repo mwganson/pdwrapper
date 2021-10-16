@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-__version__ = "0.2021.10.16.rev3"
-#__version__ = "0.2021.10.16.rev3"
+__version__ = "0.2021.10.16.rev4"
+#__version__ = "0.2021.10.16.rev4"
 ## PDWrapper a class to encapsulate non-Part Design objects into a PartDesign::FeaturePython object
 ## 2021, by <TheMarkster>
 #
@@ -152,6 +152,8 @@ __version__ = "0.2021.10.16.rev3"
 #        if pb and not pb.isNull():
 #            pb = pb.transformShape(fp.PatternBasePlacement.toMatrix(), True)
 #            pb_ghost.Shape = pb
+#        else:
+#            pb = Part.Shape()
 #        self.pbName = pb_ghost.Name
 #        pt_ghost = FreeCAD.ActiveDocument.addObject("Part::Feature",fp.Name+"_pt_ghost")
 #        if pt and not pt.isNull():
@@ -168,11 +170,17 @@ __version__ = "0.2021.10.16.rev3"
 #        tb = self.getShape(fp,fp.TipBase,fp.UseTipBaseAddSubShape)
 #        tt = self.getShape(fp,fp.TipTool,fp.UseTipToolAddSubShape)
 #        tb_ghost = FreeCAD.ActiveDocument.addObject("Part::Feature",fp.Name+"_tb_ghost")
-#        tb = tb.transformShape(fp.TipBasePlacement.toMatrix(), True)
+#        if tb and not tb.isNull():
+#            tb = tb.transformShape(fp.TipBasePlacement.toMatrix(), True)
+#        else:
+#            tb = Part.Shape()
 #        tb_ghost.Shape = tb
 #        self.tbName = tb_ghost.Name
 #        tt_ghost = FreeCAD.ActiveDocument.addObject("Part::Feature",fp.Name+"_tt_ghost")
-#        tt = tt.transformShape(fp.TipToolPlacement.toMatrix(), True)
+#        if tt and not tt.isNull():
+#            tt = tt.transformShape(fp.TipToolPlacement.toMatrix(), True)
+#        else:
+#            tt = Part.Shape()
 #        tt_ghost.Shape = tt
 #        self.ttName = tt_ghost.Name
 #        tb_ghost.ViewObject.Transparency = 85
