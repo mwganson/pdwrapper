@@ -1,3 +1,5 @@
+Recent update to 0.2021.10.15 breaks existing models made with earlier versions.  Delete the objects in existing files before updating and restarting or else they won't delete.  Alternatively, delete pdwrapper.py (it will be rebuilt when you run the macro again) and then restart, and then delete the objects before running the macro again.
+
 # Macro PDWrapper
 
 With PDWrapper you can:
