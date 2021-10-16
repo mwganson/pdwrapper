@@ -256,6 +256,8 @@ Default: False (unless wrapped object is a mesh).  Whether to show properties re
 Default is true.  There are warnings when the PDWrapper Tip Shape contains multiple solids, a big no no in Part Design.  But such shapes are allowed by the PDWrapper object.  They are only problematic when the subsequent operation, if any, does not reconcile this by bridging all of the disconnected shapes back together.  In Part Design *every* boolean result in the chain must produce a single contiguous solid.  PDWrappers can be a way to get around this limitation if used carefully.  The Show Warnings property, if set to false, will disable output of these and a few other warning messages, which can become annoying after a time.<br/>
 
 ## Changelog
+* 0.2021.10.16.rev2 put ghosts in body so they are positioned correctly if the body has been moved/rotated
+* 0.2021.10.15 create placements adjustment properties and editor
 * 0.2021.10.14.rev8 add context menu enable/disable
 * 0.2021.10.14.rev6 fix bug where "Type" property was being accessed before the object was fully initialized.
 * 0.2021.10.14.rev3 fix bug related to installing with addon manager
