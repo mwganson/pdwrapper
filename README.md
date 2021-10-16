@@ -202,12 +202,6 @@ Applies only to Pattern Base object.  Note: the object itself isn't scaled.  Ins
 Applies the scale to the result of the Pattern Operation.
 ### Pattern Tool Scale (float)
 Applies the scale to a copy of the Pattern Tool object.
-## Placement Adjustments
-Sometimes the shapes are not oriented as we expect them to be and need to be adjusted.  Sometimes we might want to adjust them even when they are in the expected orientations.  These Placement properties are used in addition to the shapes' placements.  For example, Pattern Base Placement is not for the Pattern Base object it is an offset to be used with the copy of the Pattern Base object's shape that is used in creating the Pattern Shape, which is the shape used by the pattern tools, such as linear pattern feature.<br/>
-### Edit Placement Adjustments (boolean trigger)
-Default: False.  Toggle it to True to bring up the Placement Adjustment editor, which it does and then sets itself back to False.  This dialog can also be accessed by right clicking the PDWrapper in the tree and selecting Edit Placement Adjustments from the context menu.<br/>
-<br/>
-
 ## Tip Scale
 Scaling can be applied independently to the 3 Tip shapes:  Tip Base, Tip Tool, and Tip Shape.  Tip Base is the base object used in the Tip Operation, typically the previous solid feature in the tree, aka the PDWrapper object's BaseFeature.  If Tip Base is scaled, a copy of the Tip Base is made and that copy is scaled and used in the Tip Operation.  Same for Tip Base scaling.  The Base and Tool are scaled first, and then scaling is applied to the result (Tip Shape).  If you scale Tip Base = 2.0, Tip Tool = 2.0, and Tip Shape = 2.0 you are scaling 8x because each scale is applied independently.
 ### Tip Base Scale (float)
@@ -232,6 +226,14 @@ Default: 0.0  If not 0.0 the offset is applied to the Tip Base prior to using it
 Default: 0.0  Tip Shape is the shape created when the boolean Tip Operation is applied to the Tip Base and the Tip Tool.  The Tip Base is typically the previous solid in the tree while the Tip Tool is the objected being wrapped.  If this property is other than 0.0, then the offset is applied to the result.<br/>
 ### Tip Tool Offset (float)
 Default: 0.0  If any value other than 0.0 the Tip Tool is offset by the amount in the Tip Offset property.
+## Placement Adjustments
+Sometimes the shapes are not oriented as we expect them to be and need to be adjusted.  Sometimes we might want to adjust them even when they are in the expected orientations.  These Placement properties are used in addition to the shapes' placements.  For example, Pattern Base Placement is not for the Pattern Base object it is an offset to be used with the copy of the Pattern Base object's shape that is used in creating the Pattern Shape, which is the shape used by the pattern tools, such as linear pattern feature.<br/>
+### Edit Placement Adjustments (boolean trigger)
+Default: False.  Toggle it to True to bring up the Placement Adjustment editor, which it does and then sets itself back to False.  This dialog can also be accessed by right clicking the PDWrapper in the tree and selecting Edit Placement Adjustments from the context menu.<br/>
+<br/>
+<img src="pdwrapper_scr13.png" alt="placement adjustment editor screenshot"><br/>
+<br/>
+
 ## Tip Shape
 Here are the properties that make up the recipe for building the tip shape.  The Tip Shape is the shape you see in the 3D view when the PDWrapper object is the visible feature.  I call it Tip Shape because it's the shape the Body presents when this feature is the Tip for the Body.  It is created using the Tip Shape recipe, which includes Tip Base, Tip Tool, and Tip Operation (the boolean to use)<br/>
 ### Tip Base (link)
