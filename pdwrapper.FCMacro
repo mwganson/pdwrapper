@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-__version__ = "0.2021.10.15"
-#__version__ = "0.2021.10.15"
+__version__ = "0.2021.10.16"
+#__version__ = "0.2021.10.16"
 ## PDWrapper a class to encapsulate non-Part Design objects into a PartDesign::FeaturePython object
 ## 2021, by <TheMarkster>
 #
@@ -129,7 +129,10 @@ __version__ = "0.2021.10.15"
 #        if not ghost or not plm:
 #            FreeCAD.Console.PrintError("Unable to find ghost\n")
 #            return
-#        shp = shp.transformShape(plm.toMatrix(), True)
+#        if shp and not shp.isNull():
+#            shp = shp.transformShape(plm.toMatrix(), True)
+#        else:
+#            shp = Part.Shape()
 #        ghost.Shape = shp
 #        self.recompute()
 #
@@ -456,8 +459,6 @@ __version__ = "0.2021.10.15"
 #            addSubShape = self.scale(fp,addSubShape,fp.PatternShapeScale,fp.PatternShapeScale != 1.0,fp.PatternScaleCut)
 #            if fp.PatternShapeOffset != 0:
 #                addSubShape = self.offset(fp,fp.AddSubShape,fp.PatternShapeOffset,"Pattern")
-##            if not addsubshape.isNull():
-##                addsubshape.transformShape(addsubshape.Placement.toMatrix(), True)
 #            fp.AddSubShape = addsubshape
 #
 #        if len(fp.Shape.Solids)>1:
@@ -539,11 +540,7 @@ __version__ = "0.2021.10.15"
 #        self.form = QtGui.QWidget()
 #        self.label1 = QtGui.QLabel(\
 #"Select which ghosts to show, then edit their\n\
-#placement adjustment properties here.\n\
-#\n\
-#OK = close dialog, accept changes\n\
-#Cancel = close dialog, set all fields to initial values\n\
-#Reset = reset all fields to 0.0")
+#placement adjustment properties here.\n")
 #        layout=QtGui.QVBoxLayout()
 #        layout.addWidget(self.label1)
 #
@@ -664,8 +661,9 @@ __version__ = "0.2021.10.15"
 #        plm.Base.z = self.pt_pos_z.value()
 #        plm.Rotation = FreeCAD.Rotation(self.pt_yaw.value(),self.pt_pitch.value(),self.pt_roll.value())
 #        setattr(self.fp,"PatternToolPlacement",plm)
+#
 #    def makeSpinBox(self,lbl,spinbox,color="default",default=0,min=-float("inf"),max=float("inf")):
-#        '''makes a hbox layout adds the label and the spinbox, binds the property, returns the layout'''
+#        '''makes a hbox layout adds the label and the spinbox, returns the layout'''
 #        decimals = FreeCAD.ParamGet("User parameter:BaseApp/Preferences/Units").GetInt("Decimals",2)
 #        vbox = QtGui.QHBoxLayout()
 #        label = QtGui.QLabel(lbl)
