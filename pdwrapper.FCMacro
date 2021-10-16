@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-__version__ = "0.2021.10.16.rev2"
-#__version__ = "0.2021.10.16.rev2"
+__version__ = "0.2021.10.16.rev3"
+#__version__ = "0.2021.10.16.rev3"
 ## PDWrapper a class to encapsulate non-Part Design objects into a PartDesign::FeaturePython object
 ## 2021, by <TheMarkster>
 #
@@ -238,7 +238,7 @@ __version__ = "0.2021.10.16.rev2"
 #                shp = link.AddSubShape.copy() if link.AddSubShape else Part.Shape()
 #            else:
 #                shp = link.Shape.copy() if link.Shape else Part.Shape()
-#            return shp
+#            return shp.copy()
 #        elif hasattr(link,"Mesh"):
 #            propName = link.Name+"_from_mesh"
 #            fp.ShowMeshProps = True
