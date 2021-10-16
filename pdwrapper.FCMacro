@@ -1,0 +1,1423 @@
+# -*- coding: utf-8 -*-
+__version__ = "0.2021.10.15"
+#__version__ = "0.2021.10.15"
+## PDWrapper a class to encapsulate non-Part Design objects into a PartDesign::FeaturePython object
+## 2021, by <TheMarkster>
+#
+#DEBUG = False
+#
+#import FreeCAD, FreeCADGui
+#import Part
+#from PySide import QtGui,QtCore
+#
+#class PDWrapper:
+#    def __init__(self,obj):
+#        obj.addProperty("App::PropertyBool","EditPlacementAdjustments","PlacementAdjustments","[Command trigger] brings up placement adjustment dialog").EditPlacementAdjustments=False
+#        obj.addProperty("App::PropertyPlacement","TipBasePlacement","PlacementAdjustments","Rotate/Translate Tip Base shape copy, if needed")
+#        obj.addProperty("App::PropertyPlacement","TipToolPlacement","PlacementAdjustments","Rotate/Translate Tip Tool shape copy, if needed")
+#        obj.addProperty("App::PropertyPlacement","PatternBasePlacement","PlacementAdjustments","Rotate/Translate Pattern Base shape copy, if needed")
+#        obj.addProperty("App::PropertyPlacement","PatternToolPlacement","PlacementAdjustments","Rotate/Translate Pattern Tool shape copy, if needed")
+#        obj.addProperty("App::PropertyBool","ShowOffsetProps","UserInterface","Show/Hide properties related to Offsetting").ShowOffsetProps = False
+#        obj.addProperty("App::PropertyBool","ShowScaleProps","UserInterface","Show/Hide properties related to Scaling").ShowScaleProps = False
+#        obj.addProperty("App::PropertyBool","ShowMeshProps","UserInterface","Show/Hide properties related to Meshes").ShowMeshProps = False
+#        obj.addProperty("App::PropertyIntegerConstraint","Enabled","PDWrapper","If False, passes through previous solid feature as tip shape").Enabled = (1,0,1,1)
+#        obj.addProperty("App::PropertyLink","PatternBase","PatternShape","Base shape presented for patterning")
+#        obj.addProperty("App::PropertyBool","UsePatternToolAddSubShape","PatternShape","Use pattern tools addsubshape property in place of Pattern tool's shape in boolean to create pattern shape").UsePatternToolAddSubShape = False
+#        obj.addProperty("App::PropertyFloat","PatternBaseOffset","PatternOffset","Offset Pattern Base shape (0.0 = no offset)").PatternBaseOffset = 0.0
+#        obj.addProperty("App::PropertyFloat","PatternToolOffset","PatternOffset","Offset of Pattern Tool shape").PatternToolOffset = 0.0
+#        obj.addProperty("App::PropertyFloat","PatternShapeOffset","PatternOffset","Offset of Pattern Shape (result of Pattern Boolean operation)").PatternShapeOffset = 0.0
+#        obj.addProperty("App::PropertyFloat","TipShapeOffset","TipOffset","Offset of Tip Shape (result of Tip Boolean operation)").TipShapeOffset = 0.0
+#        obj.addProperty("App::PropertyFloat","TipBaseOffset","TipOffset","Whether to offset Tip Base shape").TipBaseOffset = 0.0
+#        obj.addProperty("App::PropertyFloat","TipToolOffset","TipOffset","Whether to offset Tip Tool shape").TipToolOffset = 0.0
+#        obj.addProperty("App::PropertyBool","UsePatternBaseAddSubShape","PatternShape","Use pattern base's addsubshape property in place of Pattern base's shape in boolean to create pattern shape").UsePatternBaseAddSubShape = False
+#        obj.addProperty("App::PropertyBool","UseTipBaseAddSubShape","TipShape","Use tip base's addsubshape property in place of Tip Base's shape in boolean to create tip shape").UseTipBaseAddSubShape = False
+#        obj.addProperty("App::PropertyBool","UseTipToolAddSubShape","TipShape","Use tip tool's addsubshape property in place of Tip Tool's shape in boolean to create tip shape").UseTipToolAddSubShape = False
+#        obj.addProperty("App::PropertyLink","PatternTool","PatternShape","Tool used with Pattern Base for creating patten shape to use with patterning")
+#        obj.addProperty("App::PropertyString","PatternOperationDefault","PDWrapper","hidden property holds operation type originally set during creation")
+#        obj.addProperty("App::PropertyString","TipOperationDefault","PDWrapper","hidden property holds operation type originally set during creation")
+#        obj.addProperty("App::PropertyEnumeration","PatternOperation","PatternShape","Operation to make pattern shape from the base and tool -- not used if no tool").PatternOperation =["None","Cut","Fuse","Common","XOR"]
+#        obj.addProperty("App::PropertyLink","LinkedObject","PDWrapper","Object this wrapper is based on -- should normally be a solid based itself on the last item in the body (the tip).")
+#        obj.addProperty("App::PropertyString","Version","PDWrapper", "Version used to create this PDWrapper object").Version = __version__
+#        obj.addProperty("App::PropertyString","Body","PDWrapper","Name of body containing this wrapper object")
+#        obj.addProperty("App::PropertyBool","ClaimChildren","PDWrapper","Whether to claim children in tree").ClaimChildren = True
+#        obj.addProperty("App::PropertyLink","TipBase","TipShape","Base shape for making the tip shape for this feature")
+#        obj.addProperty("App::PropertyLink","TipTool","TipShape","Tool shape for making the tip shape for this feature")
+#        obj.addProperty("App::PropertyBool","PatternScaleCut","PatternScale","Whether to cut scaled object from shape or vice versa").PatternScaleCut = False
+#        obj.addProperty("App::PropertyBool","TipScaleCut","TipScale","Whether to cut scaled object from shape or vice versa").TipScaleCut = False
+#        obj.addProperty("App::PropertyBool","TipOffsetCut","TipOffset","Whether to cut offset from shape or vice versa").TipOffsetCut = False
+#        obj.addProperty("App::PropertyEnumeration","TipOffsetMode","TipOffset","3D offset mode: Skin, Pipe, Recto-verso").TipOffsetMode = ["Skin","Pipe","Recto-verso"]
+#        obj.addProperty("App::PropertyEnumeration","TipOffsetJoin","TipOffset","3D offset join method: Arcs,Tangent,Intersection").TipOffsetJoin = ["Arcs","Tangent","Intersection"]
+#        obj.addProperty("App::PropertyBool","PatternOffsetCut","PatternOffset","Whether to cut offset from shape or vice versa").PatternOffsetCut = False
+#        obj.addProperty("App::PropertyEnumeration","PatternOffsetMode","PatternOffset","3D offset mode: Skin, Pipe, Recto-verso").PatternOffsetMode = ["Skin","Pipe","Recto-verso"]
+#        obj.addProperty("App::PropertyEnumeration","PatternOffsetJoin","PatternOffset","3D offset join method: Arcs,Tangent,Intersection").PatternOffsetJoin = ["Arcs","Tangent","Intersection"]
+#        obj.addProperty("App::PropertyFloat","TipShapeScale","TipScale","Scale to be applied to tip shape boolean result").TipShapeScale = 1.0
+#        obj.addProperty("App::PropertyFloat","TipBaseScale","TipScale","Scale to be applied to tip base").TipBaseScale = 1.0
+#        obj.addProperty("App::PropertyFloat","TipToolScale","TipScale","Scale to be applied to tip tool").TipToolScale = 1.0
+#        obj.addProperty("App::PropertyFloat","PatternShapeScale","PatternScale","Scale to be applied to pattern shape").PatternShapeScale = 1.0
+#        obj.addProperty("App::PropertyFloat","PatternBaseScale","PatternScale","Scale to be applied to pattern base").PatternBaseScale = 1.0
+#        obj.addProperty("App::PropertyFloat","PatternToolScale","PatternScale","Scale to be applied to pattern tool").PatternToolScale = 1.0
+#        obj.addProperty("App::PropertyEnumeration","TipOperation","TipShape","Operation to perform with Tip Base and Tip Tool to create feature shape").TipOperation=["Fuse","Cut","Common","XOR","None"]
+#        obj.addProperty("App::PropertyBool","Refine","PartDesign","Whether to refine shape (removes extra edges")
+#        obj.addProperty("App::PropertyString","Type","PDWrapper","This object type, can be Additive, Subtractive, Common, XOR, None")
+#        obj.addProperty("App::PropertyFloatConstraint","MeshTolerance","Mesh","Tolerance when wrapping mesh objects").MeshTolerance = (0.1,0.001,10000,.1)
+#        obj.addProperty("App::PropertyBool","RefineMesh","Mesh","Whether to refine Mesh shape after conversion").RefineMesh = True
+#        obj.addProperty("App::PropertyEnumeration","ShapeManagement","PDWrapper",
+#"If Automatic, wrapper manages Tip Base, Tip Tool, Pattern Base, Pattern Tool based on\n\
+#its position in the tree and its type and whether the linked object is a Part Design object\n\
+#or an outside object. If Manual, user must manage these when the tree changes.").ShapeManagement = ["Automatic","Manual"]
+#        obj.addProperty("App::PropertyBool","ShowWarnings","UserInterface","Set to false to disable annoying warning messages\n").ShowWarnings=True
+#        obj.ShapeManagement = "Automatic"
+#        obj.setEditorMode("Type",1) #readonly
+#        obj.setEditorMode("Body",1) #readonly
+#        obj.setEditorMode("Version",1)
+#        obj.setEditorMode("TipOperationDefault",2) #hidden
+#        obj.setEditorMode("PatternOperationDefault",2)
+#        self.showProps(obj,"Scale")
+#        self.showProps(obj,"Offset")
+#        self.showProps(obj,"Mesh")
+#        obj.Proxy = self
+#        self.bInhibitRecomputes = False
+#        self.editingMode = False #placement adjustment editor
+#        self.fpName = obj.Name
+#        self.tbName = "" #ghosts, tb = tip base, etc.
+#        self.ttName = ""
+#        self.pbName = ""
+#        self.ptName = ""
+#        self.pgName = "" #pattern ghost
+#
+#    def recompute(self):
+#        t = QtCore.QTimer()
+#        t.singleShot(50, FreeCAD.ActiveDocument.recompute)
+#
+#    def onChanged(self,fp,prop):
+#        if prop == "MeshTolerance" or prop == "RefineMesh":
+#            self.resetMeshCache(fp)
+#            fp.touch()
+#        elif prop == "ShowOffsetProps":
+#            self.bInhibitRecomputes = True
+#            self.showProps(fp,"Offset")
+#        elif prop == "ShowScaleProps":
+#            self.bInhibitRecomputes = True
+#            self.showProps(fp,"Scale")
+#        elif prop == "ShowMeshProps":
+#            self.bInhibitRecomputes = True
+#            self.showProps(fp,"Mesh")
+#        elif prop == "EditPlacementAdjustments" and fp.EditPlacementAdjustments == True:
+#            fp.EditPlacementAdjustments = False
+#            t = QtCore.QTimer()
+#            t.singleShot(50, self.showGhosts)
+#        elif "Placement" in prop and self.editingMode == True:
+#            self.positionGhosts(fp,prop)
+#
+#    def positionGhosts(self,fp,prop):
+#        if "TipBase" in prop:
+#            ghost = FreeCAD.ActiveDocument.getObject(self.tbName)
+#            plm = getattr(fp,"TipBasePlacement")
+#            shp = self.getShape(fp,fp.TipBase,fp.UseTipBaseAddSubShape)
+#        elif "TipTool" in prop:
+#            ghost = FreeCAD.ActiveDocument.getObject(self.ttName)
+#            plm = getattr(fp,"TipToolPlacement")
+#            shp = self.getShape(fp,fp.TipTool,fp.UseTipToolAddSubShape)
+#        elif "PatternBase" in prop:
+#            ghost = FreeCAD.ActiveDocument.getObject(self.pbName)
+#            plm = getattr(fp,"PatternBasePlacement")
+#            shp = self.getShape(fp,fp.PatternBase,fp.UsePatternBaseAddSubShape)
+#        elif "PatternTool" in prop:
+#            ghost = FreeCAD.ActiveDocument.getObject(self.ptName)
+#            plm = getattr(fp,"PatternToolPlacement")
+#            shp = self.getShape(fp,fp.PatternTool,fp.UsePatternToolAddSubShape)
+#        if not ghost or not plm:
+#            FreeCAD.Console.PrintError("Unable to find ghost\n")
+#            return
+#        shp = shp.transformShape(plm.toMatrix(), True)
+#        ghost.Shape = shp
+#        self.recompute()
+#
+#    def exorciseGhosts(self):
+#        '''remove temporary representation of shapes being manipulated'''
+#        ghosts = [obj.Name for obj in FreeCAD.ActiveDocument.Objects if "_ghost" in obj.Name]
+#        for ghost in ghosts:
+#            FreeCAD.ActiveDocument.removeObject(ghost)
+#        self.recompute()
+#
+#    def summonGhosts(self):
+#        '''builds/rebuilds ghost objects'''
+#        fp = FreeCAD.ActiveDocument.getObject(self.fpName)
+#        pb = self.getShape(fp,fp.PatternBase,fp.UsePatternBaseAddSubShape)
+#        pt = self.getShape(fp,fp.PatternTool,fp.UsePatternToolAddSubShape)
+#        pb_ghost = FreeCAD.ActiveDocument.addObject("Part::Feature",fp.Name+"_pb_ghost")
+#        if pb and not pb.isNull():
+#            pb = pb.transformShape(fp.PatternBasePlacement.toMatrix(), True)
+#            pb_ghost.Shape = pb
+#        self.pbName = pb_ghost.Name
+#        pt_ghost = FreeCAD.ActiveDocument.addObject("Part::Feature",fp.Name+"_pt_ghost")
+#        if pt and not pt.isNull():
+#            pt = pt.transformShape(fp.PatternToolPlacement.toMatrix(), True)
+#            pt_ghost.Shape = pt
+#        self.ptName = pt_ghost.Name
+#        #pattern ghost will hold shape of pattern shape
+#        pg = Part.Shape()
+#        if hasattr(fp,"AddSubShape"):
+#            pg = fp.AddSubShape
+#        pg_ghost = FreeCAD.ActiveDocument.addObject("Part::Feature",fp.Name+"_pg_ghost")
+#        self.pgName = pg_ghost.Name
+#        pg_ghost.Shape = pg
+#        tb = self.getShape(fp,fp.TipBase,fp.UseTipBaseAddSubShape)
+#        tt = self.getShape(fp,fp.TipTool,fp.UseTipToolAddSubShape)
+#        tb_ghost = FreeCAD.ActiveDocument.addObject("Part::Feature",fp.Name+"_tb_ghost")
+#        tb = tb.transformShape(fp.TipBasePlacement.toMatrix(), True)
+#        tb_ghost.Shape = tb
+#        self.tbName = tb_ghost.Name
+#        tt_ghost = FreeCAD.ActiveDocument.addObject("Part::Feature",fp.Name+"_tt_ghost")
+#        tt = tt.transformShape(fp.TipToolPlacement.toMatrix(), True)
+#        tt_ghost.Shape = tt
+#        self.ttName = tt_ghost.Name
+#        tb_ghost.ViewObject.Transparency = 85
+#        tb_ghost.ViewObject.ShapeColor = (0.0,0.0,1.0) #blue
+#        tb_ghost.ViewObject.ShowInTree = False
+#        tt_ghost.ViewObject.Transparency = 85
+#        tt_ghost.ViewObject.ShapeColor = (0.0,1.0,1.0) #teal
+#        tt_ghost.ViewObject.ShowInTree = False
+#        pb_ghost.ViewObject.Transparency = 85
+#        pb_ghost.ViewObject.ShapeColor = (1.0,0.0,1.0) #brown
+#        pb_ghost.ViewObject.ShowInTree = False
+#        pt_ghost.ViewObject.Transparency = 85
+#        pt_ghost.ViewObject.ShapeColor = (1.0,1.0,0.0) #orange
+#        pt_ghost.ViewObject.ShowInTree = False
+#        pt_ghost.ViewObject.Visibility = False
+#        pb_ghost.ViewObject.Visibility = False
+#        pg_ghost.ViewObject.Visibility = False
+#        ghosts = [obj for obj in FreeCAD.ActiveDocument.Objects if "_ghost" in obj.Name]
+#        for ghost in ghosts:
+#            ghost.setEditorMode("Placement",1) #readonly  User must not edit this property, but rather the fp property
+#            ghost.addProperty("App::PropertyString","GhostlyMessage","Base","Boo").GhostlyMessage="Edit the PDWrapper's Placement Adjustment property, not this Placement."
+#        self.recompute()
+#
+#    def showGhosts(self):
+#        '''show a temporary representation of the object being manipulated'''
+#        fp = FreeCAD.ActiveDocument.getObject(self.fpName)
+#        if not FreeCADGui.Control.activeDialog():
+#            panel = TaskEditPlacementsPanel(fp)
+#            FreeCADGui.Control.showDialog(panel)
+#            self.editingMode = True 
+#        else:
+#            self.editingMode=False
+#            FreeCAD.Console.PrintError("Another task dialog is active.  Close that one and try again.\n")
+#            return
+#        self.summonGhosts()
+#
+#    def showProps(self,fp,propType):
+#        '''propType is "Offset" or "Scale"'''
+#        if not hasattr(fp,"Type"):
+#            return
+#        bShow = getattr(fp,"Show"+propType+"Props")
+#        props = [p for p in fp.PropertiesList if propType in p and not "Show" in p]
+#        if fp.Type == "None":
+#            props = [p for p in props if not "Pattern" in p]
+#        modeMap = {True:0,False:2}
+#        for prop in props:
+#            fp.setEditorMode(prop,modeMap[bShow])
+#
+#    def resetMeshCache(self,fp):
+#        meshProps = [prop for prop in fp.PropertiesList if "_from_mesh" in prop]
+#        for meshProp in meshProps:
+#            setattr(fp,meshProp,Part.Shape()) #null shape
+#
+#    def getShape(self,fp,link,bUseAddSubShape = False):
+#        '''get the shape of link and return it, if mesh, build shape,cache it, and return it'''
+#        body = FreeCAD.ActiveDocument.getObject(fp.Body) #in case user has selected an object outside the body
+#        if link and not link in body.Group:
+#            body.Group += [link]
+#        if hasattr(link,"Shape"):
+#            if hasattr(link,"AddSubShape") and bUseAddSubShape:
+#                shp = link.AddSubShape.copy() if link.AddSubShape else Part.Shape()
+#            else:
+#                shp = link.Shape.copy() if link.Shape else Part.Shape()
+#            return shp
+#        elif hasattr(link,"Mesh"):
+#            propName = link.Name+"_from_mesh"
+#            fp.ShowMeshProps = True
+#            if hasattr(fp,propName) and not getattr(fp,propName).isNull():
+#                return getattr(fp,propName).copy()
+#            else: #cache the shape so we do not have to rebuild on each access
+#                if not hasattr(fp,propName):
+#                    fp.addProperty("Part::PropertyPartShape",propName)
+#                    fp.setEditorMode(propName,2) #hidden
+#                mesh_shape = Part.Shape()
+#                mesh_shape.makeShapeFromMesh(link.Mesh.Topology,fp.MeshTolerance)
+#                shells = mesh_shape.Shells
+#                if fp.RefineMesh:
+#                    solids = [Part.makeSolid(shell).removeSplitter() for shell in shells]
+#                else:
+#                    solids = [Part.makeSolid(shell) for shell in shells]
+#                if len(solids) == 1:
+#                    setattr(fp,propName,solids[0])
+#                elif len(solids) == 0:
+#                    setattr(fp,propName,Part.Shape()) #likely to throw exception
+#                else:
+#                    sh = solids[0]
+#                    sh = sh.multiFuse(solids[1:])
+#                    sh = sh.removeSplitter() if fp.RefineMesh else sh
+#                    setattr(fp,propName,sh)
+#                return getattr(fp,propName).copy()
+#
+#    def placeInBody(self,fp,link):
+#        def checkSolids(link):
+#            if hasattr(link,"Shape"):
+#                if len(link.Shape.Solids)>1:
+#                    self.warn(fp,link.Name+" ("+link.Label+") has multiple solids.  Subsequent Part Design operations might fail.\n")
+#        body = FreeCAD.ActiveDocument.getObject(fp.Body)
+#        if body and not link in body.Group:
+#            body.Group += [link]
+#            checkSolids(link)
+#
+#    def makeAddSubShape(self,fp):
+#        ''' create addsubshape and return as shape
+#            this is shape used in patterning, for example
+#            when creating a polar pattern this is the shape to copy'''
+#        base = fp.PatternBase if fp.PatternBase else None #null shape
+#        base_shape = self.getShape(fp,base,fp.UsePatternBaseAddSubShape)
+#        base_shape = self.scale(fp,base_shape, fp.PatternBaseScale, fp.PatternBaseScale != 1.0,fp.PatternScaleCut)
+#        if fp.PatternBaseOffset != 0:
+#            base_shape = self.offset(fp,base_shape,fp.PatternBaseOffset,"Pattern")
+#        tool = fp.PatternTool if fp.PatternTool else None
+#        tool_shape = self.getShape(fp,tool,fp.UsePatternToolAddSubShape)
+#        tool_shape = self.scale(fp,tool_shape, fp.PatternToolScale, fp.PatternToolScale != 1.0,fp.PatternScaleCut)
+#        if fp.PatternToolOffset != 0.0:
+#            tool_shape = self.offset(fp,tool_shape,fp.PatternToolOffset,"Pattern")
+#        if not fp.PatternBasePlacement.isIdentity() and not base_shape.isNull():
+#            base_shape = base_shape.transformShape(fp.PatternBasePlacement.toMatrix(), True)
+#        if not fp.PatternToolPlacement.isIdentity() and not tool_shape.isNull():
+#            tool_shape = tool_shape.transformShape(fp.PatternToolPlacement.toMatrix(), True)
+#        op = fp.PatternOperation
+#        if not tool:
+#            return base_shape if base else Part.Shape()
+#        if base and tool:
+#            if op == "None":
+#                return tool_shape
+#            elif op == "Cut": #cut tool from base
+#                return base_shape.cut(tool_shape)
+#            elif op == "Fuse": #all bits
+#                return base_shape.fuse(tool_shape)
+#            elif op == "Common": #only bits intersecting
+#                return base_shape.common(tool_shape)
+#            elif op == "XOR": #only bits not intersecting
+#                fusion = base_shape.fuse(tool_shape)
+#                common = base_shape.common(tool_shape)
+#                return fusion.cut(common)
+#        if tool:
+#            return tool_shape
+#        elif base:
+#            return base_shape
+#        else:
+#            return fp.LinkedObject.Shape
+#
+#    def restoreDefaults(self,fp):
+#        '''used by manageShape() to restore defaults on enable/disable'''
+#        fp.PatternOperation = fp.PatternOperationDefault
+#        fp.TipOperation = fp.TipOperationDefault
+#
+#    def manageShape(self,fp):
+#        '''used for automatic mode shape management'''
+#        fp.Label2 = "("+fp.LinkedObject.Label+")"
+#        if not fp.Enabled:
+#            fp.Label2 = "*"+fp.Label2+"*"
+#        if fp.ShapeManagement == "Manual":
+#            return
+#        if fp.LinkedObject.isDerivedFrom("PartDesign::Feature"):
+#            if fp.Type == "Additive":
+#                if fp.Enabled:
+#                    fp.TipBase = fp.LinkedObject.BaseFeature
+#                    fp.TipTool = fp.LinkedObject
+#                    fp.UseTipToolAddSubShape = True
+#                    fp.PatternBase = fp.LinkedObject.BaseFeature
+#                    fp.PatternTool = fp.LinkedObject
+#                    fp.UsePatternToolAddSubShape = True
+#                    if fp.LinkedObject != fp.BaseFeature: #user is re-using a feature from earlier in the tree
+#                        fp.TipBase = fp.BaseFeature
+#                        fp.PatternBase = fp.BaseFeature
+#                    self.restoreDefaults(fp)
+#                else:
+#                    fp.TipBase = fp.BaseFeature
+#                    fp.TipTool = fp.BaseFeature
+#                    fp.TipOperation = "None"
+#            elif fp.Type == "Subtractive":
+#                if fp.Enabled:
+#                    fp.TipBase = fp.LinkedObject.BaseFeature
+#                    fp.TipTool = fp.LinkedObject
+#                    fp.UseTipToolAddSubShape = True
+#                    fp.PatternBase = fp.LinkedObject.BaseFeature
+#                    fp.PatternTool = fp.LinkedObject
+#                    fp.UsePatternToolAddSubShape = True
+#                    if fp.LinkedObject != fp.BaseFeature: #user is re-using a feature from earlier in the tree
+#                        fp.TipBase = fp.BaseFeature
+#                        fp.PatternBase = fp.BaseFeature
+#                    self.restoreDefaults(fp)
+#                elif not fp.Enabled:
+#                    fp.TipBase = fp.BaseFeature
+#                    fp.TipTool = fp.BaseFeature
+#                    fp.TipOperation = "None"
+#            elif fp.Type == "None":
+#                if fp.Enabled:
+#                    fp.TipBase = fp.LinkedObject.BaseFeature
+#                    fp.TipTool = fp.LinkedObject.BaseFeature
+#                elif not fp.Enabled:
+#                    fp.TipTool = fp.BaseFeature
+#                    fp.TipBase = fp.BaseFeature
+#
+#        else: #not a PD object
+#            if fp.Type == "Additive":
+#                fp.TipBase = fp.BaseFeature
+#                fp.TipTool = fp.LinkedObject
+#            elif fp.Type == "Subtractive":
+#                fp.TipBase = fp.BaseFeature
+#                fp.TipTool = fp.LinkedObject
+#            elif fp.Type == "None":
+#                fp.TipBase = fp.BaseFeature
+#                fp.TipTool = fp.BaseFeature
+#            if not fp.Enabled:
+#                fp.TipBase = fp.BaseFeature
+#                fp.TipTool = fp.BaseFeature
+#                fp.TipOperation = "None"
+#                fp.PatternBase = fp.BaseFeature
+#                fp.PatternTool = fp.BaseFeature
+#                fp.PatternOperation = "None"
+#            else:
+#                self.restoreDefaults(fp)
+#
+#    def makeTipShape(self,fp):
+#        shape = Part.Shape()
+#        base_shape = self.getShape(fp,fp.TipBase,fp.UseTipBaseAddSubShape)
+#        base_shape = self.scale(fp,base_shape, fp.TipBaseScale, fp.TipBaseScale != 1.0,fp.TipScaleCut)
+#        tool_shape = self.getShape(fp,fp.TipTool,fp.UseTipToolAddSubShape)
+#        tool_shape = self.scale(fp,tool_shape, fp.TipToolScale, fp.TipToolScale != 1.0,fp.TipScaleCut)
+#        if not fp.TipBasePlacement.isIdentity() and not base_shape.isNull():
+#            base_shape = base_shape.transformShape(fp.TipBasePlacement.toMatrix(), True)
+#        if not fp.TipToolPlacement.isIdentity() and not tool_shape.isNull():
+#            tool_shape = tool_shape.transformShape(fp.TipToolPlacement.toMatrix(), True)
+#        if not tool_shape:
+#            tool_shape = Part.Shape()
+#        if not base_shape:
+#            base_shape = Part.Shape()
+#        if fp.TipToolOffset != 0:
+#            tool_shape = self.offset(fp,tool_shape,fp.TipToolOffset,"Tip")
+#        if fp.TipBaseOffset != 0:
+#            base_shape = self.offset(fp,base_shape,fp.TipBaseOffset,"Tip")
+#        if fp.TipTool and fp.TipBase:
+#            op = fp.TipOperation
+#            if op == "Cut":
+#                cut = base_shape.cut(tool_shape)
+#                shape = cut
+#            elif op == "Fuse":
+#                fuse = base_shape.fuse(tool_shape)
+#                shape = fuse
+#            elif op == "Common":
+#                common = base_shape.common(tool_shape)
+#                shape = common
+#            elif op == "XOR":
+#                fusion = base_shape.fuse(tool_shape)
+#                common = base_shape.common(tool_shape)
+#                cut = fusion.cut(common)
+#                shape = cut
+#            elif op == "None":
+#                shape = base_shape
+#        elif fp.TipBase:
+#            shape = base_shape
+#        elif fp.TipTool:
+#            shape = tool_shape
+#        return shape
+#
+#    def execute(self,fp):
+#        if self.bInhibitRecomputes:
+#            self.bInhibitRecomputes = False
+#            return
+#        self.manageShape(fp)
+#        if hasattr(fp,"Refine1"):
+#            fp.removeProperty("Refine1") #PD features might already have a Refine feature, but None types will not
+#        if fp.LinkedObject:
+#            self.placeInBody(fp,fp.LinkedObject)
+#
+#        shape = self.makeTipShape(fp)
+#
+#        if fp.TipShapeOffset != 0 and fp.Enabled:
+#            offset = self.offset(fp,shape,fp.TipShapeOffset,"Tip")
+#            shape = offset
+#
+#        if not fp.Shape.isNull() and fp.Refine and fp.Enabled:
+#            refined = shape.removeSplitter()
+#            shape = refined
+#
+#        scaled = self.scale(fp,shape,fp.TipShapeScale,bool(fp.Enabled and fp.TipShapeScale != 1.0),fp.TipScaleCut)
+#        shape = scaled
+#
+#        if not "None" in fp.Type:
+#            addsubshape = self.makeAddSubShape(fp)
+#            addSubShape = addsubshape if not fp.Refine else addsubshape.removeSplitter()
+#            addSubShape = self.scale(fp,addSubShape,fp.PatternShapeScale,fp.PatternShapeScale != 1.0,fp.PatternScaleCut)
+#            if fp.PatternShapeOffset != 0:
+#                addSubShape = self.offset(fp,fp.AddSubShape,fp.PatternShapeOffset,"Pattern")
+##            if not addsubshape.isNull():
+##                addsubshape.transformShape(addsubshape.Placement.toMatrix(), True)
+#            fp.AddSubShape = addsubshape
+#
+#        if len(fp.Shape.Solids)>1:
+#            self.warn(fp,"PDWrapper shape has multiple solids.  This could cause subsequent operations to fail or produce unexpected results.\n")
+#        if not shape.isNull():
+#            shape.transformShape(shape.Placement.toMatrix(), True)
+#        fp.Shape = shape
+#
+#    def debug(self,msg):
+#        if not DEBUG:
+#            return
+#        FreeCAD.Console.PrintMessage(msg+"\n")
+#
+#    def offset(self,fp,shp,factor,tipOrPattern):
+#        '''shp is shape to offset, tipOrPattern is a string = "Pattern" or "Tip", returns offset shape
+#           if bCut = True, the shp is cut from the offset or vice versa if offset < 0'''
+#        if shp == None or shp.isNull():
+#            return shp
+#        if tipOrPattern == "Pattern":
+#            if factor == 0:
+#                return shp
+#            psoTol = 1e-7
+#            psoMode = 0 if fp.PatternOffsetMode == "Skin" else 1 if fp.PatternOffsetMode == "Pipe" else 2 if fp.PatternOffsetMode == "Recto-verso" else -1
+#            psoJoin = 0 if fp.PatternOffsetJoin == "Arcs" else 1 if fp.PatternOffsetJoin == "Tangent" else 2 if fp.PatternOffsetMode == "Intersection" else -1
+#            psoFill = False
+#            offsetShp = shp.makeOffsetShape(factor,tolerance=psoTol,offsetMode = psoMode, join = psoJoin, fill = psoFill)
+#            if fp.PatternOffsetCut:
+#                if factor < 0:
+#                    return shp.cut(offsetShp)
+#                else:
+#                    return offsetShp.cut(shp)
+#            else:
+#                return offsetShp
+#        elif tipOrPattern == "Tip":
+#            if factor == 0:
+#                return shp
+#            tsoTol = 1e-7
+#            tsoMode = 0 if fp.TipOffsetMode == "Skin" else 1 if fp.TipOffsetMode == "Pipe" else 2 if fp.TipOffsetMode == "Recto-verso" else -1
+#            tsoJoin = 0 if fp.TipOffsetJoin == "Arcs" else 1 if fp.TipOffsetJoin == "Tangent" else 2 if fp.TipOffsetMode == "Intersection" else -1
+#            tsoFill = False
+#            offsetShp = shp.makeOffsetShape(factor,tolerance=tsoTol,offsetMode = tsoMode, join = tsoJoin, fill = tsoFill)
+#            if fp.TipOffsetCut:
+#                if factor < 0:
+#                    return shp.cut(offsetShp)
+#                else:
+#                    return offsetShp.cut(shp)
+#            else:
+#                return offsetShp
+#
+#    def scale(self,fp,shp,factor,bScale,bCut):
+#        '''scale and return shp scaled if bScale = true'''
+#        if not shp or shp.isNull():
+#            return shp
+#        if bScale:
+#            scaleds = [sol.scale(factor,sol.CenterOfMass) for sol in shp.Solids]
+#            if not bCut:
+#                return Part.makeCompound(scaleds)
+#            else: #bCut
+#                unscaleds = [sol for sol in shp.Solids]
+#                cuts = []
+#                for ii in range(0,len(shp.Solids)):
+#                    if factor > 1:
+#                        cuts.append(scaleds[ii].cut(unscaleds[ii]))
+#                    else:
+#                        cuts.append(unscaleds[ii].cut(scaleds[ii]))
+#                return Part.makeCompound(cuts)
+#        else:
+#            return shp
+#
+#    def warn(self,fp,msg):
+#        if fp.ShowWarnings:
+#            FreeCAD.Console.PrintWarning(msg)
+#            FreeCAD.Console.PrintMessage("PDWrapper warnings may be suppressed with the ShowWarnings property set to false\n")
+#
+#class TaskEditPlacementsPanel: #simple editor for placement adjustments
+#    def __init__(self, fp):
+#        FreeCADGui.Selection.clearSelection()
+#        self.fp = fp
+#        self.form = QtGui.QWidget()
+#        self.label1 = QtGui.QLabel(\
+#"Select which ghosts to show, then edit their\n\
+#placement adjustment properties here.\n\
+#\n\
+#OK = close dialog, accept changes\n\
+#Cancel = close dialog, set all fields to initial values\n\
+#Reset = reset all fields to 0.0")
+#        layout=QtGui.QVBoxLayout()
+#        layout.addWidget(self.label1)
+#
+#        self.tbCheckBox = QtGui.QCheckBox("tip base")
+#        self.tbCheckBox.setChecked(True)
+#        self.tbCheckBox.stateChanged.connect(self.showTipBase)
+#        self.tbCheckBox.setStyleSheet('QCheckBox {background-color: #A0A0FF;}')
+#        layout.addWidget(self.tbCheckBox)
+#
+#        self.ttCheckBox = QtGui.QCheckBox("tip tool")
+#        self.ttCheckBox.setChecked(True)
+#        self.ttCheckBox.stateChanged.connect(self.showTipTool)
+#        self.ttCheckBox.setStyleSheet('QCheckBox {background-color: #A0FFFF;}')
+#        layout.addWidget(self.ttCheckBox)
+#
+#        self.fpCheckBox = QtGui.QCheckBox("tip shape")
+#        self.fpCheckBox.setChecked(True)
+#        self.fpCheckBox.stateChanged.connect(self.showFp)
+#        layout.addWidget(self.fpCheckBox)
+#
+#        self.pbCheckBox = QtGui.QCheckBox("pattern base")
+#        self.pbCheckBox.setChecked(False)
+#        self.pbCheckBox.stateChanged.connect(self.showPatternBase)
+#        self.pbCheckBox.setStyleSheet('QCheckBox {background-color: #FFA0FF;}')
+#        layout.addWidget(self.pbCheckBox)
+#
+#        self.ptCheckBox = QtGui.QCheckBox("pattern tool")
+#        self.ptCheckBox.setChecked(False)
+#        self.ptCheckBox.stateChanged.connect(self.showPatternTool)
+#        self.ptCheckBox.setStyleSheet('QCheckBox {background-color: #FFFFA0;}')
+#        layout.addWidget(self.ptCheckBox)
+#
+#        self.pgCheckBox = QtGui.QCheckBox("pattern shape")
+#        self.pgCheckBox.setChecked(False)
+#        self.pgCheckBox.stateChanged.connect(self.showPg)
+#        layout.addWidget(self.pgCheckBox)
+#
+#        self.tb_pos_x = QtGui.QDoubleSpinBox()
+#        self.tb_pos_y = QtGui.QDoubleSpinBox()
+#        self.tb_pos_z = QtGui.QDoubleSpinBox()
+#        self.tb_yaw = QtGui.QDoubleSpinBox()
+#        self.tb_roll = QtGui.QDoubleSpinBox()
+#        self.tb_pitch = QtGui.QDoubleSpinBox()
+#        layout.addLayout(self.makeSpinBox("tip base position x",self.tb_pos_x,color="#A0A0FF",default=getattr(self.fp,"TipBasePlacement").Base.x))
+#        layout.addLayout(self.makeSpinBox("tip base position y",self.tb_pos_y,color="#A0A0FF",default=getattr(self.fp,"TipBasePlacement").Base.y))
+#        layout.addLayout(self.makeSpinBox("tip base position z",self.tb_pos_z,color="#A0A0FF",default=getattr(self.fp,"TipBasePlacement").Base.z))
+#        layout.addLayout(self.makeSpinBox("tip base yaw",self.tb_yaw,color="#A0A0FF",default=getattr(self.fp,"TipBasePlacement").Rotation.toEuler()[0],min=-360,max=360))
+#        layout.addLayout(self.makeSpinBox("tip base pitch",self.tb_pitch,color="#A0A0FF",default=getattr(self.fp,"TipBasePlacement").Rotation.toEuler()[1],min=-360,max=360))
+#        layout.addLayout(self.makeSpinBox("tip base roll",self.tb_roll,color="#A0A0FF",default=getattr(self.fp,"TipBasePlacement").Rotation.toEuler()[2],min=-360,max=360))
+#
+#        self.tt_pos_x = QtGui.QDoubleSpinBox()
+#        self.tt_pos_y = QtGui.QDoubleSpinBox()
+#        self.tt_pos_z = QtGui.QDoubleSpinBox()
+#        self.tt_yaw = QtGui.QDoubleSpinBox()
+#        self.tt_roll = QtGui.QDoubleSpinBox()
+#        self.tt_pitch = QtGui.QDoubleSpinBox()
+#        layout.addLayout(self.makeSpinBox("tip tool position x",self.tt_pos_x,color="#A0FFFF",default=getattr(self.fp,"TipToolPlacement").Base.x))
+#        layout.addLayout(self.makeSpinBox("tip tool position y",self.tt_pos_y,color="#A0FFFF",default=getattr(self.fp,"TipToolPlacement").Base.y))
+#        layout.addLayout(self.makeSpinBox("tip tool position z",self.tt_pos_z,color="#A0FFFF",default=getattr(self.fp,"TipToolPlacement").Base.z))
+#        layout.addLayout(self.makeSpinBox("tip tool yaw",self.tt_yaw,color="#A0FFFF",default=getattr(self.fp,"TipToolPlacement").Rotation.toEuler()[0],min=-360,max=360))
+#        layout.addLayout(self.makeSpinBox("tip tool pitch",self.tt_pitch,color="#A0FFFF",default=getattr(self.fp,"TipToolPlacement").Rotation.toEuler()[1],min=-360,max=360))
+#        layout.addLayout(self.makeSpinBox("tip tool roll",self.tt_roll,color="#A0FFFF",default=getattr(self.fp,"TipToolPlacement").Rotation.toEuler()[2],min=-360,max=360))
+#
+#        self.pb_pos_x = QtGui.QDoubleSpinBox()
+#        self.pb_pos_y = QtGui.QDoubleSpinBox()
+#        self.pb_pos_z = QtGui.QDoubleSpinBox()
+#        self.pb_yaw = QtGui.QDoubleSpinBox()
+#        self.pb_roll = QtGui.QDoubleSpinBox()
+#        self.pb_pitch = QtGui.QDoubleSpinBox()
+#        layout.addLayout(self.makeSpinBox("pattern base position x",self.pb_pos_x,color="#FFA0FF",default=getattr(self.fp,"PatternBasePlacement").Base.x))
+#        layout.addLayout(self.makeSpinBox("pattern base position y",self.pb_pos_y,color="#FFA0FF",default=getattr(self.fp,"PatternBasePlacement").Base.y))
+#        layout.addLayout(self.makeSpinBox("pattern base position z",self.pb_pos_z,color="#FFA0FF",default=getattr(self.fp,"PatternBasePlacement").Base.z))
+#        layout.addLayout(self.makeSpinBox("pattern base yaw",self.pb_yaw,color="#FFA0FF",default=getattr(self.fp,"PatternBasePlacement").Rotation.toEuler()[0],min=-360,max=360))
+#        layout.addLayout(self.makeSpinBox("pattern base pitch",self.pb_pitch,color="#FFA0FF",default=getattr(self.fp,"PatternBasePlacement").Rotation.toEuler()[1],min=-360,max=360))
+#        layout.addLayout(self.makeSpinBox("pattern base roll",self.pb_roll,color="#FFA0FF",default=getattr(self.fp,"PatternBasePlacement").Rotation.toEuler()[2],min=-360,max=360))
+#
+#        self.pt_pos_x = QtGui.QDoubleSpinBox()
+#        self.pt_pos_y = QtGui.QDoubleSpinBox()
+#        self.pt_pos_z = QtGui.QDoubleSpinBox()
+#        self.pt_yaw = QtGui.QDoubleSpinBox()
+#        self.pt_roll = QtGui.QDoubleSpinBox()
+#        self.pt_pitch = QtGui.QDoubleSpinBox()
+#        layout.addLayout(self.makeSpinBox("pattern tool position x",self.pt_pos_x,color="#FFFFA0",default=getattr(self.fp,"PatternToolPlacement").Base.x))
+#        layout.addLayout(self.makeSpinBox("pattern tool position y",self.pt_pos_y,color="#FFFFA0",default=getattr(self.fp,"PatternToolPlacement").Base.y))
+#        layout.addLayout(self.makeSpinBox("pattern tool position z",self.pt_pos_z,color="#FFFFA0",default=getattr(self.fp,"PatternToolPlacement").Base.z))
+#        layout.addLayout(self.makeSpinBox("pattern tool yaw",self.pt_yaw,color="#FFFFA0",default=getattr(self.fp,"PatternToolPlacement").Rotation.toEuler()[0],min=-360,max=360))
+#        layout.addLayout(self.makeSpinBox("pattern tool pitch",self.pt_pitch,color="#FFFFA0",default=getattr(self.fp,"PatternToolPlacement").Rotation.toEuler()[1],min=-360,max=360))
+#        layout.addLayout(self.makeSpinBox("pattern tool roll",self.pt_roll,color="#FFFFA0",default=getattr(self.fp,"PatternToolPlacement").Rotation.toEuler()[2],min=-360,max=360))
+#
+#        self.form.setLayout(layout)
+#        self.form.setWindowTitle('Edit Placement Adjustments')
+#        self.fp.Proxy.editingMode = True
+#        self.initialPlacements = {} #save current ghost placements to restore on cancel/reject
+#        plms = [prop for prop in self.fp.PropertiesList if "Placement" in prop and not "Edit" in prop]
+#        for plm in plms:
+#            self.fp.setEditorMode(plm,1) #readonly mode while editor is open else editor values won't be updated
+#            self.initialPlacements[plm] = getattr(self.fp,plm)
+#
+#    def valueChanged(self, val):
+#        plm = FreeCAD.Placement()
+#        plm.Base.x = self.tb_pos_x.value()
+#        plm.Base.y = self.tb_pos_y.value()
+#        plm.Base.z = self.tb_pos_z.value()
+#        plm.Rotation = FreeCAD.Rotation(self.tb_yaw.value(),self.tb_pitch.value(),self.tb_roll.value())
+#        setattr(self.fp,"TipBasePlacement",plm)
+#        plm.Base.x = self.tt_pos_x.value()
+#        plm.Base.y = self.tt_pos_y.value()
+#        plm.Base.z = self.tt_pos_z.value()
+#        plm.Rotation = FreeCAD.Rotation(self.tt_yaw.value(),self.tt_pitch.value(),self.tt_roll.value())
+#        setattr(self.fp,"TipToolPlacement",plm)
+#        plm.Base.x = self.pb_pos_x.value()
+#        plm.Base.y = self.pb_pos_y.value()
+#        plm.Base.z = self.pb_pos_z.value()
+#        plm.Rotation = FreeCAD.Rotation(self.pb_yaw.value(),self.pb_pitch.value(),self.pb_roll.value())
+#        setattr(self.fp,"PatternBasePlacement",plm)
+#        plm.Base.x = self.pt_pos_x.value()
+#        plm.Base.y = self.pt_pos_y.value()
+#        plm.Base.z = self.pt_pos_z.value()
+#        plm.Rotation = FreeCAD.Rotation(self.pt_yaw.value(),self.pt_pitch.value(),self.pt_roll.value())
+#        setattr(self.fp,"PatternToolPlacement",plm)
+#    def makeSpinBox(self,lbl,spinbox,color="default",default=0,min=-float("inf"),max=float("inf")):
+#        '''makes a hbox layout adds the label and the spinbox, binds the property, returns the layout'''
+#        decimals = FreeCAD.ParamGet("User parameter:BaseApp/Preferences/Units").GetInt("Decimals",2)
+#        vbox = QtGui.QHBoxLayout()
+#        label = QtGui.QLabel(lbl)
+#        if color != "default":
+#            label.setStyleSheet('QLabel {background-color: %1;}'.replace('%1',color))
+#        vbox.addWidget(label,0)
+#        spinbox.setValue(default)
+#        spinbox.setMinimum(min)
+#        spinbox.setDecimals(decimals)
+#        spinbox.setMaximum(max)
+#        spinbox.valueChanged.connect(self.valueChanged)
+#        vbox.addWidget(spinbox,1)
+#        return vbox
+#
+#    def showFp(self):
+#        self.fp.ViewObject.Visibility = self.fpCheckBox.isChecked()
+#
+#    def showPg(self):
+#        ghost = FreeCAD.ActiveDocument.getObject(self.fp.Proxy.pgName)
+#        ghost.ViewObject.Visibility = self.pgCheckBox.isChecked()
+#
+#    def showTipBase(self):
+#        ghost = FreeCAD.ActiveDocument.getObject(self.fp.Proxy.tbName)
+#        ghost.ViewObject.Visibility = self.tbCheckBox.isChecked()
+#
+#    def showTipTool(self):
+#        ghost = FreeCAD.ActiveDocument.getObject(self.fp.Proxy.ttName)
+#        ghost.ViewObject.Visibility = self.ttCheckBox.isChecked()
+#
+#    def showPatternBase(self):
+#        ghost = FreeCAD.ActiveDocument.getObject(self.fp.Proxy.pbName)
+#        ghost.ViewObject.Visibility = self.pbCheckBox.isChecked()
+#
+#    def showPatternTool(self):
+#        ghost = FreeCAD.ActiveDocument.getObject(self.fp.Proxy.ptName)
+#        ghost.ViewObject.Visibility = self.ptCheckBox.isChecked()
+#
+#    def reject(self):
+#        FreeCADGui.Control.closeDialog()
+#        self.fp.Proxy.editingMode = False #self.fp.Proxy is the Bevel class object (self in that class)
+#        plms = [prop for prop in self.fp.PropertiesList if "Placement" in prop and not "Edit" in prop]
+#        for plm in plms:
+#            self.fp.setEditorMode(plm,0) #normal mode when not editing
+#            setattr(self.fp,plm,self.initialPlacements[plm])
+#        FreeCADGui.activeDocument().resetEdit()
+#        self.fp.Proxy.exorciseGhosts()
+#        self.fp.ViewObject.Visibility = True
+#        FreeCAD.ActiveDocument.recompute()
+#
+#    def accept(self):
+#        FreeCADGui.ActiveDocument.resetEdit()
+#        FreeCADGui.Control.closeDialog()
+#        if not self.fp: #user deleted or closed document perhaps
+#            return
+#        self.fp.Proxy.exorciseGhosts()
+#        if hasattr(self.fp.Proxy,"editingMode"):
+#            self.fp.Proxy.editingMode = False
+#        plms = [prop for prop in self.fp.PropertiesList if "Placement" in prop and not "Edit" in prop]
+#        for plm in plms:
+#            self.fp.setEditorMode(plm,0) #normal mode when not editing
+#        self.fp.ViewObject.Visibility = True
+#        FreeCAD.ActiveDocument.recompute()
+#
+#    def getStandardButtons(self):
+#        return int(QtGui.QDialogButtonBox.Ok) | int(QtGui.QDialogButtonBox.Cancel) | int(QtGui.QDialogButtonBox.Reset)
+#
+#    def clicked(self, button):
+#        if button == QtGui.QDialogButtonBox.Reset:
+#            plm = FreeCAD.Placement()
+#            setattr(self.fp,"TipBasePlacement",plm)
+#            setattr(self.fp,"TipToolPlacement",plm)
+#            setattr(self.fp,"PatternBasePlacement",plm)
+#            setattr(self.fp,"PatternToolPlacement",plm)
+#            children = self.form.findChildren(QtGui.QDoubleSpinBox)
+#            for child in children:
+#                child.setValue(0)
+#
+#class PDWrapperVP:
+#
+#    def __init__(self, obj):
+#        '''Set this object to the proxy object of the actual view provider'''
+#        obj.Proxy = self
+#
+#    def attach(self, obj):
+#        '''Setup the scene sub-graph of the view provider, this method is mandatory'''
+#        self.Object = obj.Object
+#
+#    def updateData(self, fp, prop):
+#        '''If a property of the handled feature has changed we have the chance to handle this here'''
+#        # fp is the handled feature, prop is the name of the property that has changed
+#        pass
+#
+#    def getDisplayModes(self,obj):
+#        '''Return a list of display modes.'''
+#        modes=[]
+#        modes.append("Flat Lines")
+#        return modes
+#
+#    def getDefaultDisplayMode(self):
+#        '''Return the name of the default display mode. It must be defined in getDisplayModes.'''
+#        return "Flat Lines"
+#
+#    def setDisplayMode(self,mode):
+#        '''Map the display mode defined in attach with those defined in getDisplayModes.\
+#                Since they have the same names nothing needs to be done. This method is optional'''
+#        return mode
+#
+#    def onChanged(self, vp, prop):
+#        '''Here we can do something when a single property got changed'''
+#        #FreeCAD.Console.PrintMessage("Change property: " + str(prop) + ""+chr(10))
+#
+#    def claimChildren(self):
+#        if hasattr(self.Object,"LinkedObject") and hasattr(self.Object,"ClaimChildren") and self.Object.LinkedObject and self.Object.ClaimChildren:
+#            return [self.Object.LinkedObject]
+#        else:
+#            return []
+#
+#    def setupContextMenu(self, vobj, menu):
+#        text = {True:"Disable %1",False:"Enable %1"}
+#        action = menu.addAction(text[vobj.Object.Enabled].replace("%1",vobj.Object.Label))
+#        action.triggered.connect(lambda: self.setEdit(vobj,0))
+#        if vobj.Object.Proxy.editingMode == False:
+#            text = "Edit Placement Adjustments"
+#            mode = 5
+#        else:
+#            text = "Accept Placement Adjustments"
+#            mode = 6
+#        action = menu.addAction(text)
+#        action.triggered.connect(lambda: self.setEdit(vobj,mode))
+#
+#    def setEdit(self,vp,modNum):
+#        if modNum == 0:
+#            vp.Object.Enabled = 0 if vp.Object.Enabled else 1
+#            vp.Document.resetEdit()
+#            FreeCAD.ActiveDocument.recompute()
+#        elif modNum == 3:
+#            FreeCADGui.runCommand('Part_ColorPerFace',0)
+#        elif modNum == 5: #begin edit more
+#            vp.Object.Proxy.showGhosts()
+#        elif modNum == 6: #accept changes and end edit mode
+#            vp.Object.Proxy.editingMode = False
+#            vp.Object.Proxy.exorciseGhosts()
+#            FreeCADGui.Control.closeDialog()
+#            plms = [prop for prop in vp.Object.PropertiesList if "Placement" in prop and not "Edit" in prop]
+#            for plm in plms:
+#               vp.Object.setEditorMode(plm,0) #normal mode when not editing
+#        return False
+#
+#    def onDelete(self, vobj, subelements):
+#        #only remove children from the body if they are claimed and not native PD objects
+#        doc = FreeCAD.ActiveDocument
+#        body = doc.getObject(vobj.Object.Body)
+#        if vobj.Object.LinkedObject and vobj.Object.ClaimChildren:
+#            if vobj.Object.LinkedObject in body.Group:
+#                grp = body.Group
+#                if not vobj.Object.LinkedObject.isDerivedFrom("PartDesign::Feature") and not vobj.Object.LinkedObject.isDerivedFrom("Part::Part2DObject"):
+#                    grp.remove(vobj.Object.LinkedObject)
+#                    body.Group = grp
+#                    vobj.Object.LinkedObject.ViewObject.Visibility = True
+#        #need to ensure the next feature in the tree's BaseFeature property points to our BaseFeature
+#        solids = [feat for feat in body.Group if feat.isDerivedFrom("PartDesign::Feature") and feat.BaseFeature == vobj.Object]
+#        if len(solids) == 1: #found it
+#            solids[0].BaseFeature = vobj.Object.BaseFeature
+#        #need also to set the tip to our object's base feature if our object is the current tip
+#        if hasattr(vobj.Object,"_Body") and vobj.Object._Body.Tip == vobj.Object and vobj.Object.BaseFeature:
+#            vobj.Object._Body.Tip = vobj.Object.BaseFeature
+#            vobj.Object.BaseFeature.ViewObject.Visibility = True
+#        if vobj.Object.Proxy.editingMode:
+#            vobj.Object.Proxy.exorciseGhosts()
+#            FreeCADGui.Control.closeDialog()
+#        return True
+#
+#    def getIcon(self):
+#        '''Return the icon in XPM format which will appear in the tree view. This method is\
+#                optional and if not defined a default icon is shown.'''
+#        XPM = '''
+#/* XPM */
+#static char *_632945370954[] = {
+#/* columns rows colors chars-per-pixel */
+#"64 64 188 2 ",
+#"   c #0EB917171E1E",
+#".  c #1B1B1F1F1212",
+#"X  c #13131A1A1B1B",
+#"o  c #299026C00639",
+#"O  c #2BAC29290505",
+#"+  c #292929290C0C",
+#"@  c none",
+#"#  c #32322F2F0889",
+#"$  c #360330750146",
+#"%  c #3D3D36E10303",
+#"&  c #347431310A0A",
+#"*  c #39A735350B9E",
+#"=  c #2F2F33331C1C",
+#"-  c #34013400137A",
+#";  c #3C9138381212",
+#":  c #0B2915482158",
+#">  c #0E78191524B4",
+#",  c #0E8F199A28A9",
+#"<  c #11111A3E2492",
+#"1  c #14541D5D28E8",
+#"2  c #0E8F1C9D3131",
+#"3  c #131320202F2F",
+#"4  c #146A22A33207",
+#"5  c #1ADA26663474",
+#"6  c #191927273838",
+#"7  c #19C427FD38E3",
+#"8  c #36E13BE62379",
+#"9  c #3A803D9A2274",
+#"0  c #23232BEB3676",
+#"q  c #2E2E39393131",
+#"w  c #2C5734093DBD",
+#"e  c #31313B3B3939",
+#"r  c #47473D3D0000",
+#"t  c #393943433636",
+#"y  c #4B6B42420000",
+#"u  c #4F4F47470808",
+#"i  c #53994BE30DD4",
+#"p  c #64E559DA0000",
+#"a  c #68685F5F1313",
+#"s  c #6C6C62E31798",
+#"d  c #51514D4D2929",
+#"f  c #547E50502BEC",
+#"g  c #595855543288",
+#"h  c #5D5D5A5A3838",
+#"j  c #19592DEE4787",
+#"k  c #18582E6E4ACB",
+#"l  c #196F30DB4DA3",
+#"z  c #1B1B38385D5D",
+#"x  c #212131B24545",
+#"c  c #2F2F38384242",
+#"v  c #31B13A3A43C3",
+#"b  c #26663BBC5393",
+#"n  c #1E1E3F3F6868",
+#"m  c #393946C7499F",
+#"M  c #2D2D44045D5D",
+#"N  c #277D43EE65BB",
+#"B  c #33334F4F6464",
+#"V  c #32DD4DF86CC2",
+#"C  c #3B3B54D56A6A",
+#"Z  c #232348487878",
+#"A  c #3B7B55D672F3",
+#"S  c #3D3D58587575",
+#"D  c #368C58587D27",
+#"F  c #403F46C64E4E",
+#"G  c #44C44C0B5454",
+#"H  c #49494ECE5656",
+#"J  c #4BA052515AAF",
+#"K  c #51D257575D5D",
+#"L  c #696965654646",
+#"P  c #6F6F6B6B4D4D",
+#"I  c #7B7B78785C5C",
+#"U  c #54FF5B046262",
+#"Y  c #58575C5B6161",
+#"T  c #41415B5B7373",
+#"R  c #59D964246A2A",
+#"E  c #434361617979",
+#"W  c #63E468E86EEE",
+#"Q  c #64646A697272",
+#"!  c #6DC371717620",
+#"~  c #6D6D73737A7A",
+#"^  c #70F074747939",
+#"/  c #B69994BF0000",
+#"(  c #B8B897970000",
+#")  c #C5C5A1A10000",
+#"_  c #CC5CB6250000",
+#"`  c #CDE4B8CF0000",
+#"'  c #D3D3BDBD0101",
+#"]  c #DD5DC6460101",
+#"[  c #E0EFC3D20000",
+#"{  c #EDEDD54C0101",
+#"}  c #DB80CA7E3E2F",
+#"|  c #F7F7E3E33645",
+#" . c #92128F8F7878",
+#".. c #D6D6C5C54040",
+#"X. c #D92EC91E416C",
+#"o. c #E0E0CFCF4444",
+#"O. c #E9E9D7D74848",
+#"+. c #EBC0DAAF4848",
+#"@. c #FCFCE9E94F4F",
+#"#. c #20FF4AC286A8",
+#"$. c #22724D668AE9",
+#"%. c #2A4F522D8517",
+#"&. c #251651208EC4",
+#"*. c #292953538B35",
+#"=. c #3E3E5E5E8585",
+#"-. c #26B853659157",
+#";. c #28F4561A9445",
+#":. c #2ACB58DF96F6",
+#">. c #2D8E5C7C9B06",
+#",. c #30305F5F9E9E",
+#"<. c #2F2F60609E9E",
+#"1. c #3083609A9F44",
+#"2. c #33BA649DA3C4",
+#"3. c #37376868A6A6",
+#"4. c #38786969A787",
+#"5. c #3C966D43AA77",
+#"6. c #3F3F7070ACAC",
+#"7. c #469C650F85DB",
+#"8. c #4AA06BC18DE3",
+#"9. c #4BCC6E6E9515",
+#"0. c #4B4B71719C9C",
+#"q. c #76F77B7B8101",
+#"w. c #425872A4AE6A",
+#"e. c #4A4A7777AA2A",
+#"r. c #535379CFA54F",
+#"t. c #58587C7CA3A3",
+#"y. c #52FD7D27AB55",
+#"u. c #464B766BB13B",
+#"i. c #48487777B2B2",
+#"p. c #4BAF7B6FB4EC",
+#"a. c #50507F62B7B7",
+#"s. c #50507F7FB8B8",
+#"d. c #5B5B8303ACEC",
+#"f. c #5ADB8505B2B2",
+#"g. c #5DDE8888B636",
+#"h. c #5437834EBACA",
+#"j. c #58AE875CBDE8",
+#"k. c #5AAB8960BF45",
+#"l. c #622F8B24B582",
+#"z. c #63638DC0BAED",
+#"x. c #68689090B7B7",
+#"c. c #6C579454BC91",
+#"v. c #5DD88C6AC194",
+#"b. c #60BD8F03C366",
+#"n. c #64B392BAC628",
+#"m. c #6ADC9708C5C5",
+#"M. c #6A6A9717C7C7",
+#"N. c #68E996C1C949",
+#"B. c #6CF59A78CBDC",
+#"V. c #72699F83CFC7",
+#"C. c #840487078A8A",
+#"Z. c #8A8A8BE18C8C",
+#"A. c #949496168E0E",
+#"S. c #87078C0C9212",
+#"D. c #93E9953F95EB",
+#"F. c #94EA97419A44",
+#"G. c #959599999E9E",
+#"H. c #9B709BF19C46",
+#"J. c #A7A7A5259313",
+#"K. c #9E9EA3A3A6A6",
+#"L. c #A37EA3A3A3A3",
+#"P. c #A5E5A9E9ADED",
+#"I. c #AC7CAC7CAC8C",
+#"U. c #BC3CBA3AACAC",
+#"Y. c #ADADB0B0B4B4",
+#"T. c gray70",
+#"R. c #B5B5B8B8BCBC",
+#"E. c #BBEBBBEBBBFB",
+#"W. c #C8C8C6C6BBBB",
+#"Q. c #BCBCBFBFC2C2",
+#"!. c gray77",
+#"~. c #C670C872CB20",
+#"^. c #CC16CC16CC16",
+#"/. c #D1D1D0D0C6C6",
+#"(. c #CF79D126D27C",
+#"). c #D437D437D437",
+#"_. c #DB92DA91D2F7",
+#"`. c #D6D6D8D8DADA",
+#"'. c #DC08DC08DC08",
+#"]. c #E4E4E4E4DEDE",
+#"[. c #DFDFE1E1E2E2",
+#"{. c #E42CE423E3F5",
+#"}. c #EBEBEAEAE6E6",
+#"|. c #E6E6E7E7E8E8",
+#" X c #ECE0ECE0EB5E",
+#".X c #F1F1F1F1EEEE",
+#"XX c #F466F46FF416",
+#"oX c none",
+#/* pixels */
+#"oXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoX",
+#"oXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoX",
+#"oXoXoXoXoXoXoXoXoXoXoXoXoX Xg g  XoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoX",
+#"oXoXoXoXoXoXoXoXoXoXoXoX Xd @ @ d  XoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoX",
+#"oXoXoXoXoXoXoXoXoXoXoX Xf O i i @ d .XoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoX",
+#"oXoXoXoXoXoXoXoXoXoX Xf @ i O.+.i @ d }.oXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoX",
+#"oXoXoXoXoXoXoXoXoX X* @ i O.@.@.+.i @ d  XoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoX",
+#"oXoXoXoXoXoXoXoX}.f O @ $ } @.@.@.+.i @ d  XoXoXoXoXoXoXoX[.Y.P.~.|.oXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoX",
+#"oXoXoXoXoXoXoX Xf @ i $ O $ X.@.@.@.O.i @ d }.oX.XQ.S.U 0 : : : : : 1 v Y q.G.R.`.XXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoX",
+#"oXoXoXoXoXoX Xf @ u +.} $ @ @ } @.@.@.O.i @ ; e : : :     4 b M x 4 : : : : : : : : 0 G Q S.P.~.|.oXoXoXoXoXoXoXoXoXoXoXoXoXoXoX",
+#"oXoXoXoXoX X* @ y ] | @.} $ O $ X.@.@.@.+.i @ o < x V 8.l.V.V.V.V.V.B.z.t.7.A M x , : : : : : : : > c J ~ D.Y.(.XXoXoXoXoXoXoXoX",
+#"oXoXoXoX}.f @ @ $ ' { | @.} $ @ $ X.@.@.@.+.i @ = c.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.z.t.8.S M x 3 : : : : : : : : 0 G W R K.oXoX",
+#"oXoXoX Xf @ y @ O $ _ { | @.} $ @ $ ..@.@.@.+.i @ 9 c.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.m.f.9.=.B b 6 : : : : : : oXoX",
+#"oXoXD.- @ y ] ` @ @ $ _ { | @.} $ @ @ ..@.@.@.+.i @ r c.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.m.A 5 : : :   : < oXoX",
+#"oXoXo @ y ( [ { ` $ O $ ` { | @.} $ @ # ..@.@.@.+.i + 9 c.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.m.T 6 : : : : k %.2.: < oXoX",
+#"oXoXo O r ( ) [ { ` $ @ $ ` { | @.} $ @ $ ..@.@.@.+.i # 9 c.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.V.m.A 6 : : : : k %.2.2.2.2.: > oXoX",
+#"oXXX  o O r ( ) [ { _ @ @ @ _ { | @.X.$ @ $ ..@.@.@.+.i @ 9 c.V.V.V.V.V.V.V.V.V.V.V.V.V.m.S 7 : : : : l %.2.2.2.2.2.2.2.: > oXoX",
+#"oXoX: > 9 @ r / ) [ { _ @ @ $ _ { | @.} $ @ $ ..@.@.@.+.i @ 9 c.V.V.V.V.V.V.V.V.V.N.S 6 : : : : k %.2.2.2.2.2.2.2.2.4.2.: > oXoX",
+#"oXoX  : c.9 @ r / ) [ { ' $ @ @ _ { | @.} $ @ @ X.@.@.@.+.i @ # T l.V.V.V.V.N.S 7 : : : : k %.1.2.2.2.2.2.2.2.2.2.2.2.2.: < oXoX",
+#"oXoX  : V.m.9 @ r / ) [ { _ $ @ @ _ { | @.} $ @ @ ..@.@.@.+.i @ o   < 4 7 4 : : : : k %.2.3.2.2.2.2.2.2.2.2.2.2.2.2.2.2.: > oXoX",
+#"oXoX: < V.V.c.d @ r ( ) [ { ` @ @ @ _ { | @.} $ @ $ X.@.@.@.+.i @ O   : : : : l %.2.2.2.2.2.2.2.2.2.2.2.2.1.2.1.1.2.2.2.: > oXoX",
+#"oXoX: > V.V.B.z.9 @ r / ) [ { _ $ @ $ _ { | @.} $ @ @ X.@.@.@.+.i @ ; d.: : 2.2.2.2.2.2.2.2.2.2.2.2.1.2.1.2.2.1.1.2.2.2.: > oXoX",
+#"oXXX: > V.V.B.B.c.9 @ r ( ) [ { _ $ @ @ _ { | @.} $ @ $ X.@.@.o.s O @ # : : 2.2.2.2.2.2.2.2.1.2.2.2.1.2.1.2.>.2.1.2.2.2.: < oXoX",
+#"oXoX: , V.V.B.B.B.z.9 @ r ( ) ] { _ $ @ @ _ { | @.X.@ @ @ X.o.% @ @ @ @   : 2.2.2.1.2.2.1.2.1.1.1.1.2.>.,.1.2.>.,.,.2.2.: > oXoX",
+#"oXXX: , V.V.B.B.N.N.z.t @ r / ) [ { _ $ @ $ _ { | @.} $ @ $ s @ P _.I O . : 2.2.2.1.1.1.2.1.1.1.1.1.2.,.1.1.1.>.>.>.2.2.: > oXoX",
+#"oXoX: < V.V.B.N.N.N.m.l.9 O r / ) [ { _ @ @ @ _ { | @.} @ @ @ @ _.oXU.@ o : 2.2.1.1.1.1.1.1.1.1.1.,.>.,.1.>.1.>.2.>.2.2.: < oXoX",
+#"oXoX: > V.V.n.n.m.n.n.n.l.9 @ r / ) [ { _ $ @ $ _ { | o.a @ @ @ XXoX.X@ O > 2.2.1.1.1.1.1.,.,.1.>.1.,.>.>.,.>.>.>.>.2.2.: < oXoX",
+#"oXoX: > V.V.n.n.n.n.n.n.n.l.9 O r / ) [ { _ $ @ & _ _ r O @ @ * oXoXoXh @ X 2.3.1.1.1.>.,.,.>.>.>.>.,.>.>.>.>.>.>.>.3.2.: > oXoX",
+#"oXXX: : V.V.n.n.n.n.n.v.n.n.f.9 @ r / ) [ { _ @ @ @ p @ P _.XXoXoXoXoX .@ + 2.2.,.>.1.,.>.>.>.>.>.>.>.,.>.>.>.>.>.>.2.2.: > oXoX",
+#"oXoX: , V.V.n.b.v.n.n.n.v.v.n.g.9 @ r / ) [ { _ $ @ @ @ _.oXoXoXoXoXoX/.@ O 2.2.>.>.>.>.>.>.>.>.>.>.>.>.>.>.:.>.>.>.2.2.: > oXoX",
+#"oXoX  : V.V.v.n.v.n.v.v.v.v.v.v.f.9 @ r ( ) [ _ p @ @ @ XXoXoXoXoXoXoXoX; @ >.2.>.>.>.>.>.>.>.>.>.>.>.>.>.:.>.:.:.:.2.2.: < oXoX",
+#"oXoX: : V.V.v.v.v.v.v.v.v.v.j.v.k.y.9 @ r ( / r @ @ @ * oXoXoXoXoXoXoXoXL O B 2.>.>.>.>.>.>.>.:.:.:.>.:.:.:.:.:.>.:.2.2.: > oXoX",
+#"oXXX: > V.V.k.k.k.k.k.k.k.k.k.k.j.v.d.8 @ r p O P _..XoXoXoXoXoXoXoX{.L $ @ e 2.:.>.:.:.>.:.>.:.:.:.:.>.>.;.:.:.:.:.2.2.: > oXoX",
+#"oXoX: > V.V.k.k.k.k.k.k.k.j.j.h.j.j.j.y.9 @ O @ _.oXoXoXoXoXoXoXoXU.* # @ @ @ 2.>.>.>.:.:.:.:.>.;.:.:.;.:.;.;.:.;.:.2.2.: > oXoX",
+#"oXoX  > V.V.k.j.k.j.k.k.j.j.h.h.h.h.j.h.y.- O @  ./.oXoXoXoXoXoXW.* @ @ O @ @ D >.;.:.>.:.:.:.:.:.:.;.:.;.;.;.;.;.:.2.2.: < oXoX",
+#"oXXX> > V.V.j.h.j.j.h.j.h.h.h.h.j.h.h.h.h.r.$ O @ @ f A.].oXoXXXr + O @ @ O O m :.:.;.:.;.:.;.;.;.;.;.;.;.;.;.;.-.:.2.2.: > oXoX",
+#"oXXX: , V.V.h.h.h.h.h.h.h.h.h.h.h.h.h.h.h.h.p.8.m & O @ @ g J.J.* @ @ O @ O @ - ;.;.:.;.:.-.;.:.;.;.;.;.;.;.;.;.-.;.2.2.: > oXoX",
+#"oXoX: : V.V.h.h.h.h.h.h.h.h.h.h.h.s.h.p.p.h.h.p.h.h.7.m & @ @ @ & $ @ @ @ @ @ O *.;.;.;.:.:.-.;.;.;.&.;.;.&.-.;.-.-.2.2.: > oXoX",
+#"oXoX: , V.V.h.h.h.h.h.h.i.h.h.p.p.h.p.s.h.p.h.p.h.p.h.p.e.E e @ @ @ @ # @ O @ @ N ;.-.:.-.-.-.-.&.;.-.;.&.-.;.&.-.-.2.2.  < oXoX",
+#"oXoX: , V.V.i.h.u.h.i.h.h.h.i.h.p.s.p.p.p.p.p.p.e.p.p.p.p.p.p.e.C 8 @ @ @ @ @ @ q :.-.-.-.-.-.-.;.&.&.-.-.-.&.&.-.-.2.2.: > oXoX",
+#"oXXX: , V.V.h.p.h.p.p.p.h.i.h.i.p.p.p.p.p.p.p.i.i.i.i.p.i.i.i.i.p.i.x.R o O O O # -.-.-.-.-.-.-.-.-.&.-.-.-.-.&.&.&.2.2.: > oXoX",
+#"oXoX: , V.V.h.i.p.p.p.p.p.p.p.p.p.p.p.i.i.p.i.i.i.i.i.i.i.i.u.u.i.i.V.V.:   m # = -.-.-.-.&.&.&.$.&.&.&.-.$.$.-.&.&.2.2.: > oXoX",
+#"oXXX: : V.V.i.i.p.p.p.p.i.p.i.i.i.i.i.i.u.u.i.u.i.u.i.w.i.u.u.u.w.u.V.B.: , 3.2.&.-.&.&.&.&.&.&.-.$.-.&.$.&.-.$.$.&.2.2.: < oXoX",
+#"oXoX: , V.V.i.i.i.i.u.i.u.u.u.i.i.u.u.u.u.u.u.u.u.w.w.w.u.u.w.w.w.u.V.V.: : 2.2.&.&.&.&.&.&.$.&.$.-.$.&.$.$.$.$.$.&.2.2.: > oXoX",
+#"oXXX  > V.V.i.i.i.i.i.u.i.i.w.i.i.i.w.w.w.w.u.6.w.w.w.w.w.w.w.w.6.6.V.V.: : 2.2.&.&.$.&.&.$.&.&.$.$.$.-.$.$.$.$.$.$.2.2.: > oXoX",
+#"oXoX: , V.V.i.w.w.i.w.u.w.w.w.w.w.w.w.w.6.u.w.6.w.w.w.5.w.5.w.5.6.6.V.V.: : 3.2.&.&.&.&.$.$.$.$.$.&.$.$.$.$.$.$.$.$.2.2.: > oXoX",
+#"oXoX: , V.V.w.w.w.w.w.w.w.w.w.w.w.6.6.w.6.6.6.w.5.w.w.w.5.5.5.w.6.6.B.V.: : 3.2.&.$.$.$.&.$.&.$.$.$.$.$.$.$.$.$.$.&.2.2.: < oXoX",
+#"oXXX: > V.V.w.w.w.6.w.w.w.w.6.w.6.6.6.6.6.6.6.6.w.5.4.5.5.5.5.w.5.6.V.V.: : 2.2.$.&.$.$.#.$.$.#.$.#.$.#.#.#.#.;.<.2.2.2.: > oXoX",
+#"oXoX  : V.V.w.w.w.5.w.6.5.w.5.w.w.4.w.w.4.w.4.4.w.w.4.4.5.5.4.4.4.4.V.V.: : 2.2.$.$.$.$.$.$.$.#.$.#.$.#.&.:.2.2.2.2.#.6 : 1 oXoX",
+#"oXoX: : V.V.5.5.w.5.5.5.5.5.5.5.4.w.4.4.4.4.w.4.4.4.4.4.4.4.4.4.4.3.V.V.: , 2.2.$.#.$.#.#.#.#.#.$.#.$.>.2.2.2.,.n , : : c P.oXoX",
+#"oXXX: , V.V.N.v.j.p.w.5.5.4.4.5.3.4.4.3.4.4.4.4.4.4.4.4.3.3.3.3.4.3.V.V.: : 2.2.#.$.#.#.#.#.#.$.;.1.2.3.1.*.k : : : J R.oXoXoXoX",
+#"oXoX: : m.V.V.B.V.V.V.B.n.j.h.i.w.4.4.w.4.3.4.4.3.3.4.2.3.2.3.3.3.2.V.B.: , 2.2.#.#.#.#.#.&.:.2.3.2.,.Z 2 : : 0 ^ (.XXoXoXoXoXoX",
+#"oXoX: : : > b D 0.g.N.V.V.V.V.V.V.B.n.s.s.u.3.3.2.2.4.3.2.3.2.2.2.2.V.V.: : 2.2.#.$.$.-.2.2.2.2.;.z : : : c C.^.[.|.XXXXoXoXoXoX",
+#"oXoXP.R c : : : : : : 4 N 7.e.z.B.V.V.V.V.V.V.m.b.s.p.w.2.2.2.2.2.3.V.V.: : 2.2.$.;.1.2.2.2.#.6 : : < H H.!.^.`.[.|.XXoXoXoXoXoX",
+#"oXoXoXoXoX.X~.G.! G 0 : : : : : : x V 9.y.n.V.V.V.V.V.V.V.n.z.p.u.4.V.V.: , 2.2.2.2.2.>.n < : : 5 R L.R.E.~.(._.{. XXXoXoXoXoXoX",
+#"oXoXoXoXoXXXXX|.[.`.^.E.F.^ K w , : : : : : < b =.0.p.M.V.V.V.V.V.V.V.V.: , 2.2.2.&.k : : : w ! L.I.T.E.~.(._.[.}..XoXoXoXoXoXoX",
+#"oXoXoXoXoXoXoXXX}.[.`.(.~.!.T.T.I.D.! K v 0 : : : : : : 6 b =.r.v.B.V.V.: : ,.Z , : : 1 H Z.H.I.I.R.W.~.(.`.{.|..XoXoXoXoXoXoXoX",
+#"oXoXoXoXoXoXoXoXXX X|.'.`.^.~.E.E.T.I.L.H.D.A.^ K F w 1 : : : : : : j V : : : : : w W H.L.I.T.E.W.~.^.`.'.|. XXXoXoXoXoXoXoXoXoX",
+#"oXoXoXoXoXoXoXoXoXoX.X X{.'._.).^.!.E.R.T.I.I.L.L.H.H.D.Z.! Y F 0 1 : : : : < G Z.I.I.T.E.E.!.^.(.`.'.|. XXXoXoXoXoXoXoXoXoXoXoX",
+#"oXoXoXoXoXoXoXoXoXoXoXoXoXXX X{.'._.`.(.^.!.!.E.E.T.T.T.T.I.I.I.I.I.F.q.F H I.E.E.!.!.~.(.).'.[.{. X XoXoXoXoXoXoXoXoXoXoXoXoXoX",
+#"oXoXoXoXoXoXoXoXoXoXoXoXoXoXoXXXXX X X{.{.'.`.`.).(.^.^.~.~.~.!.~.~.~.^.^.^.).).`.`.'.[.|.}..XXXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoX",
+#"oXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXXXXX X X X}.}.].[.].{.].{.{.{.|.}. X X.X.XXXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoX",
+#"oXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoX",
+#"oXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoXoX"
+#};
+#'''
+#        if self.Object.Type == "Subtractive":
+#            return XPM.replace("none","red")
+#        else:
+#            return XPM
+ 
+#    def __getstate__(self):
+#        '''When saving the document this object gets stored using Python's json module.\
+#                Since we have some un-serializable parts here -- the Coin stuff -- we must define this method\
+#                to return a tuple of all serializable objects or None.'''
+#        return None
+ 
+#    def __setstate__(self,state):
+#        '''When restoring the serialized object from document we have the chance to set some internals here.\
+#                Since no data were serialized nothing needs to be done here.'''
+#        return None
+
+#if __name__ == "__main__":
+#    FreeCAD.Console.PrintMessage("This file is for import only.  Please run pdwrapper.FCMacro to create object.\n")
+
+
+########################################
+#CODE_ENDS_HERE
+
+
+BASENAME = "pdwrapper"
+
+def getTipBase(fromBody,wrapper): #empower the user by letting him select where to put this new wrapper
+    '''return (before feature, new tip)'''
+    from PySide import QtGui
+    def parens(name,label):
+        return name + " ("+label+")" if label != name else name
+    solids = [ii for ii in fromBody.Group if hasattr(ii,"Shape") and len(ii.Shape.Solids) >= 1 and ii.isDerivedFrom("PartDesign::Feature")]
+    if len(solids) == 0:
+        return (None,wrapper) #empty body, so wrapper is new tip
+    else:
+        #BaseFeature, if any, should be first, but if the user wants to try to put this ahead of it let him try it
+        items2 = ["Beginning of Body"]+[parens(ss.Name,ss.Label) for ss in solids]
+        default = len(items2)-1
+        window = FreeCADGui.getMainWindow()
+        QtGui.QInputDialog.InputDialogOption = QtGui.QInputDialog.NoButtons
+        item2,ok = QtGui.QInputDialog.getItem(window,"Set previous feature",
+"Select what should come *before* this object in the tree.\n\
+Cancel will put the new wrapper object last in the tree.\n\
+Note: the last item in the tree will be set as the new tip\n\
+and made the visible feature in the tree.  You may, of course, \n\
+change this after the wrapper and the wrapped object are placed.\n", items2, default, False)
+        if not ok or item2 == items2[-1]:
+            return (solids[-1],wrapper) #put at end of list and make wrapper new tip
+        elif item2 == items2[0]:
+            return (None,solids[-1]) #put at front of body, last solid is new tip
+        else: #user selected neither the first nor the last feature
+              #first -1 because of string as first item
+              #second -1 because we want the last solid to be the new tip
+            return (solids[items2.index(item2)-1],solids[-1])
+
+def setDefaults(wrapobj):
+    wrapobj.PatternOperationDefault = wrapobj.PatternOperation
+    wrapobj.TipOperationDefault = wrapobj.TipOperation
+
+def makeObject(PDW):
+    from PySide import QtGui
+    doc = FreeCAD.ActiveDocument
+    body=FreeCADGui.ActiveDocument.ActiveView.getActiveObject("pdbody")
+    if not body:
+        body = getBody(doc)
+
+    if not body:
+        FreeCAD.Console.PrintError("No body in active document or user canceled.\n")
+    else:
+        if body and doc:
+            doc.openTransaction("Create PDWrapper")
+            selobjs = FreeCADGui.Selection.getSelectionEx()
+            if selobjs:
+                for selobj in selobjs:
+                    if body:
+                        window = FreeCADGui.getMainWindow()
+                        items=["Additive","Subtractive","Common (Additive)","Common (Subtractive)","XOR (Additive)","XOR (Subtractive)","None"]
+                        item,ok = QtGui.QInputDialog.getItem(window,"Wrapper type",
+"Select wrapper type for this object. You can change the operations later, but Additive or \n\
+Subtractive can only be chosen now, at the time of object creation, and can't be changed later. \n\
+Additive or Subtractive is required if you want to be able to use the wrapped object in a \n\
+Part Design pattern (array) later.\n ", items, 0, False)
+                        if ok:
+                            if item == items[0]:#Additive
+                                wrapper = doc.addObject("PartDesign::FeatureAdditivePython","PDW_Add")
+                                PDW.PDWrapper(wrapper) #body.newObject would add this to the end each time and make it the new tip
+                                PDW.PDWrapperVP(wrapper.ViewObject) #we'll empower the user to make this decision each time
+                                tipBase,newTip = getTipBase(body,wrapper) #tipBase is previous solid feature or None
+                                body.insertObject(wrapper, tipBase, True) #insert into the body before adding links to avoid scope warnings
+                                body.Tip = newTip #newTip is the last solid in the body, which might be the wrapper, user can always set a new tip
+                                newTip.ViewObject.Visibility = True #make the new tip visible so it is obvious to the user what the body shape looks like
+                                wrapper.TipBase = tipBase #base for the tip shape
+                                wrapper.TipTool = selobj.Object #tool for the tip shape
+                                wrapper.TipOperation = "Fuse" #op to perform on base and tool to create tip shape
+                                wrapper.Type = "Additive" #for our reference only and to remind user of type selected
+                                wrapper.PatternBase = selobj.Object #base used to create AddSubShape for use in patterns
+                                wrapper.PatternOperation = "None" #operation to perform on base and tool to create pattern shape
+                                wrapper.PatternTool = None #tool for pattern shape boolean, if any
+                            elif item == items[1]:#Subtractive
+                                wrapper = doc.addObject("PartDesign::FeatureSubtractivePython","PDW_Sub")
+                                PDW.PDWrapper(wrapper)
+                                PDW.PDWrapperVP(wrapper.ViewObject)
+                                tipBase,newTip = getTipBase(body,wrapper)
+                                body.insertObject(wrapper, tipBase, True)
+                                body.Tip = newTip
+                                newTip.ViewObject.Visibility = True
+                                wrapper.TipBase = tipBase
+                                wrapper.TipOperation = "Cut"
+                                wrapper.Type = "Subtractive"
+                                wrapper.PatternBase = selobj.Object #also fp.LinkedObject
+                                wrapper.TipTool = selobj.Object
+                                wrapper.PatternOperation = "None"
+                                wrapper.PatternTool = None
+                            elif item == items[2]:#Common additive
+                                wrapper = doc.addObject("PartDesign::FeatureAdditivePython","PDW_Common_Add")
+                                PDW.PDWrapper(wrapper)
+                                PDW.PDWrapperVP(wrapper.ViewObject)
+                                tipBase,newTip = getTipBase(body,wrapper)
+                                body.insertObject(wrapper, tipBase, True)
+                                body.Tip = newTip
+                                newTip.ViewObject.Visibility = True
+                                wrapper.TipBase = tipBase
+                                wrapper.TipOperation = "Common"
+                                wrapper.Type = "Additive"
+                                wrapper.TipTool = selobj.Object
+                                wrapper.PatternTool = selobj.Object
+                                wrapper.PatternBase = wrapper.TipBase
+                                wrapper.PatternOperation = "Common"
+                            elif item == items[3]:#Common subtractive
+                                wrapper = doc.addObject("PartDesign::FeatureSubtractivePython","PDW_Common_Sub")
+                                PDW.PDWrapper(wrapper)
+                                PDW.PDWrapperVP(wrapper.ViewObject)
+                                tipBase,newTip = getTipBase(body,wrapper)
+                                body.insertObject(wrapper, tipBase, True)
+                                body.Tip = newTip
+                                newTip.ViewObject.Visibility = True
+                                wrapper.TipBase = tipBase
+                                wrapper.TipOperation = "Common"
+                                wrapper.Type = "Subtractive"
+                                wrapper.TipTool = selobj.Object
+                                wrapper.PatternTool = selobj.Object
+                                wrapper.PatternBase = wrapper.TipBase
+                                wrapper.PatternOperation = "Common"
+                            elif item == items[4]: #XOR additive
+                                wrapper = doc.addObject("PartDesign::FeatureAdditivePython","PDW_XOR_Add")
+                                PDW.PDWrapper(wrapper)
+                                PDW.PDWrapperVP(wrapper.ViewObject)
+                                tipBase,newTip = getTipBase(body,wrapper)
+                                body.insertObject(wrapper, tipBase, True)
+                                body.Tip = newTip
+                                newTip.ViewObject.Visibility = True
+                                wrapper.TipBase = tipBase
+                                wrapper.TipOperation = "XOR"
+                                wrapper.Type = "Additive"
+                                wrapper.TipTool = selobj.Object
+                                wrapper.PatternBase = wrapper.TipBase
+                                wrapper.PatternOperation = "XOR"
+                                wrapper.PatternTool = selobj.Object
+                            elif item == items[5]: #XOR subtractive
+                                wrapper = doc.addObject("PartDesign::FeatureSubtractivePython","PDW_XOR_Sub")
+                                PDW.PDWrapper(wrapper)
+                                PDW.PDWrapperVP(wrapper.ViewObject)
+                                tipBase,newTip = getTipBase(body,wrapper)
+                                body.insertObject(wrapper, tipBase, True)
+                                body.Tip = newTip
+                                newTip.ViewObject.Visibility = True
+                                wrapper.TipBase = tipBase
+                                wrapper.TipOperation = "XOR"
+                                wrapper.Type = "Subtractive"
+                                wrapper.TipTool = selobj.Object
+                                wrapper.PatternBase = wrapper.TipBase
+                                wrapper.PatternOperation = "XOR"
+                                wrapper.PatternTool = selobj.Object
+                            elif item == items[6]: #None ##add object to body, but don't use its shape
+                                wrapper = doc.addObject("PartDesign::FeaturePython","PDW_None")
+                                PDW.PDWrapper(wrapper)
+                                PDW.PDWrapperVP(wrapper.ViewObject)
+                                tipBase,newTip = getTipBase(body,wrapper)
+                                body.insertObject(wrapper, tipBase, True)
+                                body.Tip = newTip
+                                newTip.ViewObject.Visibility = True
+                                wrapper.TipOperation = "None"
+                                wrapper.Type = "None" #neither additive nor subtractive, so hide these properties
+                                unused = [prop for prop in wrapper.PropertiesList if "Pattern" in prop]
+                                for prop in unused:
+                                    wrapper.setEditorMode(prop,2)
+                        else: #cancel
+                            doc.abortTransaction()
+                            return
+                        setDefaults(wrapper) #save default operations for enable/disable
+                        if not selobj.Object in body.Group:
+                            parents = selobj.Object.Parents
+                            if parents:
+                                if selobj.Object in parents[0][0].Group:
+                                    grp = parents[0][0].Group
+                                    grp.remove(selobj.Object)
+                                    parents[0][0].Group = grp
+                                    body.Group += [selobj.Object]
+                                    wrapper.Proxy.warn(wrapper,selobj.Object.Label+" removed from "+parents[0][0].Name+"\n")
+                            body.Group += [selobj.Object]
+                        wrapper.Body = body.Name
+                        wrapper.LinkedObject =selobj.Object
+                        if wrapper.Type != "None":
+                            wrapper.LinkedObject.ViewObject.Visibility = False
+                        if selobj.Object.isDerivedFrom("PartDesign::Feature"):
+                            wrapper.ClaimChildren = False #preserve linear tree if wrapping a PD object
+                        doc.commitTransaction()
+            else:
+                FreeCAD.Console.PrintError("Selection error.  Select an object to add to the active body.\n")
+
+
+def getBody(doc):
+    from PySide import QtGui
+    def parens(name,label):
+        return name + " ("+label+")" if name != label else name
+    bodies = [obj for obj in doc.Objects if obj.TypeId == "PartDesign::Body"]
+    if len(bodies) == 1:
+        return bodies[0]
+    if len(bodies) == 0:
+        return None
+    items = [parens(ii.Name,ii.Label) for ii in bodies]
+    window = FreeCADGui.getMainWindow()
+    item,ok = QtGui.QInputDialog.getItem(window,"Choose body",
+"Multiple bodies, but none are active, so please select the body to which \n\
+this feature should be added\n", items, 0, False)
+    if ok:
+        return bodies[items.index(item)]
+    else:
+        return None
+
+#################
+def writeFile():
+    with open(py_file,"w") as outfile:
+        for line in code.splitlines():
+            if "#CODE_ENDS_HERE" in line:
+                break
+            if line.startswith('#'):
+                if line == "# -*- coding: utf-8 -*-":
+                    line = "#" + line
+                outfile.write(line[1:]+"\n") #skip first character (#)
+
+
+
+############
+#if __name__ == "__main__":
+#    makeObject(None)
+#    raise Exception("quick exit for testing/debugging")
+############
+
+if __name__ == "__main__":
+    import os
+    fin = open(__file__, 'r')
+    code = fin.read()
+    fin.close()
+    version = code.splitlines()[1][16:]
+    real_path = os.path.realpath(__file__)
+    dir_path = os.path.dirname(real_path)
+    py_file = real_path.replace(".FCMacro",".py").replace('PDWrapper','pdwrapper').replace('Pdwrapper','pdwrapper')
+    bHasFile = os.path.exists(py_file)
+    noImport = False #user elects not to save import file
+
+    if not bHasFile:
+        from PySide import QtGui
+        window = QtGui.QApplication.activeWindow()
+        mb = QtGui.QMessageBox()
+        mb.setWindowTitle(BASENAME+" setup")
+        mb.setIcon(mb.Information)
+        mb.setStandardButtons(mb.Ok | mb.Cancel)
+        mb.setDefaultButton(mb.Cancel)
+        okBtn = mb.button(QtGui.QMessageBox.StandardButton.Ok)
+        cancelBtn = mb.button(QtGui.QMessageBox.StandardButton.Cancel)
+        okBtn.setText("Create file")
+        cancelBtn.setText("Do not create file")
+        caption = "In order for "+BASENAME+" objects to be parametric after saving and reloading file\n\
+we need to create another file on this computer.  File to be created will be: \n\n"+py_file+"\n\n\
+This makes it available to the system upon restarting FreeCAD and loading documents containing the \
+"+BASENAME+" feature python objects.  Create file now?\n\n"
+        mb.setText(caption)
+        ret = mb.exec_()
+        if ret == mb.Ok:
+            writeFile()
+            QtGui.QMessageBox.information(window,"Success","File successfully created.  Please note: if you uninstall "+BASENAME+" macro you need to manually remove "+py_file+", too.\n")
+        else:
+            new_lines = []
+            for line in code.splitlines():
+                if line.startswith('#'):
+                    if "CODE_ENDS_HERE" in line:
+                        break
+                    if line == "# -*- coding: utf-8 -*-":
+                        new_lines.append(line+"\n")
+                        continue
+                    new_lines.append(line[1:]+"\n")
+            code = "".join(new_lines)
+
+            #credit to Mila Nautikus for his answer to a question on stackoverflow, which I modified here
+            #in this example the filename is pdwrapper.py
+            #https://stackoverflow.com/questions/5362771/how-to-load-a-module-from-code-in-a-string
+
+            ##########
+            import sys, importlib
+            my_name = 'pdwrapper' #filename = pdwrapper.py, so this must be 'pdwrapper'
+            my_spec = importlib.util.spec_from_loader(my_name, loader=None)
+
+            pdwrapper = importlib.util.module_from_spec(my_spec)
+
+            exec(code, pdwrapper.__dict__)
+            sys.modules['pdwrapper'] = pdwrapper
+            makeObject(pdwrapper)
+            noImport = True
+
+    if not noImport: #don't never use no double negatives
+
+        import pdwrapper as PDW
+        if PDW.__version__ != __version__:
+            writeFile()
+            from PySide import QtGui
+            window = QtGui.QApplication.activeWindow()
+            QtGui.QMessageBox.information(window,"Version upated",BASENAME+".py has been updated.  You must restart FreeCAD for the new changes to take effect.")
+        else:
+            makeObject(PDW)
