@@ -231,9 +231,16 @@ Sometimes the shapes are not oriented as we expect them to be and need to be adj
 ### Edit Placement Adjustments (boolean trigger)
 Default: False.  Toggle it to True to bring up the Placement Adjustment editor, which it does and then sets itself back to False.  This dialog can also be accessed by right clicking the PDWrapper in the tree and selecting Edit Placement Adjustments from the context menu.<br/>
 <br/>
+In this screenshot there is a Part Design Additive Box (tip base) and a part workbench tube primitive (tip tool).  I call these shapes "ghosts" because of their transparencies.  Each shape is color-coded to match (more or less) the color of the dialog fields related to that shape.  Each can be enabled/disabled using the appropriate checkbox.  If something isn't lined up properly or if you just want a slightly different alignment you can edit the placement adjustment property in the dialog.  The ghosts are actually temporary objects in the document that are not displayed in the tree.  They are deleted when the dialog is closed.  If through some error they are not deleted you can safely delete them manually.  They are rebuilt each time the dialog is opened.  Pressing OK accepts the current configuration and closes the dialog.  Cancel resets the placements to their original values when the dialog was first opened and closes the dialog.  Reset sets all the placements to 0 and leaves the dialog open.<br/>
 <img src="pdwrapper_scr13.png" alt="placement adjustment editor screenshot"><br/>
 <br/>
-
+### Pattern Base Placement (Placement)
+### Pattern Tool Placement (Placement)
+### Tip Base Placement (Placement)
+### Tip Tool Placement (Placement)
+These are placement properties applied as adjustments to copies of the various shapes, not to the objects themselves.  In the above example screenshot if we adjust the tube's placement in the z position, for example, only the shape used (a copy of the tube's shape) for that operation is moved, not the tube object itself.  You can think of these as attachment offsets that are applied not to attachments, but to shapes of objects.<br/>
+<br/>
+These are set to readonly while the editor is open and normal mode when the editor is closed.  This is because changes made inside the editor are applied to these placements, but not the other way around.  But the editor fields are updated from them when the dialog is first created.  Also, if you find the ghost objects in the document you should not try to edit their placments directly because they are only there as visual indicators for your convenience.  Their placements do not actually have any effect on the boolean operations that create the tip and pattern shapes.
 ## Tip Shape
 Here are the properties that make up the recipe for building the tip shape.  The Tip Shape is the shape you see in the 3D view when the PDWrapper object is the visible feature.  I call it Tip Shape because it's the shape the Body presents when this feature is the Tip for the Body.  It is created using the Tip Shape recipe, which includes Tip Base, Tip Tool, and Tip Operation (the boolean to use)<br/>
 ### Tip Base (link)
