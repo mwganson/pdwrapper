@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-__version__ = "0.2021.10.16.rev4"
-#__version__ = "0.2021.10.16.rev4"
+__version__ = "0.2021.10.17"
+#__version__ = "0.2021.10.17"
 ## PDWrapper a class to encapsulate non-Part Design objects into a PartDesign::FeaturePython object
 ## 2021, by <TheMarkster>
 #
@@ -106,28 +106,40 @@ __version__ = "0.2021.10.16.rev4"
 #            fp.EditPlacementAdjustments = False
 #            t = QtCore.QTimer()
 #            t.singleShot(50, self.showGhosts)
-#        elif "Placement" in prop and self.editingMode == True:
+#        elif bool("Placement" in prop or "Offset" in prop or "Scale" in prop) and self.editingMode == True:
 #            self.positionGhosts(fp,prop)
 #
 #    def positionGhosts(self,fp,prop):
+#        ghost = None
 #        if "TipBase" in prop:
 #            ghost = FreeCAD.ActiveDocument.getObject(self.tbName)
 #            plm = getattr(fp,"TipBasePlacement")
 #            shp = self.getShape(fp,fp.TipBase,fp.UseTipBaseAddSubShape)
+#            shp = self.scale(fp,shp, fp.TipBaseScale, fp.TipBaseScale != 1.0,fp.TipScaleCut)
+#            if fp.TipBaseOffset != 0:
+#                shp = self.offset(fp,shp,fp.TipBaseOffset,"Tip")
 #        elif "TipTool" in prop:
 #            ghost = FreeCAD.ActiveDocument.getObject(self.ttName)
 #            plm = getattr(fp,"TipToolPlacement")
 #            shp = self.getShape(fp,fp.TipTool,fp.UseTipToolAddSubShape)
+#            shp = self.scale(fp,shp, fp.TipToolScale, fp.TipToolScale != 1.0,fp.TipScaleCut)
+#            if fp.TipToolOffset != 0:
+#                shp = self.offset(fp,shp,fp.TipToolOffset,"Tip")
 #        elif "PatternBase" in prop:
 #            ghost = FreeCAD.ActiveDocument.getObject(self.pbName)
 #            plm = getattr(fp,"PatternBasePlacement")
 #            shp = self.getShape(fp,fp.PatternBase,fp.UsePatternBaseAddSubShape)
+#            shp = self.scale(fp,shp, fp.PatternBaseScale, fp.PatternBaseScale != 1.0,fp.PatternScaleCut)
+#            if fp.PatternBaseOffset != 0:
+#                shp = self.offset(fp,shp,fp.PatternBaseOffset,"Pattern")
 #        elif "PatternTool" in prop:
 #            ghost = FreeCAD.ActiveDocument.getObject(self.ptName)
 #            plm = getattr(fp,"PatternToolPlacement")
 #            shp = self.getShape(fp,fp.PatternTool,fp.UsePatternToolAddSubShape)
+#            shp = self.scale(fp,shp, fp.PatternToolScale, fp.PatternToolScale != 1.0,fp.PatternScaleCut)
+#            if fp.PatternToolOffset != 0:
+#                shp = self.offset(fp,shp,fp.PatternToolOffset,"Pattern")
 #        if not ghost or not plm:
-#            FreeCAD.Console.PrintError("Unable to find ghost\n")
 #            return
 #        if shp and not shp.isNull():
 #            shp = shp.transformShape(plm.toMatrix(), True)
