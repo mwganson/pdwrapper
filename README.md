@@ -192,6 +192,9 @@ Default: Arcs.  The join type for the pattern shape offset: can be "Arcs", "Tang
 Default: Pipe.  The mode to use when creating the offset.  Honestly, I can't really see a difference except maybe sometimes one will succeed where the others fail.  Options: Pipe, Skin, Recto-verso.<br/>
 ## Scaling
 PDWrapper objects support scaling of shapes used in the 2 recipes for creating the Tip Shape and the Pattern Shape as well as scaling of Tip Shape and Pattern Shape.  Note: scales are independent of one another and can be applied multiple times.  For example, if TipTool is scaled to 2.0 and TipShape is also scaled to 2.0, then the TipTool final scale is 4.0.  Negative values may be used, which produce sometimes a mirror effect.  For better mirroring / scaling control consider encapsulating a Draft Clone of the Linked Object.  To do this, wrap the Draft Clone as one of the additive or subtractive types if it's a clone of one of the solid features in the tree.  If it's a clone of a non-Part Design object, then that object needs to also be wrapped in a None type so it uses the Body's local coordinate system and to avoid links out of scope warnings.<br/>
+<br/>
+## ScalingXYZ
+Beginning with 0.2021.10.21 there is now also XYZ scaling options for each of the Scale properties.  These are vector properties with separate X,Y,Z scaling.  XYZ scaling is applied in addition to regular scaling, if any.
 ## Pattern Scale
 Pattern scaling only affects the model when a pattern feature is used, such as making a polar pattern.  If you are not making a pattern, then all the pattern-related properties can be ignored.  Scale defaults are all 1.0.  If scale factor is other than 1.0, then scaling is done, otherwise it is not.  Example: scale = 2.0 means the new scaled object is 2x the size of the original.
 ### Pattern Scale Cut (boolean)
