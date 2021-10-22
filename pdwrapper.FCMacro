@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-__version__ = "0.2021.10.17"
-#__version__ = "0.2021.10.17"
+__version__ = "0.2021.10.21.rev2"
+#__version__ = "0.2021.10.21.rev2"
 ## PDWrapper a class to encapsulate non-Part Design objects into a PartDesign::FeaturePython object
 ## 2021, by <TheMarkster>
 #
@@ -56,6 +56,12 @@ __version__ = "0.2021.10.17"
 #        obj.addProperty("App::PropertyFloat","PatternShapeScale","PatternScale","Scale to be applied to pattern shape").PatternShapeScale = 1.0
 #        obj.addProperty("App::PropertyFloat","PatternBaseScale","PatternScale","Scale to be applied to pattern base").PatternBaseScale = 1.0
 #        obj.addProperty("App::PropertyFloat","PatternToolScale","PatternScale","Scale to be applied to pattern tool").PatternToolScale = 1.0
+#        obj.addProperty("App::PropertyVector","TipShapeScaleXYZ","TipScale","Scale to be applied to tip shape boolean result").TipShapeScaleXYZ = FreeCAD.Vector(1,1,1)
+#        obj.addProperty("App::PropertyVector","TipBaseScaleXYZ","TipScale","Scale to be applied to tip base").TipBaseScaleXYZ = FreeCAD.Vector(1,1,1)
+#        obj.addProperty("App::PropertyVector","TipToolScaleXYZ","TipScale","Scale to be applied to tip tool").TipToolScaleXYZ = FreeCAD.Vector(1,1,1)
+#        obj.addProperty("App::PropertyVector","PatternShapeScaleXYZ","PatternScale","Scale to be applied to pattern shape").PatternShapeScaleXYZ = FreeCAD.Vector(1,1,1)
+#        obj.addProperty("App::PropertyVector","PatternBaseScaleXYZ","PatternScale","Scale to be applied to pattern base").PatternBaseScaleXYZ = FreeCAD.Vector(1,1,1)
+#        obj.addProperty("App::PropertyVector","PatternToolScaleXYZ","PatternScale","Scale to be applied to pattern tool").PatternToolScaleXYZ = FreeCAD.Vector(1,1,1)
 #        obj.addProperty("App::PropertyEnumeration","TipOperation","TipShape","Operation to perform with Tip Base and Tip Tool to create feature shape").TipOperation=["Fuse","Cut","Common","XOR","None"]
 #        obj.addProperty("App::PropertyBool","Refine","PartDesign","Whether to refine shape (removes extra edges")
 #        obj.addProperty("App::PropertyString","Type","PDWrapper","This object type, can be Additive, Subtractive, Common, XOR, None")
@@ -116,6 +122,7 @@ __version__ = "0.2021.10.17"
 #            plm = getattr(fp,"TipBasePlacement")
 #            shp = self.getShape(fp,fp.TipBase,fp.UseTipBaseAddSubShape)
 #            shp = self.scale(fp,shp, fp.TipBaseScale, fp.TipBaseScale != 1.0,fp.TipScaleCut)
+#            shp = self.scaleXYZ(fp.TipBaseScaleXYZ,shp,fp.TipScaleCut)
 #            if fp.TipBaseOffset != 0:
 #                shp = self.offset(fp,shp,fp.TipBaseOffset,"Tip")
 #        elif "TipTool" in prop:
@@ -123,6 +130,7 @@ __version__ = "0.2021.10.17"
 #            plm = getattr(fp,"TipToolPlacement")
 #            shp = self.getShape(fp,fp.TipTool,fp.UseTipToolAddSubShape)
 #            shp = self.scale(fp,shp, fp.TipToolScale, fp.TipToolScale != 1.0,fp.TipScaleCut)
+#            shp = self.scaleXYZ(fp.TipToolScaleXYZ,shp,fp.TipScaleCut)
 #            if fp.TipToolOffset != 0:
 #                shp = self.offset(fp,shp,fp.TipToolOffset,"Tip")
 #        elif "PatternBase" in prop:
@@ -130,6 +138,7 @@ __version__ = "0.2021.10.17"
 #            plm = getattr(fp,"PatternBasePlacement")
 #            shp = self.getShape(fp,fp.PatternBase,fp.UsePatternBaseAddSubShape)
 #            shp = self.scale(fp,shp, fp.PatternBaseScale, fp.PatternBaseScale != 1.0,fp.PatternScaleCut)
+#            shp = self.scaleXYZ(fp.PatternBaseScaleXYZ,shp,fp.PatternScaleCut)
 #            if fp.PatternBaseOffset != 0:
 #                shp = self.offset(fp,shp,fp.PatternBaseOffset,"Pattern")
 #        elif "PatternTool" in prop:
@@ -137,6 +146,7 @@ __version__ = "0.2021.10.17"
 #            plm = getattr(fp,"PatternToolPlacement")
 #            shp = self.getShape(fp,fp.PatternTool,fp.UsePatternToolAddSubShape)
 #            shp = self.scale(fp,shp, fp.PatternToolScale, fp.PatternToolScale != 1.0,fp.PatternScaleCut)
+#            shp = self.scaleXYZ(fp.PatternToolScaleXYZ,shp,fp.PatternScaleCut)
 #            if fp.PatternToolOffset != 0:
 #                shp = self.offset(fp,shp,fp.PatternToolOffset,"Pattern")
 #        if not ghost or not plm:
@@ -150,7 +160,7 @@ __version__ = "0.2021.10.17"
 #
 #    def exorciseGhosts(self):
 #        '''remove temporary representation of shapes being manipulated'''
-#        ghosts = [obj.Name for obj in FreeCAD.ActiveDocument.Objects if "_ghost" in obj.Name]
+#        ghosts = [self.tbName,self.ttName,self.pbName,self.ptName,self.pgName]
 #        for ghost in ghosts:
 #            FreeCAD.ActiveDocument.removeObject(ghost)
 #        self.recompute()
@@ -210,6 +220,7 @@ __version__ = "0.2021.10.17"
 #        pt_ghost.ViewObject.Visibility = False
 #        pb_ghost.ViewObject.Visibility = False
 #        pg_ghost.ViewObject.Visibility = False
+#        pg_ghose.ViewObject.ShowInTree = False
 #        ghosts = [obj for obj in FreeCAD.ActiveDocument.Objects if "_ghost" in obj.Name]
 #        for ghost in ghosts:
 #            ghost.setEditorMode("Placement",1) #readonly  User must not edit this property, but rather the fp property
@@ -303,11 +314,13 @@ __version__ = "0.2021.10.17"
 #        base = fp.PatternBase if fp.PatternBase else None #null shape
 #        base_shape = self.getShape(fp,base,fp.UsePatternBaseAddSubShape)
 #        base_shape = self.scale(fp,base_shape, fp.PatternBaseScale, fp.PatternBaseScale != 1.0,fp.PatternScaleCut)
+#        base_shape = self.scaleXYZ(fp.PatternBaseScaleXYZ, base_shape,fp.PatternScaleCut)
 #        if fp.PatternBaseOffset != 0:
 #            base_shape = self.offset(fp,base_shape,fp.PatternBaseOffset,"Pattern")
 #        tool = fp.PatternTool if fp.PatternTool else None
 #        tool_shape = self.getShape(fp,tool,fp.UsePatternToolAddSubShape)
 #        tool_shape = self.scale(fp,tool_shape, fp.PatternToolScale, fp.PatternToolScale != 1.0,fp.PatternScaleCut)
+#        tool_shape = self.scaleXYZ(fp.PatternToolScaleXYZ, tool_shape, fp.PatternScaleCut)
 #        if fp.PatternToolOffset != 0.0:
 #            tool_shape = self.offset(fp,tool_shape,fp.PatternToolOffset,"Pattern")
 #        if not fp.PatternBasePlacement.isIdentity() and not base_shape.isNull():
@@ -414,8 +427,10 @@ __version__ = "0.2021.10.17"
 #        shape = Part.Shape()
 #        base_shape = self.getShape(fp,fp.TipBase,fp.UseTipBaseAddSubShape)
 #        base_shape = self.scale(fp,base_shape, fp.TipBaseScale, fp.TipBaseScale != 1.0,fp.TipScaleCut)
+#        base_shape = self.scaleXYZ(fp.TipBaseScaleXYZ, base_shape, fp.TipScaleCut)
 #        tool_shape = self.getShape(fp,fp.TipTool,fp.UseTipToolAddSubShape)
 #        tool_shape = self.scale(fp,tool_shape, fp.TipToolScale, fp.TipToolScale != 1.0,fp.TipScaleCut)
+#        tool_shape = self.scaleXYZ(fp.TipToolScaleXYZ, tool_shape, fp.TipScaleCut)
 #        if not fp.TipBasePlacement.isIdentity() and not base_shape.isNull():
 #            base_shape = base_shape.transformShape(fp.TipBasePlacement.toMatrix(), True)
 #        if not fp.TipToolPlacement.isIdentity() and not tool_shape.isNull():
@@ -473,12 +488,14 @@ __version__ = "0.2021.10.17"
 #            shape = refined
 #
 #        scaled = self.scale(fp,shape,fp.TipShapeScale,bool(fp.Enabled and fp.TipShapeScale != 1.0),fp.TipScaleCut)
+#        scaled = self.scaleXYZ(fp.TipShapeScaleXYZ, scaled, fp.TipScaleCut)
 #        shape = scaled
 #
 #        if not "None" in fp.Type:
 #            addsubshape = self.makeAddSubShape(fp)
 #            addSubShape = addsubshape if not fp.Refine else addsubshape.removeSplitter()
 #            addSubShape = self.scale(fp,addSubShape,fp.PatternShapeScale,fp.PatternShapeScale != 1.0,fp.PatternScaleCut)
+#            addSubShape = self.scaleXYZ(fp.PatternShapeScaleXYZ, addSubShape, fp.PatternScaleCut)
 #            if fp.PatternShapeOffset != 0:
 #                addSubShape = self.offset(fp,fp.AddSubShape,fp.PatternShapeOffset,"Pattern")
 #            fp.AddSubShape = addsubshape
@@ -530,6 +547,31 @@ __version__ = "0.2021.10.17"
 #            else:
 #                return offsetShp
 #
+##    #borrowed from Draft.Clone scaling code
+#    def scaleXYZ(self,scale,shp,bCut):
+#        if shp:
+#            orig = shp.copy()
+#        m = FreeCAD.Matrix()
+#        if shp and not shp.isNull():
+#            sx,sy,sz = scale
+#            if not scale.isEqual(FreeCAD.Vector(1, 1, 1),1e-7):
+#                op = shp.Placement
+#                shp.Placement = FreeCAD.Placement()
+#                m.scale(scale)
+#                if sx == sy == sz:
+#                    shp.transformShape(m)
+#                else:
+#                    shp = shp.transformGeometry(m)
+#                shp.Placement = op
+#                if bCut:
+#                    if orig.Volume > shp.Volume:
+#                        shp = orig.cut(shp)
+#                    elif shp.Volume > orig.Volume:
+#                        shp = shp.cut(orig)
+#                    else:
+#                        FreeCAD.Console.PrintWarning("Unable to determine direction of cut.\n")
+#        return shp
+#
 #    def scale(self,fp,shp,factor,bScale,bCut):
 #        '''scale and return shp scaled if bScale = true'''
 #        if not shp or shp.isNull():
@@ -558,6 +600,7 @@ __version__ = "0.2021.10.17"
 #class TaskEditPlacementsPanel: #simple editor for placement adjustments
 #    def __init__(self, fp):
 #        FreeCADGui.Selection.clearSelection()
+#        self.blockSignals = True
 #        self.fp = fp
 #        self.form = QtGui.QWidget()
 #        self.label1 = QtGui.QLabel(\
@@ -660,8 +703,11 @@ __version__ = "0.2021.10.17"
 #        for plm in plms:
 #            self.fp.setEditorMode(plm,1) #readonly mode while editor is open else editor values won't be updated
 #            self.initialPlacements[plm] = getattr(self.fp,plm)
+#        self.blockSignals = False
 #
 #    def valueChanged(self, val):
+#        if hasattr(self,"blockSignals") and self.blockSignals:
+#            return
 #        plm = FreeCAD.Placement()
 #        plm.Base.x = self.tb_pos_x.value()
 #        plm.Base.y = self.tb_pos_y.value()
