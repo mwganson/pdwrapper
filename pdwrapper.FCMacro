@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-__version__ = "0.2021.10.21.rev2"
-#__version__ = "0.2021.10.21.rev2"
+__version__ = "0.2021.10.21.rev3"
+#__version__ = "0.2021.10.21.rev3"
 ## PDWrapper a class to encapsulate non-Part Design objects into a PartDesign::FeaturePython object
 ## 2021, by <TheMarkster>
 #
@@ -220,7 +220,7 @@ __version__ = "0.2021.10.21.rev2"
 #        pt_ghost.ViewObject.Visibility = False
 #        pb_ghost.ViewObject.Visibility = False
 #        pg_ghost.ViewObject.Visibility = False
-#        pg_ghose.ViewObject.ShowInTree = False
+#        pg_ghost.ViewObject.ShowInTree = False
 #        ghosts = [obj for obj in FreeCAD.ActiveDocument.Objects if "_ghost" in obj.Name]
 #        for ghost in ghosts:
 #            ghost.setEditorMode("Placement",1) #readonly  User must not edit this property, but rather the fp property
