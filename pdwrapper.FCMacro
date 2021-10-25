@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-__version__ = "0.2021.10.21.rev3"
-#__version__ = "0.2021.10.21.rev3"
+__version__ = "0.2021.10.25"
+#__version__ = "0.2021.10.25"
 ## PDWrapper a class to encapsulate non-Part Design objects into a PartDesign::FeaturePython object
 ## 2021, by <TheMarkster>
 #
@@ -90,6 +90,7 @@ __version__ = "0.2021.10.21.rev3"
 #        self.pbName = ""
 #        self.ptName = ""
 #        self.pgName = "" #pattern ghost
+#        self.positioningGhosts = False
 #
 #    def recompute(self):
 #        t = QtCore.QTimer()
@@ -113,7 +114,10 @@ __version__ = "0.2021.10.21.rev3"
 #            t = QtCore.QTimer()
 #            t.singleShot(50, self.showGhosts)
 #        elif bool("Placement" in prop or "Offset" in prop or "Scale" in prop) and self.editingMode == True:
-#            self.positionGhosts(fp,prop)
+#            if not self.positioningGhosts:
+#                self.positioningGhosts = True
+#                self.positionGhosts(fp,prop)
+#                self.positioningGhosts = False
 #
 #    def positionGhosts(self,fp,prop):
 #        ghost = None
