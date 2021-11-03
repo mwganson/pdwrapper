@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-__version__ = "0.2021.10.25"
-#__version__ = "0.2021.10.25"
+__version__ = "0.2021.11.02"
+#__version__ = "0.2021.11.02"
 ## PDWrapper a class to encapsulate non-Part Design objects into a PartDesign::FeaturePython object
 ## 2021, by <TheMarkster>
 #
@@ -1386,6 +1386,11 @@ def getBody(doc):
     from PySide import QtGui
     def parens(name,label):
         return name + " ("+label+")" if name != label else name
+    selobj = FreeCADGui.Selection.getSelection() #prefer body containing PD native object being encapsulated
+    if len(selobj) >= 1:
+        sel = selobj[0]
+        if hasattr(sel,"_Body"):
+            return sel._Body
     bodies = [obj for obj in doc.Objects if obj.TypeId == "PartDesign::Body"]
     if len(bodies) == 1:
         return bodies[0]
