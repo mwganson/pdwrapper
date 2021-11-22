@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-__version__ = "0.2021.11.02"
-#__version__ = "0.2021.11.02"
+__version__ = "0.2021.11.22"
+#__version__ = "0.2021.11.22"
 ## PDWrapper a class to encapsulate non-Part Design objects into a PartDesign::FeaturePython object
 ## 2021, by <TheMarkster>
 #
@@ -63,7 +63,8 @@ __version__ = "0.2021.11.02"
 #        obj.addProperty("App::PropertyVector","PatternBaseScaleXYZ","PatternScale","Scale to be applied to pattern base").PatternBaseScaleXYZ = FreeCAD.Vector(1,1,1)
 #        obj.addProperty("App::PropertyVector","PatternToolScaleXYZ","PatternScale","Scale to be applied to pattern tool").PatternToolScaleXYZ = FreeCAD.Vector(1,1,1)
 #        obj.addProperty("App::PropertyEnumeration","TipOperation","TipShape","Operation to perform with Tip Base and Tip Tool to create feature shape").TipOperation=["Fuse","Cut","Common","XOR","None"]
-#        obj.addProperty("App::PropertyBool","Refine","PartDesign","Whether to refine shape (removes extra edges")
+#        if not hasattr(obj,"Refine"):
+#            obj.addProperty("App::PropertyBool","Refine","PartDesign","Whether to refine shape (removes extra edges")
 #        obj.addProperty("App::PropertyString","Type","PDWrapper","This object type, can be Additive, Subtractive, Common, XOR, None")
 #        obj.addProperty("App::PropertyFloatConstraint","MeshTolerance","Mesh","Tolerance when wrapping mesh objects").MeshTolerance = (0.1,0.001,10000,.1)
 #        obj.addProperty("App::PropertyBool","RefineMesh","Mesh","Whether to refine Mesh shape after conversion").RefineMesh = True
