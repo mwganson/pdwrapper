@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-__version__ = "0.2021.11.22"
-#__version__ = "0.2021.11.22"
+__version__ = "0.2022.01.23"
+#__version__ = "0.2022.01.23"
 ## PDWrapper a class to encapsulate non-Part Design objects into a PartDesign::FeaturePython object
 ## 2021, by <TheMarkster>
 #
@@ -29,6 +29,10 @@ __version__ = "0.2021.11.22"
 #        obj.addProperty("App::PropertyFloat","TipShapeOffset","TipOffset","Offset of Tip Shape (result of Tip Boolean operation)").TipShapeOffset = 0.0
 #        obj.addProperty("App::PropertyFloat","TipBaseOffset","TipOffset","Whether to offset Tip Base shape").TipBaseOffset = 0.0
 #        obj.addProperty("App::PropertyFloat","TipToolOffset","TipOffset","Whether to offset Tip Tool shape").TipToolOffset = 0.0
+#        obj.addProperty("App::PropertyBool","TipOffsetIntersection","TipOffset","OCC parameter, might not be yet implemented in FreeCAD").TipOffsetIntersection=False
+#        obj.addProperty("App::PropertyBool","TipOffsetSelfIntersection","TipOffset","OCC parameter, might not be yet implemented in FreeCAD").TipOffsetSelfIntersection=False
+#        obj.addProperty("App::PropertyBool","PatternOffsetIntersection","PatternOffset","OCC parameter, might not be yet implemented in FreeCAD").PatternOffsetIntersection=False
+#        obj.addProperty("App::PropertyBool","PatternOffsetSelfIntersection","PatternOffset","OCC parameter, might not be yet implemented in FreeCAD").PatternOffsetSelfIntersection=False
 #        obj.addProperty("App::PropertyBool","UsePatternBaseAddSubShape","PatternShape","Use pattern base's addsubshape property in place of Pattern base's shape in boolean to create pattern shape").UsePatternBaseAddSubShape = False
 #        obj.addProperty("App::PropertyBool","UseTipBaseAddSubShape","TipShape","Use tip base's addsubshape property in place of Tip Base's shape in boolean to create tip shape").UseTipBaseAddSubShape = False
 #        obj.addProperty("App::PropertyBool","UseTipToolAddSubShape","TipShape","Use tip tool's addsubshape property in place of Tip Tool's shape in boolean to create tip shape").UseTipToolAddSubShape = False
@@ -528,7 +532,15 @@ __version__ = "0.2021.11.22"
 #            psoMode = 0 if fp.PatternOffsetMode == "Skin" else 1 if fp.PatternOffsetMode == "Pipe" else 2 if fp.PatternOffsetMode == "Recto-verso" else -1
 #            psoJoin = 0 if fp.PatternOffsetJoin == "Arcs" else 1 if fp.PatternOffsetJoin == "Tangent" else 2 if fp.PatternOffsetMode == "Intersection" else -1
 #            psoFill = False
-#            offsetShp = shp.makeOffsetShape(factor,tolerance=psoTol,offsetMode = psoMode, join = psoJoin, fill = psoFill)
+#            if hasattr(fp,"PatternOffsetIntersection"):
+#                psoInter = fp.PatternOffsetIntersection
+#            else:
+#                psoInter = False
+#            if hasattr(fp,"PatternOffsetSelfIntersection"):
+#                psoSelfInter = fp.PatternOffsetSelfIntersection
+#            else:
+#                psoSelfInter = False
+#            offsetShp = shp.makeOffsetShape(factor,tolerance=psoTol,offsetMode = psoMode, join = psoJoin, fill = psoFill, inter = psoInter, self_inter = psoSelfInter)
 #            if fp.PatternOffsetCut:
 #                if factor < 0:
 #                    return shp.cut(offsetShp)
@@ -543,7 +555,15 @@ __version__ = "0.2021.11.22"
 #            tsoMode = 0 if fp.TipOffsetMode == "Skin" else 1 if fp.TipOffsetMode == "Pipe" else 2 if fp.TipOffsetMode == "Recto-verso" else -1
 #            tsoJoin = 0 if fp.TipOffsetJoin == "Arcs" else 1 if fp.TipOffsetJoin == "Tangent" else 2 if fp.TipOffsetMode == "Intersection" else -1
 #            tsoFill = False
-#            offsetShp = shp.makeOffsetShape(factor,tolerance=tsoTol,offsetMode = tsoMode, join = tsoJoin, fill = tsoFill)
+#            if hasattr(fp,"TipOffsetIntersection"):
+#                tsoInter = fp.TipOffsetIntersection
+#            else:
+#                tsoInter = False
+#            if hasattr(fp,"TipOffsetSelfIntersection"):
+#                tsoSelfInter = fp.TipOffsetSelfIntersection
+#            else:
+#                tsoSelfInter = False
+#            offsetShp = shp.makeOffsetShape(factor,tolerance=tsoTol,offsetMode = tsoMode, join = tsoJoin, fill = tsoFill, inter = tsoInter, self_inter = tsoSelfInter)
 #            if fp.TipOffsetCut:
 #                if factor < 0:
 #                    return shp.cut(offsetShp)
