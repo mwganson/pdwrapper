@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-__version__ = "0.2022.01.23"
-#__version__ = "0.2022.01.23"
+__version__ = "0.2022.02.01"
+#__version__ = "0.2022.02.01"
 ## PDWrapper a class to encapsulate non-Part Design objects into a PartDesign::FeaturePython object
 ## 2021, by <TheMarkster>
 #
@@ -288,6 +288,9 @@ __version__ = "0.2022.01.23"
 #                if not hasattr(fp,propName):
 #                    fp.addProperty("Part::PropertyPartShape",propName)
 #                    fp.setEditorMode(propName,2) #hidden
+#                if len(link.Mesh.getSeparateComponents()) > 1:
+#                    FreeCAD.Console.PrintWarning(f"{link.Label} has multiple components.  In some cases it will be \
+#necessary to use Mesh Design workbench Split by components first, and then wrap the component meshes individually.\n")
 #                mesh_shape = Part.Shape()
 #                mesh_shape.makeShapeFromMesh(link.Mesh.Topology,fp.MeshTolerance)
 #                shells = mesh_shape.Shells
