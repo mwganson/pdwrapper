@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-__version__ = "0.2022.02.01"
-#__version__ = "0.2022.02.01"
+__version__ = "0.2022.02.26"
+#__version__ = "0.2022.02.26"
 ## PDWrapper a class to encapsulate non-Part Design objects into a PartDesign::FeaturePython object
 ## 2021, by <TheMarkster>
 #
@@ -915,7 +915,9 @@ __version__ = "0.2022.02.01"
 #        if vobj.Object.LinkedObject and vobj.Object.ClaimChildren:
 #            if vobj.Object.LinkedObject in body.Group:
 #                grp = body.Group
-#                if not vobj.Object.LinkedObject.isDerivedFrom("PartDesign::Feature") and not vobj.Object.LinkedObject.isDerivedFrom("Part::Part2DObject"):
+#                if not vobj.Object.LinkedObject.isDerivedFrom("PartDesign::Feature") \
+#                and not vobj.Object.LinkedObject.isDerivedFrom("Part::Part2DObject") \
+#                and not vobj.Object.LinkedObject.isDerivedFrom("PartDesign::ShapeBinder"):
 #                    grp.remove(vobj.Object.LinkedObject)
 #                    body.Group = grp
 #                    vobj.Object.LinkedObject.ViewObject.Visibility = True
