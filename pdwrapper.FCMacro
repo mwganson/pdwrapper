@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-__version__ = "0.2022.02.26"
-#__version__ = "0.2022.02.26"
+__version__ = "0.2023.08.13"
+#__version__ = "0.2023.08.13"
 ## PDWrapper a class to encapsulate non-Part Design objects into a PartDesign::FeaturePython object
 ## 2021, by <TheMarkster>
 #
@@ -443,9 +443,9 @@ __version__ = "0.2022.02.26"
 #        tool_shape = self.getShape(fp,fp.TipTool,fp.UseTipToolAddSubShape)
 #        tool_shape = self.scale(fp,tool_shape, fp.TipToolScale, fp.TipToolScale != 1.0,fp.TipScaleCut)
 #        tool_shape = self.scaleXYZ(fp.TipToolScaleXYZ, tool_shape, fp.TipScaleCut)
-#        if not fp.TipBasePlacement.isIdentity() and not base_shape.isNull():
+#        if base_shape and not fp.TipBasePlacement.isIdentity() and not base_shape.isNull():
 #            base_shape = base_shape.transformShape(fp.TipBasePlacement.toMatrix(), True)
-#        if not fp.TipToolPlacement.isIdentity() and not tool_shape.isNull():
+#        if tool_shape and not fp.TipToolPlacement.isIdentity() and not tool_shape.isNull():
 #            tool_shape = tool_shape.transformShape(fp.TipToolPlacement.toMatrix(), True)
 #        if not tool_shape:
 #            tool_shape = Part.Shape()
